@@ -14,7 +14,6 @@ if not dotenv_path:
 if dotenv_path:
     load_dotenv(dotenv_path=dotenv_path)
 
-
 class Config(BaseSettings):
     MASTER_KEY: str = Field(..., json_schema_extra={"env": "MASTER_KEY"})
     ALLOWED_ORIGINS: str = Field(..., json_schema_extra={"env": "ALLOWED_ORIGINS"})

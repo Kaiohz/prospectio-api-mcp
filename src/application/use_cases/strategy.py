@@ -1,15 +1,17 @@
 from abc import abstractmethod
 
-from application.ports.get_leads import ProspectAPIPort
+from application.ports.prospect_api import ProspectAPIPort
 
 
 class GetLeadsStrategy:
     """
     Port for getting leads with contacts.
     """
-    def __init__(self, port: ProspectAPIPort):
+    def __init__(self, location: str, job_title: list[str], port: ProspectAPIPort):
+        self.location = location
         self.port = port
+        self.job_title = job_title
 
     @abstractmethod
-    async def execute(source: str):
+    async def execute(self):
         pass
