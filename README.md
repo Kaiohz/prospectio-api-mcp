@@ -189,6 +189,8 @@ Environment-based configuration using Pydantic Settings:
 
 ## 🏃‍♂️ Running the Application
 
+### Option 1: Local Development
+
 1. **Install Dependencies**:
    ```bash
    poetry install
@@ -202,10 +204,61 @@ Environment-based configuration using Pydantic Settings:
    poetry run fastapi run src/main.py --reload --port <YOUR_DESIRED_PORT>
    ```
 
-4. **Access APIs**:
-   - REST API: `http://localhost:8000/rest/v1/leads/{source}` (where source can be: mantiks, clearbit, hunter, peopledatalabs, apollo, cognism, leadgenius, dropcontact, lusha, zoominfo, scrubby)
-   - API Documentation: `http://localhost:8000/docs`
-   - MCP Endpoint: `http://localhost:8000/prospectio/mcp/sse`
+### Option 2: Docker Compose (Recommended)
+
+1. **Set Environment Variables**:
+   ```bash
+   # Copy the example environment file
+   cp .env.example .env
+   
+   # Edit the .env file with your actual values
+   nano .env  # or use your preferred editor
+   ```
+
+2. **Build and Run with Docker Compose**:
+   ```bash
+   # Build and start the container
+   docker-compose up --build
+   
+   # Or run in background (detached mode)
+   docker-compose up -d --build
+   ```
+
+3. **Stop the Application**:
+   ```bash
+   # Stop the container
+   docker-compose down
+   
+   # Stop and remove volumes (if needed)
+   docker-compose down -v
+   ```
+
+4. **View Logs**:
+   ```bash
+   # View real-time logs
+   docker-compose logs -f
+   
+   # View logs for specific service
+   docker-compose logs -f prospectio-api
+   ```
+
+### Accessing the APIs
+
+Once the application is running (locally or via Docker), you can access:
+- **REST API**: `http://localhost:7002/rest/v1/leads/{source}` (where source can be: mantiks, clearbit, hunter, peopledatalabs, apollo, cognism, leadgenius, dropcontact, lusha, zoominfo, scrubby)
+- **API Documentation**: `http://localhost:7002/docs`
+- **MCP Endpoint**: `http://localhost:7002/prospectio/mcp/sse`
+
+### Docker Development Tips
+
+For development with hot reload, you can uncomment the volume mount in `docker-compose.yml`:
+```yaml
+volumes:
+  # Uncomment this line for development hot reload
+  - ./src:/app/src
+```
+
+This will allow you to modify the source code and see changes without rebuilding the container.
 
 ## 📝 License
 

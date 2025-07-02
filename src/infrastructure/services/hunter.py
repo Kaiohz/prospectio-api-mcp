@@ -1,5 +1,5 @@
 import json
-from application.ports.get_leads import ProspectAPIPort
+from application.ports.prospect_api import ProspectAPIPort
 
 
 class HunterAPI(ProspectAPIPort):

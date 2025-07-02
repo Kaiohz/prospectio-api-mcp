@@ -1,0 +1,14 @@
+services:
+  prospectio-mcp-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: prospectio-mcp-api
+    ports:
+      - "7002:7002"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7002/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

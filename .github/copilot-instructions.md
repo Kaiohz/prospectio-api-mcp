@@ -41,3 +41,5 @@ fastapi = { version = "0.115.14", extras = ["standard"]}
 - Use **APIRouter** to modularize endpoints.
 - Validate input early and fail fast.
 - Include proper status codes, descriptions, and response models.
+- use async first
+- make **no async** method **async** using **asyncio.to_thread**
