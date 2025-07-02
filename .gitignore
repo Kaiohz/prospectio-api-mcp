@@ -84,6 +84,7 @@ docker-compose.override.yml
 
 # Other
 *.db
+.gemini
 
 # Ignore secrets
 secrets.*

@@ -26,20 +26,37 @@ prospectio-api-mcp/
     │   └── logic/              # Domain business logic (empty)
     ├── application/            # Application layer (use cases & ports)
     │   ├── ports/              # Abstract interfaces (ports)
-    │   │   └── leads/
-    │   │       └── get_leads.py # ProspectAPIPort interface
-    │   ├── strategies/         # Strategy pattern implementations
-    │   │   └── leads/
-    │   │       ├── strategy.py  # Abstract strategy base class
-    │   │       └── mantiks.py   # Mantiks-specific strategy
+    │   │   └── get_leads.py    # ProspectAPIPort interface
     │   └── use_cases/          # Application use cases
-    │       └── leads/
-    │           └── get_leads.py # GetLeadsContactsUseCase
+    │       ├── get_leads.py    # GetLeadsContactsUseCase
+    │       ├── strategy.py     # Abstract strategy base class
+    │       └── strategies/     # Strategy pattern implementations
+    │           ├── apollo.py   # Apollo.io strategy
+    │           ├── clearbit.py # Clearbit strategy
+    │           ├── cognism.py  # Cognism strategy
+    │           ├── dropcontact.py # Dropcontact strategy
+    │           ├── hunter.py   # Hunter.io strategy
+    │           ├── leadgenius.py # LeadGenius strategy
+    │           ├── lusha.py    # Lusha strategy
+    │           ├── mantiks.py  # Mantiks strategy
+    │           ├── peopledatalabs.py # People Data Labs strategy
+    │           ├── scrubby.py  # Scrubby strategy
+    │           └── zoominfo.py # ZoomInfo strategy
     └── infrastructure/         # Infrastructure layer (external concerns)
         ├── api/                # HTTP API routes
         │   └── prospect_routes.py # FastAPI routes & MCP tools
         └── services/           # External service adapters
-            └── mantiks.py      # Mantiks API implementation
+            ├── apollo.py       # Apollo.io API implementation
+            ├── clearbit.py     # Clearbit API implementation
+            ├── cognism.py      # Cognism API implementation
+            ├── dropcontact.py  # Dropcontact API implementation
+            ├── hunter.py       # Hunter.io API implementation
+            ├── leadgenius.py   # LeadGenius API implementation
+            ├── lusha.py        # Lusha API implementation
+            ├── mantiks.py      # Mantiks API implementation
+            ├── peopledatalabs.py # People Data Labs API implementation
+            ├── scrubby.py      # Scrubby API implementation
+            └── zoominfo.py     # ZoomInfo API implementation
 ```
 
 ## 🔧 Core Components
@@ -53,19 +70,29 @@ prospectio-api-mcp/
 
 ### Application Layer (`src/application/`)
 
-#### Ports (`src/application/ports/leads/get_leads.py`)
+#### Ports (`src/application/ports/get_leads.py`)
 - **`ProspectAPIPort`**: Abstract interface defining the contract for prospect data sources
   - `fetch_leads()`: Abstract method for fetching lead data
 
-#### Use Cases (`src/application/use_cases/leads/get_leads.py`)
+#### Use Cases (`src/application/use_cases/get_leads.py`)
 - **`GetLeadsContactsUseCase`**: Orchestrates the process of getting leads from different sources
   - Accepts a source identifier and a port implementation
   - Uses strategy pattern to delegate to appropriate strategy based on source
 
-#### Strategies (`src/application/strategies/leads/`)
-- **`GetLeadsStrategy`**: Abstract base class for lead retrieval strategies
-- **`MantiksStrategy`**: Concrete implementation for Mantiks data source
-  - Delegates to the injected port to fetch leads
+#### Strategies (`src/application/use_cases/`)
+- **`GetLeadsStrategy`** (`strategy.py`): Abstract base class for lead retrieval strategies
+- **Multiple Lead Source Strategies**: Concrete implementations for different data sources:
+  - `ApolloStrategy`: Apollo.io integration
+  - `ClearbitStrategy`: Clearbit integration  
+  - `CognismStrategy`: Cognism integration
+  - `DropcontactStrategy`: Dropcontact integration
+  - `HunterStrategy`: Hunter.io integration
+  - `LeadGeniusStrategy`: LeadGenius integration
+  - `LushaStrategy`: Lusha integration
+  - `MantiksStrategy`: Mantiks integration
+  - `PeopleDataLabsStrategy`: People Data Labs integration
+  - `ScrubbyStrategy`: Scrubby integration
+  - `ZoomInfoStrategy`: ZoomInfo integration
 
 ### Infrastructure Layer (`src/infrastructure/`)
 
@@ -76,10 +103,21 @@ prospectio-api-mcp/
   - Maps source to appropriate service implementation
   - Handles error cases with proper HTTP status codes
 
-#### Services (`src/infrastructure/services/mantiks.py`)
-- **`MantiksAPI`**: Concrete implementation of `ProspectAPIPort`
-  - Currently returns mock data for development/testing
-  - Can be extended to integrate with actual Mantiks API
+#### Services (`src/infrastructure/services/`)
+Multiple service implementations of `ProspectAPIPort` for different lead sources:
+- **`ApolloAPI`**: Apollo.io API implementation (mock data)
+- **`ClearbitAPI`**: Clearbit API implementation (mock data)
+- **`CognismAPI`**: Cognism API implementation (mock data)
+- **`DropcontactAPI`**: Dropcontact API implementation (mock data)
+- **`HunterAPI`**: Hunter.io API implementation (mock data)
+- **`LeadGeniusAPI`**: LeadGenius API implementation (mock data)
+- **`LushaAPI`**: Lusha API implementation (mock data)
+- **`MantiksAPI`**: Mantiks API implementation (mock data)
+- **`PeopleDataLabsAPI`**: People Data Labs API implementation (mock data)
+- **`ScrubbyAPI`**: Scrubby API implementation (mock data)
+- **`ZoomInfoAPI`**: ZoomInfo API implementation (mock data)
+
+All services currently return mock data for development/testing and can be extended to integrate with actual APIs.
 
 ## 🚀 Application Entry Point (`src/main.py`)
 
@@ -110,9 +148,9 @@ Environment-based configuration using Pydantic Settings:
 
 ## 🔄 Data Flow
 
-1. **HTTP Request**: Client makes request to `/rest/v1/leads/{source}`
+1. **HTTP Request**: Client makes request to `/rest/v1/leads/{source}` where source can be any of: `mantiks`, `clearbit`, `hunter`, `peopledatalabs`, `apollo`, `cognism`, `leadgenius`, `dropcontact`, `lusha`, `zoominfo`, or `scrubby`
 2. **Route Handler**: `get_leads()` function receives source parameter
-3. **Service Mapping**: Source is mapped to appropriate service (e.g., MantiksAPI)
+3. **Service Mapping**: Source is mapped to appropriate service (e.g., MantiksAPI, ApolloAPI, etc.)
 4. **Use Case Execution**: `GetLeadsContactsUseCase` is instantiated with source and service
 5. **Strategy Selection**: Use case selects appropriate strategy based on source
 6. **Port Execution**: Strategy calls the port's `fetch_leads()` method
@@ -140,8 +178,8 @@ Environment-based configuration using Pydantic Settings:
 
 ### Adding New Lead Sources
 1. Create new service class implementing `ProspectAPIPort` in `infrastructure/services/`
-2. Add new strategy class extending `GetLeadsStrategy` in `application/strategies/leads/`
-3. Register the new strategy in `GetLeadsContactsUseCase.strategies` dictionary
+2. Add new strategy class extending `GetLeadsStrategy` in `application/use_cases/strategies/`
+3. Register the new strategy in `GetLeadsContactsUseCase.strategies` dictionary in `application/use_cases/get_leads.py`
 4. Add service mapping in `prospect_routes.py`
 
 ### Adding New Endpoints
@@ -165,16 +203,9 @@ Environment-based configuration using Pydantic Settings:
    ```
 
 4. **Access APIs**:
-   - REST API: `http://localhost:8000/rest/v1/leads/mantiks`
+   - REST API: `http://localhost:8000/rest/v1/leads/{source}` (where source can be: mantiks, clearbit, hunter, peopledatalabs, apollo, cognism, leadgenius, dropcontact, lusha, zoominfo, scrubby)
    - API Documentation: `http://localhost:8000/docs`
    - MCP Endpoint: `http://localhost:8000/prospectio/mcp/sse`
-
-## 🧪 Testing
-
-The project structure supports easy testing:
-- **Unit Tests**: Test individual components in isolation
-- **Integration Tests**: Test the interaction between layers
-- **Mock Services**: Use mock implementations for external dependencies
 
 ## 📝 License
 

@@ -1,6 +1,6 @@
 from abc import abstractmethod
 
-from application.ports.leads.get_leads import ProspectAPIPort
+from application.ports.get_leads import ProspectAPIPort
 
 
 class GetLeadsStrategy:

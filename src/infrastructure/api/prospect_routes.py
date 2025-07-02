@@ -1,14 +1,34 @@
 from fastapi import APIRouter, HTTPException
 from mcp.server.fastmcp import FastMCP
-from application.ports.leads.get_leads import ProspectAPIPort
-from application.use_cases.leads.get_leads import GetLeadsContactsUseCase
+from application.ports.get_leads import ProspectAPIPort
+from application.use_cases.get_leads import GetLeadsContactsUseCase
 from infrastructure.services.mantiks import MantiksAPI
+from infrastructure.services.clearbit import ClearbitAPI
+from infrastructure.services.hunter import HunterAPI
+from infrastructure.services.peopledatalabs import PeopleDataLabsAPI
+from infrastructure.services.apollo import ApolloAPI
+from infrastructure.services.cognism import CognismAPI
+from infrastructure.services.leadgenius import LeadGeniusAPI
+from infrastructure.services.dropcontact import DropcontactAPI
+from infrastructure.services.lusha import LushaAPI
+from infrastructure.services.zoominfo import ZoomInfoAPI
+from infrastructure.services.scrubby import ScrubbyAPI
 
 mcp = FastMCP(name="Prospectio MCP", stateless_http=True)  
 api_router = APIRouter()
 
 prospect_source_mapping: dict[str, ProspectAPIPort] = {
     "mantiks": MantiksAPI(),
+    "clearbit": ClearbitAPI(),
+    "hunter": HunterAPI(),
+    "peopledatalabs": PeopleDataLabsAPI(),
+    "apollo": ApolloAPI(),
+    "cognism": CognismAPI(),
+    "leadgenius": LeadGeniusAPI(),
+    "dropcontact": DropcontactAPI(),
+    "lusha": LushaAPI(),
+    "zoominfo": ZoomInfoAPI(),
+    "scrubby": ScrubbyAPI(),
 }
 
 @api_router.get("/leads/{source}")
