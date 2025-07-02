@@ -7,9 +7,10 @@ class GetLeadsStrategy:
     """
     Port for getting leads with contacts.
     """
-    def __init__(self, location: str, port: ProspectAPIPort):
+    def __init__(self, location: str, job_title: list[str], port: ProspectAPIPort):
         self.location = location
         self.port = port
+        self.job_title = job_title
 
     @abstractmethod
     async def execute(self):

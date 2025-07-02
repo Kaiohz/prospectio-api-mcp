@@ -18,13 +18,14 @@ class GetLeadsUseCase():
     Use case for getting leads with contacts.
     """
 
-    def __init__(self, source: str, location: str, port: ProspectAPIPort):
+    def __init__(self, source: str, location: str, job_title: list[str], port: ProspectAPIPort):
         """
         Initialize the use case with the strategies.
         """
         self.source = source
         self.port = port
         self.location = location
+        self.job_title = job_title
 
 
     strategies: dict[str, GetLeadsStrategy] = {
@@ -42,5 +43,5 @@ class GetLeadsUseCase():
     }
 
     async def get_leads(self) -> str:
-        strategy: GetLeadsStrategy = self.strategies.get(self.source)(self.location, self.port)
+        strategy: GetLeadsStrategy = self.strategies.get(self.source)(self.location, self.job_title, self.port)
         return await strategy.execute()

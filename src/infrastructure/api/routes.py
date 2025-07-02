@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query, Path
 from mcp.server.fastmcp import FastMCP
 from application.ports.prospect_api import ProspectAPIPort
 from application.use_cases.get_leads import GetLeadsUseCase
@@ -39,7 +39,11 @@ prospect_source_mapping: dict[str, ProspectAPIPort] = {
 @api_router.get("/leads/{source}")
 @mcp.tool(description="Get leads with contacts from the specified source. " \
 "the first parameter is the source, the second parameter is the location country code.")
-async def get_leads(source: str, location: str) -> dict:
+async def get_leads(
+    source: str = Path(..., description="Lead source"),
+    location: str = Query(..., description="Location country code"),
+    job_title: list[str] = Query(..., description="Job titles (repeat this param for multiple values)")
+) -> dict:    
     """
     Get leads with contacts from the specified source.
     
@@ -48,7 +52,7 @@ async def get_leads(source: str, location: str) -> dict:
     """
     try:
         port = prospect_source_mapping.get(source)
-        return await GetLeadsUseCase(source, location, port).get_leads()
+        return await GetLeadsUseCase(source, location, job_title, port).get_leads()
     except Exception as e:
         logger.error(f"Error in get_leads: {e}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))

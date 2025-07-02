@@ -31,18 +31,18 @@ class JobDTO(BaseModel):
 
 class CompanyDTO(BaseModel):
     """DTO représentant une entreprise avec ses offres d'emploi."""
-    id: str
-    jobs: List[JobDTO]
-    max_company_size: int
-    min_company_size: int
-    name: str
-    social_urls: Dict[str, str]
-    website: str
+    id: Optional[str] = None
+    jobs: Optional[List[JobDTO]] = None
+    max_company_size: Optional[int] = None
+    min_company_size: Optional[int] = None
+    name: Optional[str] = None
+    social_urls: Optional[Dict[str, str]] = None
+    website: Optional[str] = None
 
 class CompanyResponseDTO(BaseModel):
     """DTO représentant la réponse complète de recherche d'entreprises et jobs."""
-    companies: List[CompanyDTO]
-    credits_cost: int
-    credits_remaining: int
+    companies: Optional[List[CompanyDTO]] = None
+    credits_cost: Optional[int] = None
+    credits_remaining: Optional[int] = None
     nb_companies: Optional[int] = None
     nb_jobs: Optional[int] = None
