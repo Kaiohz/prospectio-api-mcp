@@ -199,7 +199,7 @@ Environment-based configuration using Pydantic Settings:
 
 3. **Run the Application**:
    ```bash
-   poetry run uvicorn src.main:app --reload
+   poetry run fastapi run src/main.py --reload --port <YOUR_DESIRED_PORT>
    ```
 
 4. **Access APIs**:
