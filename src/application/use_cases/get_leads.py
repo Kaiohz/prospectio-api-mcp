@@ -15,12 +15,18 @@ from domain.leads.strategy import GetLeadsStrategy
 
 class GetLeadsUseCase():
     """
-    Use case for getting leads with contacts.
+    Use case for retrieving leads with contacts from a specified source using the strategy pattern.
     """
 
     def __init__(self, source: str, location: str, job_title: list[str], port: ProspectAPIPort):
         """
         Initialize the use case with the strategies.
+
+        Args:
+            source (str): The lead source identifier.
+            location (str): The location to search for leads.
+            job_title (list[str]): List of job titles to filter leads.
+            port (ProspectAPIPort): The port interface to the external prospect API.
         """
         self.source = source
         self.port = port
@@ -43,5 +49,11 @@ class GetLeadsUseCase():
     }
 
     async def get_leads(self) -> str:
+        """
+        Retrieve leads using the selected strategy for the given source.
+
+        Returns:
+            str: The leads data as a string (JSON or similar).
+        """
         strategy: GetLeadsStrategy = self.strategies.get(self.source)(self.location, self.job_title, self.port)
         return await strategy.execute()
