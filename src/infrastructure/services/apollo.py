@@ -1,5 +1,4 @@
-import json
-from application.ports.prospect_api import ProspectAPIPort
+from domain.ports.prospect_api import ProspectAPIPort
 
 
 class ApolloAPI(ProspectAPIPort):

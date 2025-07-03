@@ -1,16 +1,16 @@
-from application.ports.prospect_api import ProspectAPIPort
-from application.use_cases.strategies.mantiks import MantiksStrategy
-from application.use_cases.strategies.clearbit import ClearbitStrategy
-from application.use_cases.strategies.hunter import HunterStrategy
-from application.use_cases.strategies.peopledatalabs import PeopleDataLabsStrategy
-from application.use_cases.strategies.apollo import ApolloStrategy
-from application.use_cases.strategies.cognism import CognismStrategy
-from application.use_cases.strategies.leadgenius import LeadGeniusStrategy
-from application.use_cases.strategies.dropcontact import DropcontactStrategy
-from application.use_cases.strategies.lusha import LushaStrategy
-from application.use_cases.strategies.zoominfo import ZoomInfoStrategy
-from application.use_cases.strategies.scrubby import ScrubbyStrategy
-from application.use_cases.strategy import GetLeadsStrategy
+from domain.ports.prospect_api import ProspectAPIPort
+from domain.leads.mantiks import MantiksStrategy
+from domain.leads.clearbit import ClearbitStrategy
+from domain.leads.hunter import HunterStrategy
+from domain.leads.peopledatalabs import PeopleDataLabsStrategy
+from domain.leads.apollo import ApolloStrategy
+from domain.leads.cognism import CognismStrategy
+from domain.leads.leadgenius import LeadGeniusStrategy
+from domain.leads.dropcontact import DropcontactStrategy
+from domain.leads.lusha import LushaStrategy
+from domain.leads.zoominfo import ZoomInfoStrategy
+from domain.leads.scrubby import ScrubbyStrategy
+from domain.leads.strategy import GetLeadsStrategy
 
 
 class GetLeadsUseCase():

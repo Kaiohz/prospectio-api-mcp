@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query, Path
 from mcp.server.fastmcp import FastMCP
-from application.ports.prospect_api import ProspectAPIPort
+from domain.ports.prospect_api import ProspectAPIPort
 from application.use_cases.get_leads import GetLeadsUseCase
 from config import MantiksConfig
 from infrastructure.services.mantiks import MantiksAPI
