@@ -1,13 +1,18 @@
-import json
-from application.ports.prospect_api import ProspectAPIPort
+from domain.ports.prospect_api import ProspectAPIPort
+
 
 
 class ClearbitAPI(ProspectAPIPort):
+    """
+    Adapter for the Clearbit API to fetch lead data.
+    """
     
     async def fetch_leads(self) -> dict:
         """
         Fetch leads from the Clearbit API.
-        Returns a mock JSON with companies and contacts.
+
+        Returns:
+            dict: Mock data containing companies and contacts.
         """
         mock_data = {
             "companies": [

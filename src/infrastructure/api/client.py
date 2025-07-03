@@ -3,15 +3,17 @@ import httpx
 
 class BaseApiClient:
     """
-    Client HTTP générique pour consommer des APIs externes de leads.
-    Utilise httpx.AsyncClient pour les requêtes asynchrones.
+    Generic HTTP client for consuming external lead APIs.
+    Uses httpx.AsyncClient for asynchronous requests.
     """
     def __init__(self, base_url: str, headers: Optional[Dict[str, str]] = None, timeout: float = 30.0) -> None:
         """
-        Initialise le client avec une base URL, des headers optionnels et un timeout.
-        :param base_url: URL de base de l'API.
-        :param headers: Dictionnaire d'en-têtes HTTP par défaut.
-        :param timeout: Timeout en secondes pour les requêtes HTTP.
+        Initialize the client with a base URL, optional headers, and a timeout.
+
+        Args:
+            base_url (str): The base URL of the API.
+            headers (Optional[Dict[str, str]]): Default HTTP headers.
+            timeout (float): Timeout in seconds for HTTP requests.
         """
         self.base_url = base_url.rstrip('/')
         self.headers = headers or {}
@@ -19,26 +21,34 @@ class BaseApiClient:
 
     async def get(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> httpx.Response:
         """
-        Effectue une requête GET asynchrone.
-        :param endpoint: Chemin relatif de l'endpoint.
-        :param params: Paramètres de requête optionnels.
-        :return: Réponse httpx.Response
+        Perform an asynchronous GET request.
+
+        Args:
+            endpoint (str): Relative path of the endpoint.
+            params (Optional[Dict[str, Any]]): Optional query parameters.
+
+        Returns:
+            httpx.Response: The HTTP response object.
         """
         response = await self._client.get(endpoint, params=params)
         return response
 
     async def post(self, endpoint: str, data: Optional[Any] = None, json: Optional[Any] = None) -> httpx.Response:
         """
-        Effectue une requête POST asynchrone.
-        :param endpoint: Chemin relatif de l'endpoint.
-        :param data: Données à envoyer dans le corps de la requête.
-        :param json: Données JSON à envoyer dans le corps de la requête.
-        :return: Réponse httpx.Response
+        Perform an asynchronous POST request.
+
+        Args:
+            endpoint (str): Relative path of the endpoint.
+            data (Optional[Any]): Data to send in the request body.
+            json (Optional[Any]): JSON data to send in the request body.
+
+        Returns:
+            httpx.Response: The HTTP response object.
         """
         return await self._client.post(endpoint, data=data, json=json)
 
     async def close(self) -> None:
         """
-        Ferme le client HTTPX proprement.
+        Properly close the HTTPX client.
         """
         await self._client.aclose()

@@ -1,13 +1,17 @@
-import json
-from application.ports.prospect_api import ProspectAPIPort
+from domain.ports.prospect_api import ProspectAPIPort
+
 
 
 class LeadGeniusAPI(ProspectAPIPort):
-    
+    """
+    Adapter for the LeadGenius API to fetch lead data.
+    """
     async def fetch_leads(self) -> dict:
         """
         Fetch leads from the LeadGenius API.
-        Returns a mock JSON with companies and contacts.
+
+        Returns:
+            dict: Mock data containing companies and contacts.
         """
         mock_data = {
             "companies": [

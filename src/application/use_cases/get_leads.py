@@ -1,26 +1,33 @@
-from application.ports.prospect_api import ProspectAPIPort
-from application.use_cases.strategies.mantiks import MantiksStrategy
-from application.use_cases.strategies.clearbit import ClearbitStrategy
-from application.use_cases.strategies.hunter import HunterStrategy
-from application.use_cases.strategies.peopledatalabs import PeopleDataLabsStrategy
-from application.use_cases.strategies.apollo import ApolloStrategy
-from application.use_cases.strategies.cognism import CognismStrategy
-from application.use_cases.strategies.leadgenius import LeadGeniusStrategy
-from application.use_cases.strategies.dropcontact import DropcontactStrategy
-from application.use_cases.strategies.lusha import LushaStrategy
-from application.use_cases.strategies.zoominfo import ZoomInfoStrategy
-from application.use_cases.strategies.scrubby import ScrubbyStrategy
-from application.use_cases.strategy import GetLeadsStrategy
+from domain.ports.prospect_api import ProspectAPIPort
+from domain.leads.mantiks import MantiksStrategy
+from domain.leads.clearbit import ClearbitStrategy
+from domain.leads.hunter import HunterStrategy
+from domain.leads.peopledatalabs import PeopleDataLabsStrategy
+from domain.leads.apollo import ApolloStrategy
+from domain.leads.cognism import CognismStrategy
+from domain.leads.leadgenius import LeadGeniusStrategy
+from domain.leads.dropcontact import DropcontactStrategy
+from domain.leads.lusha import LushaStrategy
+from domain.leads.zoominfo import ZoomInfoStrategy
+from domain.leads.scrubby import ScrubbyStrategy
+from domain.leads.strategy import GetLeadsStrategy
 
 
 class GetLeadsUseCase():
     """
-    Use case for getting leads with contacts.
+    Use case for retrieving leads with contacts from a specified source using the strategy pattern.
+    This class selects the appropriate strategy based on the source and delegates the lead retrieval logic.
     """
 
     def __init__(self, source: str, location: str, job_title: list[str], port: ProspectAPIPort):
         """
-        Initialize the use case with the strategies.
+        Initialize the GetLeadsUseCase with the required parameters and available strategies.
+
+        Args:
+            source (str): The lead source identifier (e.g., 'mantiks', 'clearbit').
+            location (str): The location to search for leads.
+            job_title (list[str]): List of job titles to filter leads.
+            port (ProspectAPIPort): The port interface to the external prospect API.
         """
         self.source = source
         self.port = port
@@ -43,5 +50,13 @@ class GetLeadsUseCase():
     }
 
     async def get_leads(self) -> str:
+        """
+        Retrieve leads using the selected strategy for the given source.
+
+        Returns:
+            str: The leads data as a string (JSON or similar).
+        Raises:
+            KeyError: If the specified source is not supported.
+        """
         strategy: GetLeadsStrategy = self.strategies.get(self.source)(self.location, self.job_title, self.port)
         return await strategy.execute()
