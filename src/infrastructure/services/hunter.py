@@ -3,11 +3,15 @@ from domain.ports.prospect_api import ProspectAPIPort
 
 
 class HunterAPI(ProspectAPIPort):
-    
+    """
+    Adapter for the Hunter.io API to fetch lead data.
+    """
     async def fetch_leads(self) -> dict:
         """
         Fetch leads from the Hunter.io API.
-        Returns a mock JSON with companies and contacts.
+
+        Returns:
+            dict: Mock data containing companies and contacts.
         """
         mock_data = {
             "companies": [

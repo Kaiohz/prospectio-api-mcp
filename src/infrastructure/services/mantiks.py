@@ -10,10 +10,16 @@ from typing import TypeVar
 T = TypeVar("T")
 
 class MantiksAPI(ProspectAPIPort):
+    """
+    Adapter for the Mantiks API to fetch lead and location data.
+    """
 
     def __init__(self, config: MantiksConfig) -> None:
         """
         Initialize MantiksAPI with configuration.
+
+        Args:
+            config (MantiksConfig): Mantiks API configuration object.
         """
         self.api_base = config.MANTIKS_API_BASE
         self.api_key = config.MANTIKS_API_KEY

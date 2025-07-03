@@ -2,11 +2,16 @@ from domain.ports.prospect_api import ProspectAPIPort
 
 
 class ZoomInfoAPI(ProspectAPIPort):
-    
+    """
+    Adapter for the ZoomInfo API to fetch lead data.
+    """
+
     async def fetch_leads(self) -> dict:
         """
         Fetch leads from the ZoomInfo API.
-        Returns a mock JSON with companies and contacts.
+
+        Returns:
+            dict: Mock data containing companies and contacts.
         """
         mock_data = {
             "companies": [

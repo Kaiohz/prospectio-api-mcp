@@ -43,12 +43,17 @@ async def get_leads(
     source: str = Path(..., description="Lead source"),
     location: str = Query(..., description="Location country code"),
     job_title: list[str] = Query(..., description="Job titles (repeat this param for multiple values)")
-) -> dict:    
+) -> dict:
     """
-    Get leads with contacts from the specified source.
-    
-    :param source: The source from which to get leads with contacts.
-    :return: A string indicating the success of the operation.
+    Retrieve leads with contacts from the specified source.
+
+    Args:
+        source (str): The source from which to get leads with contacts.
+        location (str): The country code for the location.
+        job_title (list[str]): List of job titles to filter leads.
+
+    Returns:
+        dict: A dictionary containing the leads data.
     """
     try:
         port = prospect_source_mapping.get(source)

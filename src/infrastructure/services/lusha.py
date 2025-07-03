@@ -1,11 +1,15 @@
 from domain.ports.prospect_api import ProspectAPIPort
 
 class LushaAPI(ProspectAPIPort):
-    
+    """
+    Adapter for the Lusha API to fetch lead data.
+    """
     async def fetch_leads(self) -> dict:
         """
         Fetch leads from the Lusha API.
-        Returns a mock JSON with companies and contacts.
+
+        Returns:
+            dict: Mock data containing companies and contacts.
         """
         mock_data = {
             "companies": [
