@@ -1,7 +1,7 @@
 import httpx
 from domain.ports.prospect_api import ProspectAPIPort
-from application.dto.mantiks.company import CompanyResponseDTO
-from application.dto.mantiks.location import LocationResponseDTO
+from infrastructure.dto.mantiks.company import CompanyResponseDTO
+from infrastructure.dto.mantiks.location import LocationResponseDTO
 from config import MantiksConfig
 from infrastructure.api.client import BaseApiClient
 from typing import TypeVar

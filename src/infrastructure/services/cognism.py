@@ -6,7 +6,7 @@ class CognismAPI(ProspectAPIPort):
     """
     Adapter for the Cognism API to fetch lead data.
     """
-    async def fetch_leads(self) -> dict:
+    async def fetch_leads(self, location: str, job_title: list[str]) -> dict:
         """
         Fetch leads from the Cognism API.
 
