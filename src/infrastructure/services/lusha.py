@@ -4,7 +4,7 @@ class LushaAPI(ProspectAPIPort):
     """
     Adapter for the Lusha API to fetch lead data.
     """
-    async def fetch_leads(self) -> dict:
+    async def fetch_leads(self, location: str, job_title: list[str]) -> dict:
         """
         Fetch leads from the Lusha API.
 

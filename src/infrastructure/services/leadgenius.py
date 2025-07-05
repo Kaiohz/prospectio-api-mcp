@@ -6,7 +6,7 @@ class LeadGeniusAPI(ProspectAPIPort):
     """
     Adapter for the LeadGenius API to fetch lead data.
     """
-    async def fetch_leads(self) -> dict:
+    async def fetch_leads(self, location: str, job_title: list[str]) -> dict:
         """
         Fetch leads from the LeadGenius API.
 

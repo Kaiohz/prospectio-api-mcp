@@ -24,22 +24,44 @@ from domain.services.leads.lusha import LushaStrategy
 from domain.services.leads.zoominfo import ZoomInfoStrategy
 from domain.services.leads.scrubby import ScrubbyStrategy
 
-class StrategyFactory:
+class ProspectStrategyFactory:
     """
     Factory class to instantiate the correct GetLeadsStrategy for a given source, location, and job_title.
     """
-    _PROSPECT_STRATEGIES: dict[str, ProspectAPIPort] = {
-        "mantiks": MantiksStrategy(port=MantiksAPI(MantiksConfig())),
-        "clearbit": ClearbitStrategy(port=ClearbitAPI()),
-        "hunter": HunterStrategy(port=HunterAPI()),
-        "peopledatalabs": PeopleDataLabsStrategy(port=PeopleDataLabsAPI()),
-        "apollo": ApolloStrategy(port=ApolloAPI()),
-        "cognism": CognismStrategy(port=CognismAPI()),
-        "leadgenius": LeadGeniusStrategy(port=LeadGeniusAPI()),
-        "dropcontact": DropcontactStrategy(port=DropcontactAPI()),
-        "lusha": LushaStrategy(port=LushaAPI()),
-        "zoominfo": ZoomInfoStrategy(port=ZoomInfoAPI()),
-        "scrubby": ScrubbyStrategy(port=ScrubbyAPI()),
+    _PROSPECT_STRATEGIES: dict[str, callable] = {
+        "mantiks": lambda location, job_title: MantiksStrategy(
+            port=MantiksAPI(MantiksConfig()), location=location, job_title=job_title
+        ),
+        "clearbit": lambda location, job_title: ClearbitStrategy(
+            port=ClearbitAPI(), location=location, job_title=job_title
+        ),
+        "hunter": lambda location, job_title: HunterStrategy(
+            port=HunterAPI(), location=location, job_title=job_title
+        ),
+        "peopledatalabs": lambda location, job_title: PeopleDataLabsStrategy(
+            port=PeopleDataLabsAPI(), location=location, job_title=job_title
+        ),
+        "apollo": lambda location, job_title: ApolloStrategy(
+            port=ApolloAPI(), location=location, job_title=job_title
+        ),
+        "cognism": lambda location, job_title: CognismStrategy(
+            port=CognismAPI(), location=location, job_title=job_title
+        ),
+        "leadgenius": lambda location, job_title: LeadGeniusStrategy(
+            port=LeadGeniusAPI(), location=location, job_title=job_title
+        ),
+        "dropcontact": lambda location, job_title: DropcontactStrategy(
+            port=DropcontactAPI(), location=location, job_title=job_title
+        ),
+        "lusha": lambda location, job_title: LushaStrategy(
+            port=LushaAPI(), location=location, job_title=job_title
+        ),
+        "zoominfo": lambda location, job_title: ZoomInfoStrategy(
+            port=ZoomInfoAPI(), location=location, job_title=job_title
+        ),
+        "scrubby": lambda location, job_title: ScrubbyStrategy(
+            port=ScrubbyAPI(), location=location, job_title=job_title
+        )
     }
 
     def __init__(self, source: str, location: str, job_title: list[str]) -> None:
@@ -62,9 +84,6 @@ class StrategyFactory:
         Returns:
             GetLeadsStrategy: The strategy instance for the given source.
         """
-        if self.source not in self._mapping:
+        if self.source not in self._PROSPECT_STRATEGIES:
             raise ValueError(f"Unknown source: {self.source}")
-        strategy = self._PROSPECT_STRATEGIES[self.source]
-        strategy.location = self.location
-        strategy.job_title = self.job_title
-        return strategy
+        return self._PROSPECT_STRATEGIES[self.source](self.location, self.job_title)

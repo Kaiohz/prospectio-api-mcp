@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query, Path
 from mcp.server.fastmcp import FastMCP
 from application.use_cases.get_leads import GetLeadsUseCase
-from strategy_factory import StrategyFactory
+from prospect_strategy_factory import ProspectStrategyFactory
 import logging
 import traceback
 
@@ -31,9 +31,9 @@ async def get_leads(
         dict: A dictionary containing the leads data.
     """
     try:
-        strategy_factory = StrategyFactory(source, location, job_title)
+        strategy_factory = ProspectStrategyFactory(source, location, job_title)
         strategy = strategy_factory.create_strategy()
-        return await GetLeadsUseCase(source, location, job_title, strategy).get_leads()
+        return await GetLeadsUseCase(strategy).get_leads()
     except Exception as e:
         logger.error(f"Error in get_leads: {e}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
