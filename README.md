@@ -7,7 +7,7 @@ A FastAPI-based application that implements the Model Context Protocol (MCP) for
 This project implements **Clean Architecture** (also known as Hexagonal Architecture) with the following layers:
 
 - **Domain Layer**: Core business entities and logic
-- **Application Layer**: Use cases, ports (interfaces), and strategies
+- **Application Layer**: Use cases and API routes
 - **Infrastructure Layer**: External services, APIs, and framework implementations
 
 ## 📁 Project Structure
@@ -20,42 +20,50 @@ prospectio-api-mcp/
 └── src/
     ├── main.py                 # FastAPI application entry point
     ├── config.py               # Application configuration settings
-    ├── domain/                 # Domain layer (business entities)
+    ├── domain/                 # Domain layer (business entities & strategies)
     │   ├── entities/
     │   │   └── leads.py        # Lead, Company, and Contact entities
-    │   ├── logic/              # Domain business logic (empty)
-    │   └── ports/
-    │       ├── prospect_api.py # Prospect API port interface
-    │       └── get_leads.py    # Get leads port interface
-    ├── application/            # Application layer (use cases & ports)
+    │   ├── ports/
+    │   │   └── prospect_api.py # Prospect API port interface
+    │   └── services/
+    │       └── leads/
+    │           ├── apollo.py           # Apollo strategy
+    │           ├── clearbit.py         # Clearbit strategy
+    │           ├── cognism.py          # Cognism strategy
+    │           ├── dropcontact.py      # Dropcontact strategy
+    │           ├── hunter.py           # Hunter strategy
+    │           ├── leadgenius.py       # LeadGenius strategy
+    │           ├── lusha.py            # Lusha strategy
+    │           ├── mantiks.py          # Mantiks strategy
+    │           ├── peopledatalabs.py   # People Data Labs strategy
+    │           ├── scrubby.py          # Scrubby strategy
+    │           ├── strategy.py         # Abstract strategy base class
+    │           └── zoominfo.py         # ZoomInfo strategy
+    ├── application/            # Application layer (use cases & API)
     │   ├── api/
     │   │   └── routes.py       # API routes (application layer)
-    │   ├── ports/
-    │   │   └── prospect_api.py # Prospect API port interface (duplicate for clarity)
     │   └── use_cases/
-    │       ├── get_leads.py    # GetLeadsContactsUseCase
-    │       └── strategy.py     # Abstract strategy base class
-    ├── infrastructure/         # Infrastructure layer (external concerns)
-    │   ├── api/
-    │   │   ├── client.py           # API client
-    │   │   ├── routes.py           # API routes (infrastructure layer)
-    │   │   └── prospect_routes.py  # FastAPI routes & MCP tools
-    │   ├── dto/
-    │   │   └── mantiks/
-    │   │       ├── company.py      # Mantiks company DTO
-    │   │       └── location.py     # Mantiks location DTO
-    │   └── services/
-    │       ├── apollo.py           # Apollo.io API implementation
-    │       ├── clearbit.py         # Clearbit API implementation
-    │       ├── cognism.py          # Cognism API implementation
-    │       ├── dropcontact.py      # Dropcontact API implementation
-    │       ├── hunter.py           # Hunter.io API implementation
-    │       ├── leadgenius.py       # LeadGenius API implementation
-    │       ├── lusha.py            # Lusha API implementation
-    │       ├── mantiks.py          # Mantiks API implementation
-    │       ├── peopledatalabs.py   # People Data Labs API implementation
-    │       ├── scrubby.py          # Scrubby API implementation
-    │       └── zoominfo.py         # ZoomInfo API implementation
+    │       └── get_leads.py    # GetLeadsContactsUseCase
+    └── infrastructure/         # Infrastructure layer (external concerns)
+        ├── api/
+        │   ├── client.py           # API client
+        │   └── routes.py           # API routes (infrastructure layer)
+        ├── dto/
+        │   └── mantiks/
+        │       ├── company.py      # Mantiks company DTO
+        │       └── location.py     # Mantiks location DTO
+        └── services/
+            ├── apollo.py           # Apollo.io API implementation
+            ├── clearbit.py         # Clearbit API implementation
+            ├── cognism.py          # Cognism API implementation
+            ├── dropcontact.py      # Dropcontact API implementation
+            ├── hunter.py           # Hunter.io API implementation
+            ├── leadgenius.py       # LeadGenius API implementation
+            ├── lusha.py            # Lusha API implementation
+            ├── mantiks.py          # Mantiks API implementation
+            ├── peopledatalabs.py   # People Data Labs API implementation
+            ├── scrubby.py          # Scrubby API implementation
+            └── zoominfo.py         # ZoomInfo API implementation
 ```
 
 ## 🔧 Core Components
