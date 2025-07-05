@@ -6,17 +6,16 @@ class MantiksStrategy(GetLeadsStrategy):
     Strategy for retrieving leads with contacts from Mantiks.
     Implements the GetLeadsStrategy interface for the Mantiks provider.
     """
-    def __init__(self, location: str, job_title: str, port: ProspectAPIPort):
+    def __init__(self, location: str, job_title: list[str], port: ProspectAPIPort):
         """
         Initialize the MantiksStrategy.
 
         Args:
             location (str): The location to search for leads.
-            job_title (str): The job title to filter leads.
+            job_title (list[str]): List of job titles to filter leads.
             port (ProspectAPIPort): The port interface to the external prospect API.
         """
         super().__init__(location, job_title, port)
-
 
     async def execute(self) -> dict:
         """

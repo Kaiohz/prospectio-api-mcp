@@ -1,7 +1,7 @@
 import contextlib
 from fastapi import FastAPI
-from infrastructure.api.routes import mcp
-from infrastructure.api.routes import api_router
+from application.api.routes import mcp
+from application.api.routes import api_router
 
 # Create a combined lifespan to manage both session managers
 @contextlib.asynccontextmanager

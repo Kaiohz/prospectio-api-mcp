@@ -7,16 +7,16 @@ class CognismStrategy(GetLeadsStrategy):
     Strategy for retrieving leads with contacts from Cognism.
     Implements the GetLeadsStrategy interface for the Cognism provider.
     """
-    def __init__(self, location: str, port: ProspectAPIPort):
+    def __init__(self, location: str, job_title: list[str], port: ProspectAPIPort):
         """
         Initialize the CognismStrategy.
 
         Args:
             location (str): The location to search for leads.
+            job_title (list[str]): List of job titles to filter leads.
             port (ProspectAPIPort): The port interface to the external prospect API.
         """
-        super().__init__(location, port)
-
+        super().__init__(location, job_title, port)
 
     async def execute(self) -> dict:
         """
