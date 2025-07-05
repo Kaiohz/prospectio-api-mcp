@@ -1,15 +1,15 @@
 from domain.ports.prospect_api import ProspectAPIPort
-from domain.leads.strategy import GetLeadsStrategy
+from domain.services.leads.strategy import GetLeadsStrategy
 
 
-class ClearbitStrategy(GetLeadsStrategy):
+class HunterStrategy(GetLeadsStrategy):
     """
-    Strategy for retrieving leads with contacts from Clearbit.
-    Implements the GetLeadsStrategy interface for the Clearbit provider.
+    Strategy for retrieving leads with contacts from Hunter.io.
+    Implements the GetLeadsStrategy interface for the Hunter.io provider.
     """
     def __init__(self, location: str, job_title: list[str], port: ProspectAPIPort):
         """
-        Initialize the ClearbitStrategy.
+        Initialize the HunterStrategy.
 
         Args:
             location (str): The location to search for leads.
@@ -20,7 +20,7 @@ class ClearbitStrategy(GetLeadsStrategy):
 
     async def execute(self) -> dict:
         """
-        Execute the strategy to fetch leads from Clearbit.
+        Execute the strategy to fetch leads from Hunter.io.
 
         Returns:
             dict: The leads data retrieved from the external API.

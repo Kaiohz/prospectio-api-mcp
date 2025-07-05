@@ -1,15 +1,15 @@
 from domain.ports.prospect_api import ProspectAPIPort
-from domain.leads.strategy import GetLeadsStrategy
+from domain.services.leads.strategy import GetLeadsStrategy
 
 
-class CognismStrategy(GetLeadsStrategy):
+class LushaStrategy(GetLeadsStrategy):
     """
-    Strategy for retrieving leads with contacts from Cognism.
-    Implements the GetLeadsStrategy interface for the Cognism provider.
+    Strategy for retrieving leads with contacts from Lusha.
+    Implements the GetLeadsStrategy interface for the Lusha provider.
     """
     def __init__(self, location: str, job_title: list[str], port: ProspectAPIPort):
         """
-        Initialize the CognismStrategy.
+        Initialize the LushaStrategy.
 
         Args:
             location (str): The location to search for leads.
@@ -20,7 +20,7 @@ class CognismStrategy(GetLeadsStrategy):
 
     async def execute(self) -> dict:
         """
-        Execute the strategy to fetch leads from Cognism.
+        Execute the strategy to fetch leads from Lusha.
 
         Returns:
             dict: The leads data retrieved from the external API.

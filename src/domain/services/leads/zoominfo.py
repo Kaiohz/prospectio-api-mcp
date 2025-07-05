@@ -1,15 +1,15 @@
 from domain.ports.prospect_api import ProspectAPIPort
-from domain.leads.strategy import GetLeadsStrategy
+from domain.services.leads.strategy import GetLeadsStrategy
 
 
-class LeadGeniusStrategy(GetLeadsStrategy):
+class ZoomInfoStrategy(GetLeadsStrategy):
     """
-    Strategy for retrieving leads with contacts from LeadGenius.
-    Implements the GetLeadsStrategy interface for the LeadGenius provider.
+    Strategy for retrieving leads with contacts from ZoomInfo.
+    Implements the GetLeadsStrategy interface for the ZoomInfo provider.
     """
     def __init__(self, location: str, job_title: list[str], port: ProspectAPIPort):
         """
-        Initialize the LeadGeniusStrategy.
+        Initialize the ZoomInfoStrategy.
 
         Args:
             location (str): The location to search for leads.
@@ -20,7 +20,7 @@ class LeadGeniusStrategy(GetLeadsStrategy):
 
     async def execute(self) -> dict:
         """
-        Execute the strategy to fetch leads from LeadGenius.
+        Execute the strategy to fetch leads from ZoomInfo.
 
         Returns:
             dict: The leads data retrieved from the external API.

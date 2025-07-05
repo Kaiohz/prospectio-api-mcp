@@ -1,15 +1,15 @@
 from domain.ports.prospect_api import ProspectAPIPort
-from domain.leads.strategy import GetLeadsStrategy
+from domain.services.leads.strategy import GetLeadsStrategy
 
 
-class DropcontactStrategy(GetLeadsStrategy):
+class LeadGeniusStrategy(GetLeadsStrategy):
     """
-    Strategy for retrieving leads with contacts from Dropcontact.
-    Implements the GetLeadsStrategy interface for the Dropcontact provider.
+    Strategy for retrieving leads with contacts from LeadGenius.
+    Implements the GetLeadsStrategy interface for the LeadGenius provider.
     """
     def __init__(self, location: str, job_title: list[str], port: ProspectAPIPort):
         """
-        Initialize the DropcontactStrategy.
+        Initialize the LeadGeniusStrategy.
 
         Args:
             location (str): The location to search for leads.
@@ -20,7 +20,7 @@ class DropcontactStrategy(GetLeadsStrategy):
 
     async def execute(self) -> dict:
         """
-        Execute the strategy to fetch leads from Dropcontact.
+        Execute the strategy to fetch leads from LeadGenius.
 
         Returns:
             dict: The leads data retrieved from the external API.

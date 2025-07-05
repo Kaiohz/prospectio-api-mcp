@@ -1,15 +1,15 @@
 from domain.ports.prospect_api import ProspectAPIPort
-from domain.leads.strategy import GetLeadsStrategy
+from domain.services.leads.strategy import GetLeadsStrategy
 
 
-class HunterStrategy(GetLeadsStrategy):
+class DropcontactStrategy(GetLeadsStrategy):
     """
-    Strategy for retrieving leads with contacts from Hunter.io.
-    Implements the GetLeadsStrategy interface for the Hunter.io provider.
+    Strategy for retrieving leads with contacts from Dropcontact.
+    Implements the GetLeadsStrategy interface for the Dropcontact provider.
     """
     def __init__(self, location: str, job_title: list[str], port: ProspectAPIPort):
         """
-        Initialize the HunterStrategy.
+        Initialize the DropcontactStrategy.
 
         Args:
             location (str): The location to search for leads.
@@ -20,7 +20,7 @@ class HunterStrategy(GetLeadsStrategy):
 
     async def execute(self) -> dict:
         """
-        Execute the strategy to fetch leads from Hunter.io.
+        Execute the strategy to fetch leads from Dropcontact.
 
         Returns:
             dict: The leads data retrieved from the external API.

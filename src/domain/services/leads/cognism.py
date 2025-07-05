@@ -1,14 +1,15 @@
 from domain.ports.prospect_api import ProspectAPIPort
-from domain.leads.strategy import GetLeadsStrategy
+from domain.services.leads.strategy import GetLeadsStrategy
 
-class MantiksStrategy(GetLeadsStrategy):
+
+class CognismStrategy(GetLeadsStrategy):
     """
-    Strategy for retrieving leads with contacts from Mantiks.
-    Implements the GetLeadsStrategy interface for the Mantiks provider.
+    Strategy for retrieving leads with contacts from Cognism.
+    Implements the GetLeadsStrategy interface for the Cognism provider.
     """
     def __init__(self, location: str, job_title: list[str], port: ProspectAPIPort):
         """
-        Initialize the MantiksStrategy.
+        Initialize the CognismStrategy.
 
         Args:
             location (str): The location to search for leads.
@@ -19,10 +20,9 @@ class MantiksStrategy(GetLeadsStrategy):
 
     async def execute(self) -> dict:
         """
-        Execute the strategy to fetch leads from Mantiks.
+        Execute the strategy to fetch leads from Cognism.
 
         Returns:
             dict: The leads data retrieved from the external API.
         """
-        leads = await self.port.fetch_leads(self.location, self.job_title)
-        return leads
+        return await self.port.fetch_leads()

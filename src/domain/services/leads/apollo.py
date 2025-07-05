@@ -1,5 +1,5 @@
 from domain.ports.prospect_api import ProspectAPIPort
-from domain.leads.strategy import GetLeadsStrategy
+from domain.services.leads.strategy import GetLeadsStrategy
 
 
 class ApolloStrategy(GetLeadsStrategy):

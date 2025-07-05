@@ -22,3 +22,5 @@ class MantiksConfig(BaseSettings):
     MANTIKS_API_BASE: str = Field(..., json_schema_extra={"env": "MANTIKS_API_URL"})
     MANTIKS_API_KEY: str = Field(..., json_schema_extra={"env": "MANTIKS_API_KEY"})
 
+
+
