@@ -27,4 +27,4 @@ class GetLeadsStrategy(ABC):
         Returns:
             dict: The leads data retrieved from the external API.
         """
-        pass
+        return await self.port.fetch_leads(self.location, self.job_title)

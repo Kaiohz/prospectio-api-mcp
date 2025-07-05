@@ -25,4 +25,4 @@ class LushaStrategy(GetLeadsStrategy):
         Returns:
             dict: The leads data retrieved from the external API.
         """
-        return await self.port.fetch_leads()
+        return await self.port.fetch_leads(self.location, self.job_title)

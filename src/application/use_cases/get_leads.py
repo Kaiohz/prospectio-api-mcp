@@ -7,7 +7,7 @@ class GetLeadsUseCase():
     This class selects the appropriate strategy based on the source and delegates the lead retrieval logic.
     """
 
-    def __init__(self, source: str, location: str, job_title: list[str], strategy: GetLeadsStrategy):
+    def __init__(self, strategy: GetLeadsStrategy):
         """
         Initialize the GetLeadsUseCase with the required parameters and available strategies.
 
@@ -17,12 +17,9 @@ class GetLeadsUseCase():
             job_title (list[str]): List of job titles to filter leads.
             port (ProspectAPIPort): The port interface to the external prospect API.
         """
-        self.source = source
-        self.location = location
         self.strategy = strategy
-        self.job_title = job_title
 
-    async def get_leads(self) -> str:
+    async def get_leads(self) -> dict:
         """
         Retrieve leads using the selected strategy for the given source.
 
