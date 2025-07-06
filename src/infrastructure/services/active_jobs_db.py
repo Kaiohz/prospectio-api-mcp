@@ -9,15 +9,18 @@ T = TypeVar("T")
 
 class ActiveJobsDBAPI:
     """
-    Adapter for the Active Jobs DB API to fetch job data.
+    Adapter for the Active Jobs DB API. Handles fetching job data from the external Active Jobs DB service.
     """
 
     def __init__(self, config: ActiveJobsDBConfig) -> None:
         """
-        Initialize ActiveJobsDbAPI with configuration.
+        Initialize the ActiveJobsDBAPI adapter with the given configuration.
 
         Args:
-            config (RapidApiConfig): Active Jobs DB API configuration object.
+            config (ActiveJobsDBConfig): Configuration object for the Active Jobs DB API.
+
+        Returns:
+            None
         """
         self.api_base = config.ACTIVE_JOBS_DB_URL
         self.api_key = config.RAPIDAPI_API_KEY
@@ -35,8 +38,7 @@ class ActiveJobsDBAPI:
         dto_type: type[T]
     ) -> T:
         """
-        Check the HTTP response for errors and parse the response into the given DTO type.
-        Closes the client after processing.
+        Check the HTTP response for errors and parse the response into the given DTO type. Always closes the client.
 
         Args:
             client (BaseApiClient): The API client instance to close.
@@ -58,17 +60,14 @@ class ActiveJobsDBAPI:
 
     async def fetch_company_jobs(self, location: str, job_title: list[str]) -> dict:
         """
-        Fetch active jobs from the Active Jobs DB API with advanced filters.
+        Fetch active jobs from the Active Jobs DB API using advanced filters.
 
         Args:
-            limit (int): Number of jobs to return.
-            offset (int): Offset for pagination.
-            advanced_title_filter (str): Advanced title filter string.
-            location_filter (str): Location filter string.
-            description_type (str): Description type.
+            location (str): The location filter for the job search.
+            job_title (list[str]): List of job titles to filter by.
 
         Returns:
-            dict: A dictionary containing the job search results.
+            dict: Dictionary containing the job search results under the key 'active_jobs'.
         """
         params = {
             "limit": 10,

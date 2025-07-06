@@ -4,7 +4,8 @@ from domain.services.leads.strategy import CompanyJobsStrategy
 class MantiksStrategy(CompanyJobsStrategy):
     """
     Strategy for retrieving leads with contacts from Mantiks.
-    Implements the GetLeadsStrategy interface for the Mantiks provider.
+
+    Implements the CompanyJobsStrategy interface for the Mantiks provider.
     """
     def __init__(self, location: str, job_title: list[str], port: CompanyJobsPort):
         """
@@ -13,7 +14,7 @@ class MantiksStrategy(CompanyJobsStrategy):
         Args:
             location (str): The location to search for leads.
             job_title (list[str]): List of job titles to filter leads.
-            port (ProspectAPIPort): The port interface to the external prospect API.
+            port (CompanyJobsPort): The port interface to the Mantiks provider.
         """
         super().__init__(location, job_title, port)
 
@@ -22,7 +23,7 @@ class MantiksStrategy(CompanyJobsStrategy):
         Execute the strategy to fetch leads from Mantiks.
 
         Returns:
-            dict: The leads data retrieved from the external API.
+            dict: The leads data retrieved from the Mantiks API.
         """
         company_jobs = await self.port.fetch_company_jobs(self.location, self.job_title)
         return company_jobs
