@@ -10,6 +10,7 @@ from infrastructure.services.active_jobs_db import ActiveJobsDBAPI
 from infrastructure.services.jsearch import JsearchAPI
 from infrastructure.services.mantiks import MantiksAPI
 from infrastructure.services.mock import MockAPI
+from mcp_routes import mcp_router
 
 _COMPANY_JOBS_STRATEGIES: dict[str, callable] = {
     "mantiks": lambda location, job_title: MantiksStrategy(
@@ -41,4 +42,5 @@ REST_PATH = "/rest/v1"
 MCP_PATH = "/prospectio/"
 
 app.include_router(jobs_routes, prefix=REST_PATH, tags=["Prospects"])
+app.include_router(mcp_router, prefix=REST_PATH, tags=["MCP Company Jobs"])
 app.mount(MCP_PATH, mcp_company_jobs.streamable_http_app())
