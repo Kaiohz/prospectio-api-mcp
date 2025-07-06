@@ -11,7 +11,6 @@ This project implements **Clean Architecture** (also known as Hexagonal Architec
 - **Infrastructure Layer**: External services, APIs, and framework implementations
 
 ## 📁 Project Structure
-
 ```
 prospectio-api-mcp/
 ├── pyproject.toml              # Poetry project configuration
@@ -20,44 +19,39 @@ prospectio-api-mcp/
 └── src/
     ├── main.py                 # FastAPI application entry point
     ├── config.py               # Application configuration settings
-    ├── domain/                 # Domain layer (business entities & strategies)
+    ├── domain/                 # Domain layer (business entities, ports, strategies)
     │   ├── entities/
     │   │   └── leads.py        # Lead, Company, and Contact entities
     │   ├── ports/
-    │   │   └── prospect_api.py # Prospect API port interface
+    │   │   └── company_jobs.py # Company jobs port interface
     │   └── services/
     │       └── leads/
-    │           ├── apollo.py           # Apollo strategy
-    │           ├── clearbit.py         # Clearbit strategy
-    │           ├── cognism.py          # Cognism strategy
-    │           ├── dropcontact.py      # Dropcontact strategy
-    │           ├── hunter.py           # Hunter strategy
-    │           ├── leadgenius.py       # LeadGenius strategy
-    │           ├── lusha.py            # Lusha strategy
+    │           ├── active_jobs_db.py   # ActiveJobsDB strategy
+    │           ├── jsearch.py          # Jsearch strategy
     │           ├── mantiks.py          # Mantiks strategy
-    │           ├── peopledatalabs.py   # People Data Labs strategy
-    │           ├── scrubby.py          # Scrubby strategy
-    │           ├── strategy.py         # Abstract strategy base class
-    │           └── zoominfo.py         # ZoomInfo strategy
+    │           ├── mock.py             # Mock strategy
+    │           └── strategy.py         # Abstract strategy base class
     ├── application/            # Application layer (use cases & API)
     │   ├── api/
-    │   │   └── routes.py       # API routes (application layer)
+    │   │   └── routes.py       # API routes
     │   └── use_cases/
-    │       └── get_leads.py    # GetLeadsContactsUseCase
+    │       └── get_leads.py    # GetCompanyJobsUseCase
     └── infrastructure/         # Infrastructure layer (external concerns)
         ├── api/
-        │   ├── client.py           # API client
-        │   └── routes.py           # API routes (infrastructure layer)
+        │   └── client.py           # API client
         ├── dto/
-        │   └── mantiks/
-        │       ├── company.py      # Mantiks company DTO
-        │       └── location.py     # Mantiks location DTO
+        │   ├── mantiks/
+        │   │   ├── company.py      # Mantiks company DTO
+        │   │   └── location.py     # Mantiks location DTO
+        │   └── rapidapi/
+        │       ├── active_jobs_db.py # Active Jobs DB DTO
+        │       └── jsearch.py        # Jsearch DTO
         └── services/
-            ├── apollo.py           # Apollo.io API implementation
-            ├── clearbit.py         # Clearbit API implementation
-            ├── cognism.py          # Cognism API implementation
-            ├── dropcontact.py      # Dropcontact API implementation
-            ├── hunter.py           # Hunter.io API implementation
+            ├── active_jobs_db.py     # Active Jobs DB API implementation
+            ├── jsearch.py            # Jsearch API implementation
+            ├── mantiks.py            # Mantiks API implementation
+            └── mock.py               # Mock API implementation
+```
             ├── leadgenius.py       # LeadGenius API implementation
             ├── lusha.py            # Lusha API implementation
             ├── mantiks.py          # Mantiks API implementation
@@ -71,69 +65,55 @@ prospectio-api-mcp/
 ### Domain Layer (`src/domain/`)
 
 #### Entities (`src/domain/entities/leads.py`)
-- **`Contact`**: Represents a business contact with name, email, and phone
-- **`Company`**: Represents a company with name, industry, size, and location
+- **`Contact`**: Represents a business contact (name, email, phone)
+- **`Company`**: Represents a company (name, industry, size, location)
 - **`Leads`**: Aggregates companies and contacts for lead data
+
+#### Ports (`src/domain/ports/company_jobs.py`)
+- **`CompanyJobsPort`**: Abstract interface for fetching company jobs from any data source
+  - `fetch_company_jobs(location: str, job_title: list[str]) -> dict`: Abstract method for job search
+
+#### Strategies (`src/domain/services/leads/`)
+- **`CompanyJobsStrategy`** (`strategy.py`): Abstract base class for job retrieval strategies
+- **Concrete Strategies**: Implementations for each data source:
+  - `ActiveJobsDBStrategy`, `JsearchStrategy`, `MantiksStrategy`, `MockStrategy`
 
 ### Application Layer (`src/application/`)
 
-#### Ports (`src/application/ports/get_leads.py`)
-- **`ProspectAPIPort`**: Abstract interface defining the contract for prospect data sources
-  - `fetch_leads()`: Abstract method for fetching lead data
+#### API (`src/application/api/routes.py`)
+- **APIRouter**: Defines FastAPI endpoints for company jobs
 
 #### Use Cases (`src/application/use_cases/get_leads.py`)
-- **`GetLeadsContactsUseCase`**: Orchestrates the process of getting leads from different sources
-  - Accepts a source identifier and a port implementation
-  - Uses strategy pattern to delegate to appropriate strategy based on source
-
-#### Strategies (`src/application/use_cases/`)
-- **`GetLeadsStrategy`** (`strategy.py`): Abstract base class for lead retrieval strategies
-- **Multiple Lead Source Strategies**: Concrete implementations for different data sources:
-  - `ApolloStrategy`: Apollo.io integration
-  - `ClearbitStrategy`: Clearbit integration  
-  - `CognismStrategy`: Cognism integration
-  - `DropcontactStrategy`: Dropcontact integration
-  - `HunterStrategy`: Hunter.io integration
-  - `LeadGeniusStrategy`: LeadGenius integration
-  - `LushaStrategy`: Lusha integration
-  - `MantiksStrategy`: Mantiks integration
-  - `PeopleDataLabsStrategy`: People Data Labs integration
-  - `ScrubbyStrategy`: Scrubby integration
-  - `ZoomInfoStrategy`: ZoomInfo integration
+- **`GetCompanyJobsUseCase`**: Orchestrates the process of getting company jobs from different sources
+  - Accepts a strategy and delegates the job retrieval logic
 
 ### Infrastructure Layer (`src/infrastructure/`)
 
-#### API Routes (`src/infrastructure/api/prospect_routes.py`)
-- **FastAPI Router**: RESTful API endpoints
-- **MCP Integration**: Model Context Protocol tools registration
-- **`get_leads(source: str)`**: Endpoint that accepts a source parameter and returns lead data
-  - Maps source to appropriate service implementation
-  - Handles error cases with proper HTTP status codes
+#### API Client (`src/infrastructure/api/client.py`)
+- **`BaseApiClient`**: Async HTTP client for external API calls
+
+#### DTOs (`src/infrastructure/dto/`)
+- **Mantiks DTOs**: `company.py`, `location.py`
+- **RapidAPI DTOs**: `active_jobs_db.py`, `jsearch.py`
 
 #### Services (`src/infrastructure/services/`)
-Multiple service implementations of `ProspectAPIPort` for different lead sources:
-- **`ApolloAPI`**: Apollo.io API implementation (mock data)
-- **`ClearbitAPI`**: Clearbit API implementation (mock data)
-- **`CognismAPI`**: Cognism API implementation (mock data)
-- **`DropcontactAPI`**: Dropcontact API implementation (mock data)
-- **`HunterAPI`**: Hunter.io API implementation (mock data)
-- **`LeadGeniusAPI`**: LeadGenius API implementation (mock data)
-- **`LushaAPI`**: Lusha API implementation (mock data)
-- **`MantiksAPI`**: Mantiks API implementation (mock data)
-- **`PeopleDataLabsAPI`**: People Data Labs API implementation (mock data)
-- **`ScrubbyAPI`**: Scrubby API implementation (mock data)
-- **`ZoomInfoAPI`**: ZoomInfo API implementation (mock data)
+- **`ActiveJobsDBAPI`**: Adapter for Active Jobs DB API
+- **`JsearchAPI`**: Adapter for Jsearch API
+- **`MantiksAPI`**: Adapter for Mantiks API
+- **`MockAPI`**: Mock implementation for testing
 
-All services currently return mock data for development/testing and can be extended to integrate with actual APIs.
+All services implement the `CompanyJobsPort` interface and can be easily swapped or extended.
 
 ## 🚀 Application Entry Point (`src/main.py`)
 
-The FastAPI application is configured with:
-- **Lifespan Management**: Properly manages MCP session lifecycle
-- **Dual Protocol Support**: 
-  - REST API at `/rest/v1/`
-  - MCP protocol at `/prospectio/`
-- **Router Integration**: Includes prospect routes for lead management
+The FastAPI application is configured to:
+- **Manage Application Lifespan**: Handles startup and shutdown events, including MCP session lifecycle.
+- **Expose Multiple Protocols**:
+  - REST API available at `/rest/v1/`
+  - MCP protocol available at `/prospectio/`
+- **Integrate Routers**: Includes company jobs routes for lead management via FastAPI's APIRouter.
+- **Load Configuration**: Loads environment-based settings from `config.py` using Pydantic.
+- **Dependency Injection**: Injects service implementations and strategies into endpoints for clean separation.
 
 ## ⚙️ Configuration (`src/config.py`)
 
@@ -155,13 +135,13 @@ Environment-based configuration using Pydantic Settings:
 
 ## 🔄 Data Flow
 
-1. **HTTP Request**: Client makes request to `/rest/v1/leads/{source}` where source can be any of: `mantiks`, `clearbit`, `hunter`, `peopledatalabs`, `apollo`, `cognism`, `leadgenius`, `dropcontact`, `lusha`, `zoominfo`, or `scrubby`
-2. **Route Handler**: `get_leads()` function receives source parameter
-3. **Service Mapping**: Source is mapped to appropriate service (e.g., MantiksAPI, ApolloAPI, etc.)
-4. **Use Case Execution**: `GetLeadsContactsUseCase` is instantiated with source and service
-5. **Strategy Selection**: Use case selects appropriate strategy based on source
-6. **Port Execution**: Strategy calls the port's `fetch_leads()` method
-7. **Data Return**: Lead data is returned through the layers back to client
+1. **HTTP Request**: Client makes a request to `/rest/v1/company-jobs/{source}` with query parameters (e.g., location, job_title).
+2. **Route Handler**: The FastAPI route in `application/api/routes.py` receives the request and extracts parameters.
+3. **Strategy Mapping**: The handler selects the appropriate strategy (e.g., `ActiveJobsDBStrategy`, `JsearchStrategy`, etc.) based on the source.
+4. **Use Case Execution**: `GetCompanyJobsUseCase` is instantiated with the selected strategy.
+5. **Strategy Execution**: The use case delegates to the strategy's `execute()` method.
+6. **Port Execution**: The strategy calls the port's `fetch_company_jobs(location, job_title)` method, which is implemented by the infrastructure adapter (e.g., `ActiveJobsDBAPI`).
+7. **Data Return**: Job data is returned through the use case and API layer back to the client as a JSON response.
 
 ## 🎯 Design Patterns
 
@@ -183,16 +163,16 @@ Environment-based configuration using Pydantic Settings:
 
 ## 🔧 Extensibility
 
-### Adding New Lead Sources
-1. Create new service class implementing `ProspectAPIPort` in `infrastructure/services/`
-2. Add new strategy class extending `GetLeadsStrategy` in `application/use_cases/strategies/`
-3. Register the new strategy in `GetLeadsContactsUseCase.strategies` dictionary in `application/use_cases/get_leads.py`
-4. Add service mapping in `prospect_routes.py`
+### Adding New Company Job Sources
+1. Create a new service class implementing `CompanyJobsPort` in `infrastructure/services/` (e.g., `my_new_source.py`).
+2. Add a new strategy class extending `CompanyJobsStrategy` in `domain/services/leads/` (e.g., `my_new_source.py`).
+3. Register the new strategy in the mapping used by the API router (see `application/api/routes.py`).
+4. Add any required DTOs in `infrastructure/dto/` if your source needs custom data models.
 
 ### Adding New Endpoints
-1. Add new routes in `infrastructure/api/` directory
-2. Create corresponding use cases in `application/use_cases/`
-3. Define new ports if external integrations are needed
+1. Add new routes in `application/api/` directory using FastAPI's APIRouter.
+2. Create corresponding use cases in `application/use_cases/`.
+3. Define new ports in `domain/ports/` if you need to integrate with new external systems.
 
 ## 🏃‍♂️ Running the Application
 
@@ -252,6 +232,54 @@ Environment-based configuration using Pydantic Settings:
 ### Accessing the APIs
 
 Once the application is running (locally or via Docker), you can access:
-- **REST API**: `http://localhost:7002/rest/v1/leads/{source}` (where source can be: mantiks, clearbit, hunter, peopledatalabs, apollo, cognism, leadgenius, dropcontact, lusha, zoominfo, scrubby)
+- **REST API**: `http://localhost:7002/rest/v1/company-jobs/{source}`
+  - `source` can be: mantiks, active_jobs_db, jsearch, mock
+  - Example: `http://localhost:7002/rest/v1/company-jobs/mantiks?location=Paris&job_title=Engineer`
 - **API Documentation**: `http://localhost:7002/docs`
 - **MCP Endpoint**: `http://localhost:7002/prospectio/mcp/sse`
+
+#### Example cURL requests
+
+**Active Jobs DB (RapidAPI):**
+```sh
+curl --request GET \
+  --url 'https://active-jobs-db.p.rapidapi.com/active-ats-7d?limit=10&offset=0&advanced_title_filter=%22Python%22%20%7C%20%22AI%22%20%7C%20%22RAG%22%20%7C%20%22LLM%22%20%7C%20%22MCP%22&location_filter=%22France%22&description_type=text' \
+  --header 'x-rapidapi-host: active-jobs-db.p.rapidapi.com' \
+  --header 'x-rapidapi-key: <YOUR_RAPIDAPI_KEY>'
+```
+
+**Jsearch (RapidAPI):**
+```sh
+curl --request GET \
+  --url 'https://jsearch.p.rapidapi.com/search?query=Python%20AI%20in%20France&page=1&num_pages=1&country=fr&date_posted=month' \
+  --header 'x-rapidapi-host: jsearch.p.rapidapi.com' \
+  --header 'x-rapidapi-key: <YOUR_RAPIDAPI_KEY>'
+```
+
+**Local REST API:**
+```sh
+curl --request GET \
+  --url 'http://localhost:7002/rest/v1/company-jobs/active_jobs_db?job_title=python&location=france' \
+  --header 'Accept: application/json, text/event-stream'
+```
+
+**MCP SSE Endpoint:**
+```sh
+curl --request POST \
+  --url http://localhost:7002/prospectio/mcp/sse \
+  --header 'Accept: application/json, text/event-stream' \
+  --header 'Content-Type: application/json' \
+  --data '{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "get_company_jobs",
+    "arguments": {
+      "source": "jsearch",
+      "job_title": ["Python"],
+      "location": "France"
+    }
+  }
+}'
+```
