@@ -1,5 +1,5 @@
 import httpx
-from domain.ports.prospect_api import ProspectAPIPort
+from domain.ports.company_jobs import CompanyJobsPort
 from infrastructure.dto.mantiks.company import CompanyResponseDTO
 from infrastructure.dto.mantiks.location import LocationResponseDTO
 from config import MantiksConfig
@@ -9,7 +9,7 @@ from typing import TypeVar
 
 T = TypeVar("T")
 
-class MantiksAPI(ProspectAPIPort):
+class MantiksAPI(CompanyJobsPort):
     """
     Adapter for the Mantiks API to fetch lead and location data.
     """
@@ -21,11 +21,11 @@ class MantiksAPI(ProspectAPIPort):
         Args:
             config (MantiksConfig): Mantiks API configuration object.
         """
-        self.api_base = config.MANTIKS_API_BASE
+        self.api_base = config.MANTIKS_API_URL
         self.api_key = config.MANTIKS_API_KEY
         self.headers = {
             "accept": "application/json",
-            "x-api-key": config.MANTIKS_API_KEY
+            "x-api-key": self.api_key
         }
         self.locations_endpoint = "/location/search"
         self.companys_endpoint = "/company/search"
@@ -49,10 +49,9 @@ class MantiksAPI(ProspectAPIPort):
         if result.status_code != 200:
             await client.close()
             raise Exception(f"Failed to fetch leads: {result.text}")
-        if result.status_code == 200:
-            dto = dto_type(**result.json())
-            await client.close()
-            return dto
+        dto = dto_type(**result.json())
+        await client.close()
+        return dto
 
 
     async def _get_locations(self, location: str) -> LocationResponseDTO:
@@ -70,7 +69,7 @@ class MantiksAPI(ProspectAPIPort):
         locations = await self._check_error(mantiks_client, result, LocationResponseDTO)
         return locations
     
-    async def fetch_leads(self, location: str, job_title: list[str]) -> dict:
+    async def fetch_company_jobs(self, location: str, job_title: list[str]) -> dict:
         """
         Fetch leads from the Mantiks API based on location and job titles.
 
@@ -84,6 +83,7 @@ class MantiksAPI(ProspectAPIPort):
         locations = await self._get_locations(location)
         locations_ids = [location.id for location in locations.results if location.type == "country"]
         mantiks_client = BaseApiClient(self.api_base, self.headers)
-        result = await mantiks_client.get(self.companys_endpoint, {"job_age_in_days": 30, "job_location_ids": locations_ids, "job_title": job_title})
+        params = {"job_age_in_days": 30, "job_location_ids": locations_ids, "job_title": job_title}
+        result = await mantiks_client.get(self.companys_endpoint, params)
         companies = await self._check_error(mantiks_client, result, CompanyResponseDTO)
         return companies.model_dump()

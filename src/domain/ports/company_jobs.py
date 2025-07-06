@@ -1,13 +1,13 @@
 from abc import ABC, abstractmethod
 
 
-class ProspectAPIPort(ABC):
+class CompanyJobsPort(ABC):
     """
     Abstract port interface for fetching leads from an external provider.
     """
 
     @abstractmethod
-    async def fetch_leads(self, location: str, job_title: list[str]) -> dict:
+    async def fetch_company_jobs(self, location: str, job_title: list[str]) -> dict:
         """
         Fetch leads from the provider.
 

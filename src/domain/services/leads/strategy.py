@@ -1,19 +1,22 @@
 from abc import ABC, abstractmethod
-from domain.ports.prospect_api import ProspectAPIPort
+from domain.ports.company_jobs import CompanyJobsPort
 
 
-class GetLeadsStrategy(ABC):
+class CompanyJobsStrategy(ABC):
     """
-    Abstract base class (strategy) for getting leads with contacts from a data provider.
+    Abstract base class for company jobs lead retrieval strategies.
+
+    This strategy defines the contract for fetching leads with contacts from a data provider.
+    It should be extended by concrete implementations for each provider.
     """
-    def __init__(self, location: str, job_title: list[str], port: ProspectAPIPort):
+    def __init__(self, location: str, job_title: list[str], port: CompanyJobsPort):
         """
-        Initialize the strategy with location, job titles, and the port to the provider.
+        Initialize the strategy with location, job titles, and the provider port.
 
         Args:
             location (str): The location to search for leads.
             job_title (list[str]): List of job titles to filter leads.
-            port (ProspectAPIPort): The port interface to the external prospect API.
+            port (CompanyJobsPort): The port interface to the external company jobs provider.
         """
         self.location = location
         self.port = port
@@ -25,6 +28,6 @@ class GetLeadsStrategy(ABC):
         Execute the strategy to fetch leads from the provider.
 
         Returns:
-            dict: The leads data retrieved from the external API.
+            dict: The leads data retrieved from the external provider API.
         """
-        return await self.port.fetch_leads(self.location, self.job_title)
+        pass
