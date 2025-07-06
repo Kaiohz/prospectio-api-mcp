@@ -52,13 +52,6 @@ prospectio-api-mcp/
             ├── mantiks.py            # Mantiks API implementation
             └── mock.py               # Mock API implementation
 ```
-            ├── leadgenius.py       # LeadGenius API implementation
-            ├── lusha.py            # Lusha API implementation
-            ├── mantiks.py          # Mantiks API implementation
-            ├── peopledatalabs.py   # People Data Labs API implementation
-            ├── scrubby.py          # Scrubby API implementation
-            └── zoominfo.py         # ZoomInfo API implementation
-```
 
 ## 🔧 Core Components
 
