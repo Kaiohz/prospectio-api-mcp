@@ -1,7 +1,7 @@
 from domain.ports.company_jobs import CompanyJobsPort
 from domain.services.leads.strategy import CompanyJobsStrategy
 
-class MantiksStrategy(CompanyJobsStrategy):
+class JsearchStrategy(CompanyJobsStrategy):
     """
     Strategy for retrieving leads with contacts from Mantiks.
     Implements the GetLeadsStrategy interface for the Mantiks provider.
