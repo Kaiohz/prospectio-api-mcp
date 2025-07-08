@@ -1,4 +1,5 @@
 import contextlib
+from typing import Callable
 from fastapi import FastAPI
 from application.api.routes import get_company_jobs_router, mcp_company_jobs
 from config import ActiveJobsDBConfig, JsearchConfig, MantiksConfig, MockConfig
@@ -12,7 +13,7 @@ from infrastructure.services.mantiks import MantiksAPI
 from infrastructure.services.mock import MockAPI
 from mcp_routes import mcp_router
 
-_COMPANY_JOBS_STRATEGIES: dict[str, callable] = {
+_COMPANY_JOBS_STRATEGIES: dict[str, Callable] = {
     "mantiks": lambda location, job_title: MantiksStrategy(
         port=MantiksAPI(MantiksConfig()), location=location, job_title=job_title
     ),
@@ -20,7 +21,9 @@ _COMPANY_JOBS_STRATEGIES: dict[str, callable] = {
         port=JsearchAPI(JsearchConfig()), location=location, job_title=job_title
     ),
     "active_jobs_db": lambda location, job_title: ActiveJobsDBStrategy(
-        port=ActiveJobsDBAPI(ActiveJobsDBConfig()), location=location, job_title=job_title
+        port=ActiveJobsDBAPI(ActiveJobsDBConfig()),
+        location=location,
+        job_title=job_title,
     ),
     "mock": lambda location, job_title: MockStrategy(
         port=MockAPI(MockConfig()), location=location, job_title=job_title
@@ -30,12 +33,14 @@ _COMPANY_JOBS_STRATEGIES: dict[str, callable] = {
 # Create Company Jobs Routes object
 jobs_routes = get_company_jobs_router(_COMPANY_JOBS_STRATEGIES)
 
+
 # Create a combined lifespan to manage both session managers
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
     async with contextlib.AsyncExitStack() as stack:
         await stack.enter_async_context(mcp_company_jobs.session_manager.run())
         yield
+
 
 app = FastAPI(title="Prospectio API", lifespan=lifespan)
 REST_PATH = "/rest/v1"

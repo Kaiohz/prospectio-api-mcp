@@ -6,6 +6,7 @@ class AddressDTO(BaseModel):
     """
     DTO for postal address information.
     """
+
     type: Optional[str] = Field(None, alias="@type")
     addressCountry: Optional[str] = None
     addressLocality: Optional[str] = None
@@ -16,6 +17,7 @@ class PlaceDTO(BaseModel):
     """
     DTO for place/location information.
     """
+
     type: Optional[str] = Field(None, alias="@type")
     address: Optional[AddressDTO] = None
 
@@ -24,6 +26,7 @@ class LocationRequirementDTO(BaseModel):
     """
     DTO for location requirements.
     """
+
     type: Optional[str] = Field(None, alias="@type")
     name: Optional[str] = None
 
@@ -32,6 +35,7 @@ class ActiveJobDTO(BaseModel):
     """
     DTO representing a single active job entry.
     """
+
     id: str
     date_posted: Optional[str] = None
     date_created: Optional[str] = None
@@ -66,4 +70,5 @@ class ActiveJobsResponseDTO(RootModel[List[ActiveJobDTO]]):
     """
     DTO for a list of active jobs.
     """
+
     pass

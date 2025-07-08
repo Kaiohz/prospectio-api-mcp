@@ -1,12 +1,19 @@
 from typing import Any, Dict, Optional
 import httpx
 
+
 class BaseApiClient:
     """
     Generic HTTP client for consuming external lead APIs.
     Uses httpx.AsyncClient for asynchronous requests.
     """
-    def __init__(self, base_url: str, headers: Optional[Dict[str, str]] = None, timeout: float = 30.0) -> None:
+
+    def __init__(
+        self,
+        base_url: str,
+        headers: Optional[Dict[str, str]] = None,
+        timeout: float = 30.0,
+    ) -> None:
         """
         Initialize the client with a base URL, optional headers, and a timeout.
 
@@ -15,11 +22,15 @@ class BaseApiClient:
             headers (Optional[Dict[str, str]]): Default HTTP headers.
             timeout (float): Timeout in seconds for HTTP requests.
         """
-        self.base_url = base_url.rstrip('/')
+        self.base_url = base_url.rstrip("/")
         self.headers = headers or {}
-        self._client = httpx.AsyncClient(base_url=self.base_url, headers=self.headers, timeout=timeout)
+        self._client = httpx.AsyncClient(
+            base_url=self.base_url, headers=self.headers, timeout=timeout
+        )
 
-    async def get(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> httpx.Response:
+    async def get(
+        self, endpoint: str, params: Optional[Dict[str, Any]] = None
+    ) -> httpx.Response:
         """
         Perform an asynchronous GET request.
 
@@ -33,7 +44,9 @@ class BaseApiClient:
         response = await self._client.get(endpoint, params=params)
         return response
 
-    async def post(self, endpoint: str, data: Optional[Any] = None, json: Optional[Any] = None) -> httpx.Response:
+    async def post(
+        self, endpoint: str, data: Optional[Any] = None, json: Optional[Any] = None
+    ) -> httpx.Response:
         """
         Perform an asynchronous POST request.
 

@@ -1,10 +1,12 @@
 from domain.ports.company_jobs import CompanyJobsPort
 from domain.services.leads.strategy import CompanyJobsStrategy
 
+
 class MockStrategy(CompanyJobsStrategy):
     """
     Mock implementation of CompanyJobsAPIPort for testing purposes.
     """
+
     def __init__(self, location: str, job_title: list[str], port: CompanyJobsPort):
         """
         Initialize the MantiksStrategy.

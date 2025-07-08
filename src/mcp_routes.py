@@ -48,7 +48,7 @@ async def call_mcp_tool(request: MCPRequest, http_request: Request) -> Response:
     parsed = urlparse(base_url)
     sse_netloc = parsed.hostname
     if parsed.port:
-        sse_netloc += f":{parsed.port}"
+        sse_netloc = f"{sse_netloc}:{parsed.port}"
     sse_url = urlunparse((parsed.scheme, sse_netloc, "/prospectio/mcp/sse", '', '', ''))
 
     async with httpx.AsyncClient() as client:

@@ -1,6 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel
 
+
 class LocationResultDTO(BaseModel):
     """
     Data Transfer Object representing a location result (country, region, city).
@@ -12,11 +13,13 @@ class LocationResultDTO(BaseModel):
         name (str): The short name of the location.
         type (str): The type of location (e.g., country, region, city).
     """
+
     country: Optional[str]
     full_name: str
     id: int
     name: str
     type: str
+
 
 class LocationResponseDTO(BaseModel):
     """
@@ -26,5 +29,6 @@ class LocationResponseDTO(BaseModel):
         nb_results (int): Number of results found.
         results (List[LocationResultDTO]): List of location results.
     """
+
     nb_results: int
     results: List[LocationResultDTO]

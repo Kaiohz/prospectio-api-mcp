@@ -1,6 +1,7 @@
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
 
+
 class JSearchParametersDTO(BaseModel):
     """
     Data Transfer Object representing the parameters of a JSearch API request.
@@ -13,12 +14,14 @@ class JSearchParametersDTO(BaseModel):
         country (Optional[str]): The country for the search.
         language (Optional[str]): The language for the search.
     """
+
     query: Optional[str] = None
     page: Optional[int] = None
     num_pages: Optional[int] = None
     date_posted: Optional[str] = None
     country: Optional[str] = None
     language: Optional[str] = None
+
 
 class JSearchResponseDTO(BaseModel):
     """
@@ -30,6 +33,7 @@ class JSearchResponseDTO(BaseModel):
         parameters (Optional[JSearchParametersDTO]): The parameters used for the request.
         data (Optional[List[Dict[str, Any]]]): The list of data items returned by the API.
     """
+
     status: Optional[str] = None
     request_id: Optional[str] = None
     parameters: Optional[JSearchParametersDTO] = None

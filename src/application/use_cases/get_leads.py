@@ -1,7 +1,7 @@
 from domain.services.leads.strategy import CompanyJobsStrategy
 
 
-class GetCompanyJobsUseCase():
+class GetCompanyJobsUseCase:
     """
     Use case for retrieving leads with contacts from a specified source using the strategy pattern.
     This class selects the appropriate strategy based on the source and delegates the lead retrieval logic.

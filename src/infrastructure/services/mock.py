@@ -1,6 +1,7 @@
 from domain.ports.company_jobs import CompanyJobsPort
 from config import MockConfig
 
+
 class MockAPI(CompanyJobsPort):
     """
     Adapter for the Mantiks API to fetch lead and location data.
@@ -15,13 +16,10 @@ class MockAPI(CompanyJobsPort):
         """
         self.api_base = config.MOCK_API_URL
         self.api_key = config.MOCK_API_KEY
-        self.headers = {
-            "accept": "application/json",
-            "x-api-key": self.api_key
-        }
+        self.headers = {"accept": "application/json", "x-api-key": self.api_key}
         self.locations_endpoint = "/location/search"
         self.companys_endpoint = "/company/search"
-    
+
     async def fetch_company_jobs(self, location: str, job_title: list[str]) -> dict:
         """
         Fetch leads from the Mantiks API based on location and job titles.
@@ -39,10 +37,7 @@ class MockAPI(CompanyJobsPort):
                     "company": "Acme Corp",
                     "location": location,
                     "job_title": job_title[0] if job_title else "Unknown",
-                    "contact": {
-                        "name": "John Doe",
-                        "email": "john.doe@acme.com"
-                    }
+                    "contact": {"name": "John Doe", "email": "john.doe@acme.com"},
                 }
             ]
         }

@@ -9,6 +9,7 @@ class CompanyJobsStrategy(ABC):
     This strategy defines the contract for fetching leads with contacts from a data provider.
     It should be extended by concrete implementations for each provider.
     """
+
     def __init__(self, location: str, job_title: list[str], port: CompanyJobsPort):
         """
         Initialize the strategy with location, job titles, and the provider port.

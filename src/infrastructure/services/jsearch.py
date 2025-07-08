@@ -1,5 +1,6 @@
 import httpx
 from typing import TypeVar
+from domain.ports.company_jobs import CompanyJobsPort
 from infrastructure.dto.rapidapi.jsearch import JSearchResponseDTO
 from config import JsearchConfig
 from infrastructure.api.client import BaseApiClient
@@ -7,7 +8,7 @@ from infrastructure.api.client import BaseApiClient
 T = TypeVar("T")
 
 
-class JsearchAPI:
+class JsearchAPI(CompanyJobsPort):
     """
     Adapter for the JSearch API to fetch job data.
     """
@@ -24,12 +25,13 @@ class JsearchAPI:
         self.headers = {
             "accept": "application/json",
             "x-rapidapi-host": self.api_base.split("//")[-1].split("/")[0],
-            "x-rapidapi-key": self.api_key
+            "x-rapidapi-key": self.api_key,
         }
         self.search_endpoint = "/search"
 
-
-    async def _check_error(self, client: BaseApiClient,result: httpx.Response, dto_type: type[T]) -> T:
+    async def _check_error(
+        self, client: BaseApiClient, result: httpx.Response, dto_type: type[T]
+    ) -> T:
         """
         Check the HTTP response for errors and parse the response into the given DTO type.
         Closes the client after processing.
@@ -72,7 +74,7 @@ class JsearchAPI:
             "page": 1,
             "num_pages": 1,
             "date_posted": "month",
-            "country": location[0:2].lower()
+            "country": location[0:2].lower(),
         }
         client = BaseApiClient(self.api_base, self.headers)
         result = await client.get(self.search_endpoint, params)

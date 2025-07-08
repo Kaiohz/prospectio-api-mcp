@@ -1,13 +1,17 @@
 from fastapi import APIRouter, HTTPException, Query, Path
 from mcp.server.fastmcp import FastMCP
 from application.use_cases.get_leads import GetCompanyJobsUseCase
+from collections.abc import Callable
 import logging
 import traceback
+
+from domain.services.leads.strategy import CompanyJobsStrategy
 
 mcp_company_jobs = FastMCP(name="Prospectio MCP", stateless_http=True)
 logger = logging.getLogger(__name__)
 
-def get_company_jobs_router(jobs_strategy: dict[str, callable]) -> APIRouter:
+
+def get_company_jobs_router(jobs_strategy: dict[str, Callable[[str, list[str]], CompanyJobsStrategy]]) -> APIRouter:
     """
     Create an APIRouter for company jobs endpoints with injected strategy.
 
@@ -20,12 +24,16 @@ def get_company_jobs_router(jobs_strategy: dict[str, callable]) -> APIRouter:
     company_jobs_router = APIRouter()
 
     @company_jobs_router.get("/company/jobs/{source}")
-    @mcp_company_jobs.tool(description="Get companies jobs with contacts from the specified source. "
-                          "the first parameter is the source, the second parameter is the location country code.")
+    @mcp_company_jobs.tool(
+        description="Get companies jobs with contacts from the specified source. "
+        "the first parameter is the source, the second parameter is the location country code."
+    )
     async def get_company_jobs(
         source: str = Path(..., description="Lead source"),
         location: str = Query(..., description="Location country code"),
-        job_title: list[str] = Query(..., description="Job titles (repeat this param for multiple values)")
+        job_title: list[str] = Query(
+            ..., description="Job titles (repeat this param for multiple values)"
+        ),
     ) -> dict:
         """
         Retrieve leads with contacts from the specified source.

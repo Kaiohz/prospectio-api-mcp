@@ -1,12 +1,14 @@
 from domain.ports.company_jobs import CompanyJobsPort
 from domain.services.leads.strategy import CompanyJobsStrategy
 
+
 class MantiksStrategy(CompanyJobsStrategy):
     """
     Strategy for retrieving leads with contacts from Mantiks.
 
     Implements the CompanyJobsStrategy interface for the Mantiks provider.
     """
+
     def __init__(self, location: str, job_title: list[str], port: CompanyJobsPort):
         """
         Initialize the MantiksStrategy.

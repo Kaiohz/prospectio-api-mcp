@@ -1,5 +1,6 @@
 import httpx
 from typing import TypeVar
+from domain.ports.company_jobs import CompanyJobsPort
 from infrastructure.dto.rapidapi.active_jobs_db import ActiveJobsResponseDTO
 from config import ActiveJobsDBConfig
 from infrastructure.api.client import BaseApiClient
@@ -7,7 +8,7 @@ from infrastructure.api.client import BaseApiClient
 T = TypeVar("T")
 
 
-class ActiveJobsDBAPI:
+class ActiveJobsDBAPI(CompanyJobsPort):
     """
     Adapter for the Active Jobs DB API. Handles fetching job data from the external Active Jobs DB service.
     """
@@ -27,15 +28,12 @@ class ActiveJobsDBAPI:
         self.headers = {
             "accept": "application/json",
             "x-rapidapi-host": self.api_base.split("//")[-1].split("/")[0],
-            "x-rapidapi-key": self.api_key
+            "x-rapidapi-key": self.api_key,
         }
         self.endpoint = "/active-ats-7d"
 
     async def _check_error(
-        self,
-        client: BaseApiClient,
-        result: httpx.Response,
-        dto_type: type[T]
+        self, client: BaseApiClient, result: httpx.Response, dto_type: type[T]
     ) -> T:
         """
         Check the HTTP response for errors and parse the response into the given DTO type. Always closes the client.
@@ -54,7 +52,7 @@ class ActiveJobsDBAPI:
         if result.status_code != 200:
             await client.close()
             raise Exception(f"Failed to fetch jobs: {result.text}")
-        dto = dto_type(result.json())
+        dto = dto_type(**result.json())
         await client.close()
         return dto
 
@@ -74,9 +72,9 @@ class ActiveJobsDBAPI:
             "offset": 0,
             "advanced_title_filter": f"{" | ".join(job_title)}",
             "location_filter": location,
-            "description_type": "text"
+            "description_type": "text",
         }
         client = BaseApiClient(self.api_base, self.headers)
         result = await client.get(self.endpoint, params)
         active_jobs = await self._check_error(client, result, ActiveJobsResponseDTO)
-        return {"active_jobs": active_jobs}
+        return {"active_jobs": active_jobs.model_dump()}
