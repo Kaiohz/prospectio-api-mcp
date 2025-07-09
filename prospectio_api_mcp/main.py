@@ -12,6 +12,8 @@ from infrastructure.services.jsearch import JsearchAPI
 from infrastructure.services.mantiks import MantiksAPI
 from infrastructure.services.mock import MockAPI
 from mcp_routes import mcp_router
+from mcp.server import Server
+from config import Config
 
 _COMPANY_JOBS_STRATEGIES: dict[str, Callable] = {
     "mantiks": lambda location, job_title: MantiksStrategy(
@@ -34,9 +36,9 @@ _COMPANY_JOBS_STRATEGIES: dict[str, Callable] = {
 jobs_routes = get_company_jobs_router(_COMPANY_JOBS_STRATEGIES)
 
 
-# Create a combined lifespan to manage both session managers
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Manage the lifespan of both HTTP and stdio MCP servers."""
     async with contextlib.AsyncExitStack() as stack:
         await stack.enter_async_context(mcp_company_jobs.session_manager.run())
         yield
@@ -45,7 +47,10 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Prospectio API", lifespan=lifespan)
 REST_PATH = "/rest/v1"
 MCP_PATH = "/prospectio/"
-
 app.include_router(jobs_routes, prefix=REST_PATH, tags=["Prospects"])
 app.include_router(mcp_router, prefix=REST_PATH, tags=["MCP Company Jobs"])
 app.mount(MCP_PATH, mcp_company_jobs.streamable_http_app())
+
+if __name__ == "__main__":
+    if Config().EXPOSE == "stdio":
+        mcp_company_jobs.run(transport="stdio")

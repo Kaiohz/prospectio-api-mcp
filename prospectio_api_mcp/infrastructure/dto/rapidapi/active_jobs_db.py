@@ -66,9 +66,8 @@ class ActiveJobDTO(BaseModel):
     description_text: Optional[str] = None
 
 
-class ActiveJobsResponseDTO(RootModel[List[ActiveJobDTO]]):
+class ActiveJobsResponseDTO(BaseModel):
     """
     DTO for a list of active jobs.
     """
-
-    pass
+    active_jobs: List[ActiveJobDTO] = Field(..., description="List of active job entries")

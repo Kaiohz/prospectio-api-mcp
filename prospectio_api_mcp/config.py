@@ -16,6 +16,7 @@ if dotenv_path:
 
 
 class Config(BaseSettings):
+    EXPOSE: str = Field(..., json_schema_extra={"env": "EXPOSE"})
     MASTER_KEY: str = Field(..., json_schema_extra={"env": "MASTER_KEY"})
     ALLOWED_ORIGINS: str = Field(..., json_schema_extra={"env": "ALLOWED_ORIGINS"})
 

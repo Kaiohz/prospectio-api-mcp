@@ -52,7 +52,7 @@ class ActiveJobsDBAPI(CompanyJobsPort):
         if result.status_code != 200:
             await client.close()
             raise Exception(f"Failed to fetch jobs: {result.text}")
-        dto = dto_type(**result.json())
+        dto = dto_type(**{"active_jobs": result.json()})
         await client.close()
         return dto
 

@@ -25,8 +25,9 @@ def get_company_jobs_router(jobs_strategy: dict[str, Callable[[str, list[str]], 
 
     @company_jobs_router.get("/company/jobs/{source}")
     @mcp_company_jobs.tool(
-        description="Get companies jobs with contacts from the specified source. "
-        "the first parameter is the source, the second parameter is the location country code."
+        description="Get companies jobs with contacts from the specified source."
+        "the first parameter is the source, it can be mantiks, jsearch, active_jobs_db or mock."
+        "The second parameter is the location country code, and the third parameter is a list of job titles.",
     )
     async def get_company_jobs(
         source: str = Path(..., description="Lead source"),
