@@ -181,7 +181,7 @@ Environment-based configuration using Pydantic Settings:
 
 3. **Run the Application**:
    ```bash
-   poetry run fastapi run prospectio_api_mcp/main.py --reload --port <YOUR_DESIRED_PORT>
+   poetry run fastapi run prospectio_api_mcp/main.py --reload --port <YOUR_PORT>
    ```
 
 ### Option 2: Docker Compose (Recommended)
@@ -225,11 +225,11 @@ Environment-based configuration using Pydantic Settings:
 ### Accessing the APIs
 
 Once the application is running (locally or via Docker), you can access:
-- **REST API**: `http://localhost:7002/rest/v1/company-jobs/{source}`
+- **REST API**: `http://localhost:<YOUR_PORT>/rest/v1/company-jobs/{source}`
   - `source` can be: mantiks, active_jobs_db, jsearch, mock
-  - Example: `http://localhost:7002/rest/v1/company-jobs/mantiks?location=Paris&job_title=Engineer`
-- **API Documentation**: `http://localhost:7002/docs`
-- **MCP Endpoint**: `http://localhost:7002/prospectio/mcp/sse`
+  - Example: `http://localhost:<YOUR_PORT>/rest/v1/company-jobs/mantiks?location=Paris&job_title=Engineer`
+- **API Documentation**: `http://localhost:<YOUR_PORT>/docs`
+- **MCP Endpoint**: `http://localhost:<YOUR_PORT>/prospectio/mcp/sse`
 
 #### Example cURL requests
 
@@ -278,14 +278,16 @@ curl --request POST \
 ```
 # Add to claude
 
+change settings json to match your environment
+
 ```json
 {
   "mcpServers": {
     "Prospectio-stdio": {
-      "command": "/Users/yohan/.local/bin/uv",
+      "command": "<ABSOLUTE_PATH>/uv",
       "args": [
         "--directory",
-        "/Users/yohan/git/prospectio-api-mcp",
+        "<PROJECT_ABSOLUTE_PATH>",
         "run",
         "prospectio_api_mcp/main.py"
       ]
@@ -296,18 +298,20 @@ curl --request POST \
 
 # Add to Gemini cli
 
+change settings json to match your environment
+
 ```json
 {
   "mcpServers": {
     "prospectio-http": {
-      "httpUrl": "http://localhost:7002/prospectio/mcp/sse",
+      "httpUrl": "http://localhost:<YOUR_PORT>/prospectio/mcp/sse",
       "timeout": 30000
     },
     "Prospectio-stdio": {
-      "command": "/Users/yohan/.local/bin/uv",
+      "command": "<ABSOLUTE_PATH>/uv",
       "args": [
         "--directory",
-        "/Users/yohan/git/prospectio-api-mcp",
+        "<PROJECT_ABSOLUTE_PATH>",
         "run",
         "prospectio_api_mcp/main.py"
       ]
