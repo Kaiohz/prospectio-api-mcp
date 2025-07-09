@@ -90,3 +90,7 @@ docker-compose.override.yml
 
 # Ignore secrets
 secrets.*
+
+# Gemini
+.gemini/settings.json
+

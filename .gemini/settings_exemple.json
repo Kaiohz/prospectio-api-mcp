@@ -1,14 +1,14 @@
 {
   "mcpServers": {
     "prospectio-http": {
-      "httpUrl": "http://localhost:7002/prospectio/mcp/sse",
+      "httpUrl": "<MCP HTTP URL>",
       "timeout": 30000
     },
     "Prospectio-stdio": {
-      "command": "/Users/yohan/.local/bin/uv",
+      "command": "<ABSOLUTE_PATH>/uv",
       "args": [
         "--directory",
-        "/Users/yohan/git/prospectio-api-mcp",
+        "<PROJECT_ABSOLUTE_PATH>",
         "run",
         "prospectio_api_mcp/main.py"
       ]
