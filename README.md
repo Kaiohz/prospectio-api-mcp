@@ -16,7 +16,7 @@ prospectio-api-mcp/
 ├── pyproject.toml              # Poetry project configuration
 ├── poetry.lock                 # Poetry lock file
 ├── README.md                   # This file
-└── src/
+└── prospectio_api_mcp/
     ├── main.py                 # FastAPI application entry point
     ├── config.py               # Application configuration settings
     ├── domain/                 # Domain layer (business entities, ports, strategies)
@@ -55,41 +55,41 @@ prospectio-api-mcp/
 
 ## 🔧 Core Components
 
-### Domain Layer (`src/domain/`)
+### Domain Layer (`prospectio_api_mcp/domain/`)
 
-#### Entities (`src/domain/entities/leads.py`)
+#### Entities (`prospectio_api_mcp/domain/entities/leads.py`)
 - **`Contact`**: Represents a business contact (name, email, phone)
 - **`Company`**: Represents a company (name, industry, size, location)
 - **`Leads`**: Aggregates companies and contacts for lead data
 
-#### Ports (`src/domain/ports/company_jobs.py`)
+#### Ports (`prospectio_api_mcp/domain/ports/company_jobs.py`)
 - **`CompanyJobsPort`**: Abstract interface for fetching company jobs from any data source
   - `fetch_company_jobs(location: str, job_title: list[str]) -> dict`: Abstract method for job search
 
-#### Strategies (`src/domain/services/leads/`)
+#### Strategies (`prospectio_api_mcp/domain/services/leads/`)
 - **`CompanyJobsStrategy`** (`strategy.py`): Abstract base class for job retrieval strategies
 - **Concrete Strategies**: Implementations for each data source:
   - `ActiveJobsDBStrategy`, `JsearchStrategy`, `MantiksStrategy`, `MockStrategy`
 
-### Application Layer (`src/application/`)
+### Application Layer (`prospectio_api_mcp/application/`)
 
-#### API (`src/application/api/routes.py`)
+#### API (`prospectio_api_mcp/application/api/routes.py`)
 - **APIRouter**: Defines FastAPI endpoints for company jobs
 
-#### Use Cases (`src/application/use_cases/get_leads.py`)
+#### Use Cases (`prospectio_api_mcp/application/use_cases/get_leads.py`)
 - **`GetCompanyJobsUseCase`**: Orchestrates the process of getting company jobs from different sources
   - Accepts a strategy and delegates the job retrieval logic
 
-### Infrastructure Layer (`src/infrastructure/`)
+### Infrastructure Layer (`prospectio_api_mcp/infrastructure/`)
 
-#### API Client (`src/infrastructure/api/client.py`)
+#### API Client (`prospectio_api_mcp/infrastructure/api/client.py`)
 - **`BaseApiClient`**: Async HTTP client for external API calls
 
-#### DTOs (`src/infrastructure/dto/`)
+#### DTOs (`prospectio_api_mcp/infrastructure/dto/`)
 - **Mantiks DTOs**: `company.py`, `location.py`
 - **RapidAPI DTOs**: `active_jobs_db.py`, `jsearch.py`
 
-#### Services (`src/infrastructure/services/`)
+#### Services (`prospectio_api_mcp/infrastructure/services/`)
 - **`ActiveJobsDBAPI`**: Adapter for Active Jobs DB API
 - **`JsearchAPI`**: Adapter for Jsearch API
 - **`MantiksAPI`**: Adapter for Mantiks API
@@ -97,7 +97,7 @@ prospectio-api-mcp/
 
 All services implement the `CompanyJobsPort` interface and can be easily swapped or extended.
 
-## 🚀 Application Entry Point (`src/main.py`)
+## 🚀 Application Entry Point (`prospectio_api_mcp/main.py`)
 
 The FastAPI application is configured to:
 - **Manage Application Lifespan**: Handles startup and shutdown events, including MCP session lifecycle.
@@ -108,7 +108,7 @@ The FastAPI application is configured to:
 - **Load Configuration**: Loads environment-based settings from `config.py` using Pydantic.
 - **Dependency Injection**: Injects service implementations and strategies into endpoints for clean separation.
 
-## ⚙️ Configuration (`src/config.py`)
+## ⚙️ Configuration (`prospectio_api_mcp/config.py`)
 
 Environment-based configuration using Pydantic Settings:
 - **`Config`**: General application settings (MASTER_KEY, ALLOWED_ORIGINS)
@@ -181,7 +181,7 @@ Environment-based configuration using Pydantic Settings:
 
 3. **Run the Application**:
    ```bash
-   poetry run fastapi run src/main.py --reload --port <YOUR_DESIRED_PORT>
+   poetry run fastapi run prospectio_api_mcp/main.py --reload --port <YOUR_DESIRED_PORT>
    ```
 
 ### Option 2: Docker Compose (Recommended)
@@ -275,4 +275,43 @@ curl --request POST \
     }
   }
 }'
+```
+# Add to claude
+
+```json
+{
+  "mcpServers": {
+    "Prospectio-stdio": {
+      "command": "/Users/yohan/.local/bin/uv",
+      "args": [
+        "--directory",
+        "/Users/yohan/git/prospectio-api-mcp",
+        "run",
+        "prospectio_api_mcp/main.py"
+      ]
+    }
+  }
+}
+```
+
+# Add to Gemini cli
+
+```json
+{
+  "mcpServers": {
+    "prospectio-http": {
+      "httpUrl": "http://localhost:7002/prospectio/mcp/sse",
+      "timeout": 30000
+    },
+    "Prospectio-stdio": {
+      "command": "/Users/yohan/.local/bin/uv",
+      "args": [
+        "--directory",
+        "/Users/yohan/git/prospectio-api-mcp",
+        "run",
+        "prospectio_api_mcp/main.py"
+      ]
+    }
+  }
+}
 ```

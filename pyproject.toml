@@ -1,10 +1,30 @@
+[project]
+name = "prospectio-api-mcp"
+version = "0.1.0"
+description = "Prospectio MCP API"
+authors = [
+    {name = "Yohan Goncalves", email = "yohan.goncalves.pro@gmail.com"},
+]
+license = {text = "Apache 2.0"}
+requires-python = ">=3.12.7"
+dependencies = [
+    "pydantic==2.10.3",
+    "httpx==0.28.1",
+    "mcp==1.10.1",
+    "fastapi[standard]==0.115.14",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]
+
 [tool.poetry]
-name = "prospectio-mcp-api"
+name = "prospectio-api-mcp"
 version = "0.1.0"
 description = "Prospectio MCP API"
 authors = ["Yohan Goncalves <yohan.goncalves.pro@gmail.com>"]
 license = "Apache 2.0"
-package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.12.7"

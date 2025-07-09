@@ -54,6 +54,9 @@ Pipfile.lock
 # poetry
 poetry.lock
 
+# uv
+uv.lock
+
 # mypy
 .mypy_cache/
 .dmypy.json
@@ -84,7 +87,6 @@ docker-compose.override.yml
 
 # Other
 *.db
-.gemini
 
 # Ignore secrets
 secrets.*
