@@ -108,12 +108,28 @@ The FastAPI application is configured to:
 - **Load Configuration**: Loads environment-based settings from `config.py` using Pydantic.
 - **Dependency Injection**: Injects service implementations and strategies into endpoints for clean separation.
 
-## ⚙️ Configuration (`prospectio_api_mcp/config.py`)
+## ⚙️ Configuration
 
-Environment-based configuration using Pydantic Settings:
-- **`Config`**: General application settings (MASTER_KEY, ALLOWED_ORIGINS)
-- **`MantiksConfig`**: Mantiks API-specific settings (API_BASE, API_KEY)
-- **Environment Loading**: Automatically finds and loads `.env` files
+To run the application, you need to configure your environment variables. This is done using a `.env` file at the root of the project.
+
+1.  **Create the `.env` file**:
+    Copy the example file `.env.example` to a new file named `.env`.
+    ```bash
+    cp .env.example .env
+    ```
+
+2.  **Edit the `.env` file**:
+    Open the `.env` file and fill in the required values for the following variables:
+    - `EXPOSE`: `stdio` or `http`
+    - `MASTER_KEY`: Your master key.
+    - `ALLOWED_ORIGINS`: Comma-separated list of allowed origins.
+    - `MANTIKS_API_URL`: The base URL for the Mantiks API.
+    - `MANTIKS_API_KEY`: Your API key for Mantiks.
+    - `RAPIDAPI_API_KEY`: Your API key for RapidAPI.
+    - `JSEARCH_API_URL`: The base URL for the Jsearch API.
+    - `ACTIVE_JOBS_DB_URL`: The base URL for the Active Jobs DB API.
+
+The application uses Pydantic Settings to load these variables from the `.env` file (see `prospectio_api_mcp/config.py`).
 
 ## 📦 Dependencies (`pyproject.toml`)
 
@@ -169,6 +185,8 @@ Environment-based configuration using Pydantic Settings:
 
 ## 🏃‍♂️ Running the Application
 
+Before running the application, make sure you have set up your environment variables as described in the [**Configuration**](#️-configuration) section.
+
 ### Option 1: Local Development
 
 1. **Install Dependencies**:
@@ -176,26 +194,14 @@ Environment-based configuration using Pydantic Settings:
    poetry install
    ```
 
-2. **Set Environment Variables**:
-   Create a `.env` file with required configuration
-
-3. **Run the Application**:
+2. **Run the Application**:
    ```bash
    poetry run fastapi run prospectio_api_mcp/main.py --reload --port <YOUR_PORT>
    ```
 
 ### Option 2: Docker Compose (Recommended)
 
-1. **Set Environment Variables**:
-   ```bash
-   # Copy the example environment file
-   cp .env.example .env
-   
-   # Edit the .env file with your actual values
-   nano .env  # or use your preferred editor
-   ```
-
-2. **Build and Run with Docker Compose**:
+1. **Build and Run with Docker Compose**:
    ```bash
    # Build and start the container
    docker-compose up --build
