@@ -12,7 +12,6 @@ from infrastructure.services.jsearch import JsearchAPI
 from infrastructure.services.mantiks import MantiksAPI
 from infrastructure.services.mock import MockAPI
 from mcp_routes import mcp_router
-from mcp.server import Server
 from config import Config
 
 _COMPANY_JOBS_STRATEGIES: dict[str, Callable] = {

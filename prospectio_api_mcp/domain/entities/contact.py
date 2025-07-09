@@ -1,4 +1,3 @@
-import profile
 from typing import Optional, List
 from pydantic import BaseModel, Field, RootModel
 
