@@ -1,5 +1,6 @@
 from domain.ports.company_jobs import CompanyJobsPort
 from domain.services.leads.strategy import CompanyJobsStrategy
+from prospectio_api_mcp.domain.entities.leads import Leads
 
 
 class JsearchStrategy(CompanyJobsStrategy):
@@ -20,7 +21,7 @@ class JsearchStrategy(CompanyJobsStrategy):
         """
         super().__init__(location, job_title, port)
 
-    async def execute(self) -> dict:
+    async def execute(self) -> Leads:
         """
         Execute the strategy to fetch leads from JSearch.
 

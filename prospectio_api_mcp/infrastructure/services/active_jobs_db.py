@@ -4,6 +4,8 @@ from domain.ports.company_jobs import CompanyJobsPort
 from infrastructure.dto.rapidapi.active_jobs_db import ActiveJobsResponseDTO
 from config import ActiveJobsDBConfig
 from infrastructure.api.client import BaseApiClient
+from prospectio_api_mcp.domain.entities.leads import Leads 
+
 
 T = TypeVar("T")
 
@@ -56,7 +58,7 @@ class ActiveJobsDBAPI(CompanyJobsPort):
         await client.close()
         return dto
 
-    async def fetch_company_jobs(self, location: str, job_title: list[str]) -> dict:
+    async def fetch_company_jobs(self, location: str, job_title: list[str]) -> Leads:
         """
         Fetch active jobs from the Active Jobs DB API using advanced filters.
 
@@ -77,4 +79,5 @@ class ActiveJobsDBAPI(CompanyJobsPort):
         client = BaseApiClient(self.api_base, self.headers)
         result = await client.get(self.endpoint, params)
         active_jobs = await self._check_error(client, result, ActiveJobsResponseDTO)
+        return Leads(companies=None, jobs=None,contacts=None)
         return {"active_jobs": active_jobs.model_dump()}

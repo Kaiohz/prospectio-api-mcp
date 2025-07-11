@@ -4,6 +4,7 @@ from domain.ports.company_jobs import CompanyJobsPort
 from infrastructure.dto.rapidapi.jsearch import JSearchResponseDTO
 from config import JsearchConfig
 from infrastructure.api.client import BaseApiClient
+from prospectio_api_mcp.domain.entities.leads import Leads
 
 T = TypeVar("T")
 
@@ -54,7 +55,7 @@ class JsearchAPI(CompanyJobsPort):
         await client.close()
         return dto
 
-    async def fetch_company_jobs(self, location: str, job_title: list[str]) -> dict:
+    async def fetch_company_jobs(self, location: str, job_title: list[str]) -> Leads:
         """
         Fetch jobs from the JSearch API based on search parameters.
 
@@ -79,4 +80,5 @@ class JsearchAPI(CompanyJobsPort):
         client = BaseApiClient(self.api_base, self.headers)
         result = await client.get(self.search_endpoint, params)
         jsearch = await self._check_error(client, result, JSearchResponseDTO)
+        return Leads(companies=None, jobs=None,contacts=None)
         return jsearch.model_dump()

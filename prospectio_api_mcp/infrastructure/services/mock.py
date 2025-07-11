@@ -1,5 +1,6 @@
 from domain.ports.company_jobs import CompanyJobsPort
 from config import MockConfig
+from prospectio_api_mcp.domain.entities.leads import Leads
 
 
 class MockAPI(CompanyJobsPort):
@@ -20,7 +21,7 @@ class MockAPI(CompanyJobsPort):
         self.locations_endpoint = "/location/search"
         self.companys_endpoint = "/company/search"
 
-    async def fetch_company_jobs(self, location: str, job_title: list[str]) -> dict:
+    async def fetch_company_jobs(self, location: str, job_title: list[str]) -> Leads:
         """
         Fetch leads from the Mantiks API based on location and job titles.
 
@@ -31,6 +32,7 @@ class MockAPI(CompanyJobsPort):
         Returns:
             dict: A dictionary containing companies and contacts data.
         """
+        return Leads(companies=None, jobs=None,contacts=None)
         return {
             "leads": [
                 {

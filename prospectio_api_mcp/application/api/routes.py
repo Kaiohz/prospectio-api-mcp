@@ -4,8 +4,9 @@ from application.use_cases.get_leads import GetCompanyJobsUseCase
 from collections.abc import Callable
 import logging
 import traceback
-
 from domain.services.leads.strategy import CompanyJobsStrategy
+from prospectio_api_mcp.domain.entities.leads import Leads
+
 
 mcp_company_jobs = FastMCP(name="Prospectio MCP", stateless_http=True)
 logger = logging.getLogger(__name__)
@@ -35,7 +36,7 @@ def get_company_jobs_router(jobs_strategy: dict[str, Callable[[str, list[str]], 
         job_title: list[str] = Query(
             ..., description="Job titles (repeat this param for multiple values)"
         ),
-    ) -> dict:
+    ) -> Leads:
         """
         Retrieve leads with contacts from the specified source.
 

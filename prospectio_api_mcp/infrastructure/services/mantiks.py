@@ -139,7 +139,7 @@ class MantiksAPI(CompanyJobsPort):
         locations = await self._check_error(mantiks_client, result, LocationResponseDTO)
         return locations
 
-    async def fetch_company_jobs(self, location: str, job_title: list[str]) -> dict:
+    async def fetch_company_jobs(self, location: str, job_title: list[str]) -> Leads:
         """
         Fetch leads from the Mantiks API based on location and job titles.
 
@@ -170,4 +170,4 @@ class MantiksAPI(CompanyJobsPort):
             jobs=job_entity,
             contacts=contact_entity
         )
-        return leads.model_dump()
+        return leads
