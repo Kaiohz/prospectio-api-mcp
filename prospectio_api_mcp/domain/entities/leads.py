@@ -12,5 +12,9 @@ class Leads(BaseModel):
     """
 
     companies: Optional[CompanyEntity] = Field(None, description="List of companies")
-    jobs: Optional[JobEntity] = Field(None, description="List of jobs associated with the companies")
-    contacts: Optional[ContactEntity] = Field(None, description="List of contacts associated with the companies and jobs")
+    jobs: Optional[JobEntity] = Field(
+        None, description="List of jobs associated with the companies"
+    )
+    contacts: Optional[ContactEntity] = Field(
+        None, description="List of contacts associated with the companies and jobs"
+    )

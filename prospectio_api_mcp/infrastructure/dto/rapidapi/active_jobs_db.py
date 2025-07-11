@@ -70,4 +70,7 @@ class ActiveJobsResponseDTO(BaseModel):
     """
     DTO for a list of active jobs.
     """
-    active_jobs: List[ActiveJobDTO] = Field(..., description="List of active job entries")
+
+    active_jobs: List[ActiveJobDTO] = Field(
+        ..., description="List of active job entries"
+    )

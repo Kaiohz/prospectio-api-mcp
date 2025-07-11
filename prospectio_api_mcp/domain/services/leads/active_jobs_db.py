@@ -1,6 +1,6 @@
 from domain.ports.company_jobs import CompanyJobsPort
 from domain.services.leads.strategy import CompanyJobsStrategy
-from prospectio_api_mcp.domain.entities.leads import Leads
+from entities.leads import Leads
 
 
 class ActiveJobsDBStrategy(CompanyJobsStrategy):

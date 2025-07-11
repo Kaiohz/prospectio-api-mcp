@@ -5,14 +5,16 @@ from collections.abc import Callable
 import logging
 import traceback
 from domain.services.leads.strategy import CompanyJobsStrategy
-from prospectio_api_mcp.domain.entities.leads import Leads
+from domain.entities.leads import Leads
 
 
 mcp_company_jobs = FastMCP(name="Prospectio MCP", stateless_http=True)
 logger = logging.getLogger(__name__)
 
 
-def get_company_jobs_router(jobs_strategy: dict[str, Callable[[str, list[str]], CompanyJobsStrategy]]) -> APIRouter:
+def get_company_jobs_router(
+    jobs_strategy: dict[str, Callable[[str, list[str]], CompanyJobsStrategy]],
+) -> APIRouter:
     """
     Create an APIRouter for company jobs endpoints with injected strategy.
 

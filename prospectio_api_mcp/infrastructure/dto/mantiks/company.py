@@ -2,6 +2,7 @@ from typing import List, Dict, Optional
 from pydantic import BaseModel
 from infrastructure.dto.mantiks.job import JobDTO
 
+
 class CompanyDTO(BaseModel):
     """
     Data Transfer Object representing a company and its job offers.

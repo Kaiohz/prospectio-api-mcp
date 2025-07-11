@@ -1,5 +1,5 @@
 from domain.services.leads.strategy import CompanyJobsStrategy
-from prospectio_api_mcp.domain.entities.leads import Leads
+from domain.entities.leads import Leads
 
 
 class GetCompanyJobsUseCase:

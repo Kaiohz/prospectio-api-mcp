@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from prospectio_api_mcp.domain.entities.leads import Leads
+from domain.entities.leads import Leads
 
 
 class CompanyJobsPort(ABC):
