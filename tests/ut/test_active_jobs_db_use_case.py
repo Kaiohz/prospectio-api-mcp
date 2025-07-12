@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
 from prospectio_api_mcp.application.use_cases.get_leads import GetCompanyJobsUseCase
 from prospectio_api_mcp.domain.services.leads.active_jobs_db import ActiveJobsDBStrategy
 from prospectio_api_mcp.infrastructure.services.active_jobs_db import ActiveJobsDBAPI
@@ -193,7 +193,7 @@ class TestActiveJobsDBUseCase:
         active_jobs_response_mock.status_code = 200
         active_jobs_response_mock.json.return_value = sample_active_jobs_response
 
-        with patch('httpx.AsyncClient.get') as mock_get:
+        with patch('httpx.AsyncClient.get', new_callable=AsyncMock) as mock_get:
             # Configure the mock to return the Active Jobs DB response
             mock_get.return_value = active_jobs_response_mock
             

@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
 from prospectio_api_mcp.application.use_cases.get_leads import GetCompanyJobsUseCase
 from prospectio_api_mcp.domain.services.leads.jsearch import JsearchStrategy
 from prospectio_api_mcp.infrastructure.services.jsearch import JsearchAPI
@@ -168,7 +168,7 @@ class TestJsearchUseCase:
         jsearch_response_mock.status_code = 200
         jsearch_response_mock.json.return_value = sample_jsearch_response
 
-        with patch('httpx.AsyncClient.get') as mock_get:
+        with patch('httpx.AsyncClient.get', new_callable=AsyncMock) as mock_get:
             # Configure the mock to return the JSearch response
             mock_get.return_value = jsearch_response_mock
             
