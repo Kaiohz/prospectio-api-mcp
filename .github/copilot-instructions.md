@@ -29,6 +29,7 @@ Answer all questions in the style of a friendly colleague, using informal langua
 # Technical context
 
 this project is a FastAPI-based application that implements the Model Context Protocol (MCP) for lead prospecting. It follows Clean Architecture principles with a clear separation of concerns across domain, application, and infrastructure layers.
+Use pytest for testing. Use dependency injection for mocking external services in tests.
 
 ### Dependencies
 pydantic = "2.10.3"

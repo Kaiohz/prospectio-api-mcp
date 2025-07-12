@@ -160,7 +160,7 @@ class MantiksAPI(CompanyJobsPort):
         company_entity = await self.to_company_entity(companies)
         job_entity = await self.to_job_entity(companies)
         contact_entity = await self.to_contact_entity(companies)
-        
+
         leads = Leads(
             companies=company_entity, jobs=job_entity, contacts=contact_entity
         )

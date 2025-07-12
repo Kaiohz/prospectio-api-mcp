@@ -58,13 +58,15 @@ class JsearchAPI(CompanyJobsPort):
         await client.close()
         return dto
 
-    async def to_company_entity(self, dto: JSearchResponseDTO) -> tuple[CompanyEntity, list[str]]:
+    async def to_company_entity(
+        self, dto: JSearchResponseDTO
+    ) -> tuple[CompanyEntity, list[str]]:
         """
         Convert JSearch response DTO to CompanyEntity.
-        
+
         Args:
             dto (JSearchResponseDTO): The JSearch API response data.
-            
+
         Returns:
             CompanyEntity: Entity containing companies from JSearch data.
         """
@@ -81,10 +83,10 @@ class JsearchAPI(CompanyJobsPort):
     async def to_job_entity(self, dto: JSearchResponseDTO, ids: list[str]) -> JobEntity:
         """
         Convert JSearch response DTO to JobEntity.
-        
+
         Args:
             dto (JSearchResponseDTO): The JSearch API response data.
-            
+
         Returns:
             JobEntity: Entity containing jobs from JSearch data.
         """

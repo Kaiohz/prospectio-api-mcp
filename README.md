@@ -170,18 +170,54 @@ The application uses Pydantic Settings to load these variables from the `.env` f
 - Services are injected into use cases
 - Promotes testability and flexibility
 
-## 🔧 Extensibility
+## 🧪 Testing
 
-### Adding New Company Job Sources
-1. Create a new service class implementing `CompanyJobsPort` in `infrastructure/services/` (e.g., `my_new_source.py`).
-2. Add a new strategy class extending `CompanyJobsStrategy` in `domain/services/leads/` (e.g., `my_new_source.py`).
-3. Register the new strategy in the mapping used by the API router (see `application/api/routes.py`).
-4. Add any required DTOs in `infrastructure/dto/` if your source needs custom data models.
+The project includes comprehensive unit tests following pytest best practices and Clean Architecture principles. Tests are located in the `tests/` directory and use dependency injection for mocking external services.
 
-### Adding New Endpoints
-1. Add new routes in `application/api/` directory using FastAPI's APIRouter.
-2. Create corresponding use cases in `application/use_cases/`.
-3. Define new ports in `domain/ports/` if you need to integrate with new external systems.
+### Test Structure
+
+```
+tests/
+└── ut/                                    # Unit tests
+    ├── test_mantiks_use_case.py          # Mantiks strategy tests
+    ├── test_jsearch_use_case.py          # JSearch strategy tests
+    └── test_active_jobs_db_use_case.py   # Active Jobs DB strategy tests
+```
+
+### Running Tests
+
+#### **Install Dependencies:**
+```bash
+poetry install
+```
+
+#### **Run All Tests:**
+```bash
+# Run all tests
+poetry run pytest
+
+# Run with verbose output
+poetry run pytest -v
+```
+
+#### **Run Specific Test Files:**
+
+```bash
+# Run Mantiks tests only
+poetry run pytest tests/ut/test_mantiks_use_case.py -v
+
+# Run JSearch tests only
+poetry run pytest tests/ut/test_jsearch_use_case.py -v
+
+# Run Active Jobs DB tests only
+poetry run pytest tests/ut/test_active_jobs_db_use_case.py -v
+```
+
+#### **Run Specific Test Methods:**
+```bash
+# Run a specific test method
+poetry run pytest tests/ut/test_mantiks_use_case.py::TestMantiksUseCase::test_get_leads_success -v
+```
 
 ## 🏃‍♂️ Running the Application
 

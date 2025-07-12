@@ -1,6 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field, RootModel
 
+
 class Job(BaseModel):
     """
     Represents a company with optional fields to match frontend requirements.
