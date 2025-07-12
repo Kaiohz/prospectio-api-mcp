@@ -14,10 +14,13 @@ dependencies = [
     "fastapi[standard]==0.115.14",
 ]
 
-[project.optional-dependencies]
-dev = [
-    "pytest",
+[tool.pytest.ini_options]
+pythonpath = [
+  ".",
+  "prospectio_api_mcp"
 ]
+testpaths = ["tests"]
+asyncio_mode = "auto"
 
 [tool.poetry]
 name = "prospectio-api-mcp"
@@ -34,7 +37,8 @@ mcp = "1.10.1"
 fastapi = { version = "0.115.14", extras = ["standard"]}
 
 [tool.poetry.group.dev.dependencies]
-pytest = "*"
+pytest = "8.4.1"
+pytest-asyncio = "1.0.0"
 
 [build-system]
 requires = ["poetry-core"]
