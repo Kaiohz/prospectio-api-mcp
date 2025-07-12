@@ -4,7 +4,7 @@ from prospectio_api_mcp.application.use_cases.get_leads import GetCompanyJobsUse
 from prospectio_api_mcp.domain.services.leads.active_jobs_db import ActiveJobsDBStrategy
 from prospectio_api_mcp.infrastructure.services.active_jobs_db import ActiveJobsDBAPI
 from prospectio_api_mcp.config import ActiveJobsDBConfig
-from prospectio_api_mcp.domain.entities.leads import Leads
+# Removed unused import Leads
 
 
 class TestActiveJobsDBUseCase:
