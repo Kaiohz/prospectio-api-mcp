@@ -7,3 +7,35 @@ curl --request GET \
 curl --request GET \
   --url 'http://localhost:7002/rest/v1/company/jobs/active_jobs_db?job_title=python&location=france' \
   --header 'Accept: application/json, text/event-stream'
+
+###
+
+curl --request POST \
+  --url http://localhost:7002/prospectio/mcp \
+  --header 'Accept: application/json, text/event-stream' \
+  --header 'Content-Type: application/json' \
+  --data '{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/list"
+}'
+
+###
+
+curl --request POST \
+  --url http://localhost:7002/prospectio/mcp/sse \
+  --header 'Accept: application/json, text/event-stream' \
+  --header 'Content-Type: application/json' \
+  --data '{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "get_company_jobs",
+    "arguments": {
+      "source": "jsearch",
+			"job_title": ["Python"],
+			"location": "France"
+    }
+  }
+}'
