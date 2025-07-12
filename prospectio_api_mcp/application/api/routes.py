@@ -38,7 +38,7 @@ def get_company_jobs_router(
         job_title: list[str] = Query(
             ..., description="Job titles (repeat this param for multiple values)"
         ),
-    ) -> Leads:
+    ) -> dict:
         """
         Retrieve leads with contacts from the specified source.
 
@@ -54,7 +54,8 @@ def get_company_jobs_router(
             if source not in jobs_strategy:
                 raise ValueError(f"Unknown source: {source}")
             strategy = jobs_strategy[source](location, job_title)
-            return await GetCompanyJobsUseCase(strategy).get_leads()
+            leads = await GetCompanyJobsUseCase(strategy).get_leads()
+            return leads.model_dump()
         except Exception as e:
             logger.error(f"Error in get company jobs: {e}\n{traceback.format_exc()}")
             raise HTTPException(status_code=500, detail=str(e))

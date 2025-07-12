@@ -58,7 +58,7 @@ class JsearchAPI(CompanyJobsPort):
         await client.close()
         return dto
 
-    async def to_company_entity(self, dto: JSearchResponseDTO) -> CompanyEntity:
+    async def to_company_entity(self, dto: JSearchResponseDTO) -> tuple[CompanyEntity, list[str]]:
         """
         Convert JSearch response DTO to CompanyEntity.
         
@@ -69,14 +69,16 @@ class JsearchAPI(CompanyJobsPort):
             CompanyEntity: Entity containing companies from JSearch data.
         """
         companies: list[Company] = []
+        ids: list[str] = []
         for jsearch_company in dto.data if dto.data else []:
             company = Company(  # type: ignore
                 id=str(uuid4()), name=jsearch_company.employer_name, source="jsearch"
             )
+            ids.append(company.id or str(uuid4()))
             companies.append(company)
-        return CompanyEntity(companies)
+        return CompanyEntity(companies), ids
 
-    async def to_job_entity(self, dto: JSearchResponseDTO) -> JobEntity:
+    async def to_job_entity(self, dto: JSearchResponseDTO, ids: list[str]) -> JobEntity:
         """
         Convert JSearch response DTO to JobEntity.
         
@@ -87,15 +89,15 @@ class JsearchAPI(CompanyJobsPort):
             JobEntity: Entity containing jobs from JSearch data.
         """
         jobs: list[Job] = []
-        for job in dto.data if dto.data else []:
+        for index, job in enumerate(dto.data) if dto.data else []:
             job_entity = Job(  # type: ignore
                 id=job.job_id,
-                company_id="dwdadwdaw",
+                company_id=ids[index],
                 date_creation=job.job_posted_at_datetime_utc,
                 description=job.job_description,
                 job_title=job.job_title,
                 location=job.job_location,
-                salary=f"{job.job_min_salary} - {job.job_max_salary}",
+                salary=f"{job.job_min_salary or ""} - {job.job_max_salary or ""}",
                 job_type=job.job_employment_type,
                 apply_url=[job.job_apply_link or "", job.job_google_link or ""],
             )
@@ -124,8 +126,11 @@ class JsearchAPI(CompanyJobsPort):
         client = BaseApiClient(self.api_base, self.headers)
         result = await client.get(self.search_endpoint, params)
         jsearch = await self._check_error(client, result, JSearchResponseDTO)
-        company_entity = await self.to_company_entity(jsearch)
-        print(company_entity)
-        job_entity = await self.to_job_entity(jsearch)
-        leads = Leads(companies=company_entity, jobs=job_entity, contacts=None)
+        company_entity, ids = await self.to_company_entity(jsearch)
+        job_entity = await self.to_job_entity(jsearch, ids)
+        leads = Leads(
+            companies=company_entity,
+            jobs=job_entity,
+            contacts=None,
+        )
         return leads

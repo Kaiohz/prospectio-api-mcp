@@ -11,7 +11,6 @@ from config import MantiksConfig
 from infrastructure.api.client import BaseApiClient
 from typing import TypeVar
 
-
 T = TypeVar("T")
 
 
@@ -157,9 +156,11 @@ class MantiksAPI(CompanyJobsPort):
         }
         result = await mantiks_client.get(self.companys_endpoint, params)
         companies = await self._check_error(mantiks_client, result, CompanyResponseDTO)
+
         company_entity = await self.to_company_entity(companies)
         job_entity = await self.to_job_entity(companies)
         contact_entity = await self.to_contact_entity(companies)
+        
         leads = Leads(
             companies=company_entity, jobs=job_entity, contacts=contact_entity
         )

@@ -1,6 +1,6 @@
 from domain.ports.company_jobs import CompanyJobsPort
 from domain.services.leads.strategy import CompanyJobsStrategy
-from entities.leads import Leads
+from domain.entities.leads import Leads
 
 
 class ActiveJobsDBStrategy(CompanyJobsStrategy):
