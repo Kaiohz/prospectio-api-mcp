@@ -170,6 +170,115 @@ The application uses Pydantic Settings to load these variables from the `.env` f
 - Services are injected into use cases
 - Promotes testability and flexibility
 
+## 🧪 Testing
+
+The project includes comprehensive unit tests following pytest best practices and Clean Architecture principles. Tests are located in the `tests/` directory and use dependency injection for mocking external services.
+
+### Test Structure
+
+```
+tests/
+└── ut/                                    # Unit tests
+    ├── test_mantiks_use_case.py          # Mantiks strategy tests
+    ├── test_jsearch_use_case.py          # JSearch strategy tests
+    └── test_active_jobs_db_use_case.py   # Active Jobs DB strategy tests
+```
+
+### Running Tests
+
+#### **Install Dependencies:**
+```bash
+poetry install
+```
+
+#### **Run All Tests:**
+```bash
+# Run all tests
+poetry run pytest
+
+# Run with verbose output
+poetry run pytest -v
+```
+
+#### **Run Specific Test Files:**
+
+```bash
+# Run Mantiks tests only
+poetry run pytest tests/ut/test_mantiks_use_case.py -v
+
+# Run JSearch tests only
+poetry run pytest tests/ut/test_jsearch_use_case.py -v
+
+# Run Active Jobs DB tests only
+poetry run pytest tests/ut/test_active_jobs_db_use_case.py -v
+```
+
+#### **Run Specific Test Methods:**
+```bash
+# Run a specific test method
+poetry run pytest tests/ut/test_mantiks_use_case.py::TestMantiksUseCase::test_get_leads_success -v
+```
+
+### Test Configuration
+
+The project uses pytest configuration in `pyproject.toml`:
+
+```toml
+[tool.pytest.ini_options]
+pythonpath = [
+  ".",
+  "prospectio_api_mcp"
+]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+```
+
+### Mocking Strategy
+
+Tests mock external HTTP calls using `httpx.AsyncClient.get`:
+
+```python
+with patch('httpx.AsyncClient.get') as mock_get:
+    mock_get.return_value = mock_response
+    result = await use_case.get_leads()
+    # Assertions...
+```
+
+### Writing New Tests
+
+When adding new strategies or use cases:
+
+1. **Create a new test file** following the naming pattern `test_{strategy_name}_use_case.py`
+2. **Use the existing test structure** as a template
+3. **Create realistic mock data** using appropriate DTOs
+4. **Test all scenarios**: success, errors, edge cases
+5. **Mock external dependencies** properly
+6. **Follow the fixture pattern** for test data and dependencies
+
+#### **Test Template:**
+```python
+import pytest
+from unittest.mock import patch, MagicMock
+
+class TestNewStrategyUseCase:
+    """Test suite for the New Strategy use case implementation."""
+
+    @pytest.fixture
+    def strategy_config(self) -> ConfigType:
+        """Create test configuration."""
+        return ConfigType(...)
+
+    @pytest.fixture
+    def sample_response(self) -> dict:
+        """Create mock API response."""
+        return {...}
+
+    @pytest.mark.asyncio
+    async def test_get_leads_success(self, use_case, sample_response):
+        """Test successful lead retrieval."""
+        # Test implementation...
+```
+
 ## 🔧 Extensibility
 
 ### Adding New Company Job Sources
