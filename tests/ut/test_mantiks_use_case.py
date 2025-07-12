@@ -4,7 +4,8 @@ from prospectio_api_mcp.application.use_cases.get_leads import GetCompanyJobsUse
 from prospectio_api_mcp.domain.services.leads.mantiks import MantiksStrategy
 from prospectio_api_mcp.infrastructure.services.mantiks import MantiksAPI
 from prospectio_api_mcp.config import MantiksConfig
-from prospectio_api_mcp.domain.entities.leads import Leads
+from prospectio_api_mcp.infrastructure.dto.mantiks.location import LocationResponseDTO
+from prospectio_api_mcp.infrastructure.dto.mantiks.company_response import CompanyResponseDTO
 
 
 class TestMantiksUseCase:
@@ -31,7 +32,8 @@ class TestMantiksUseCase:
         Returns:
             dict: Mock location response data.
         """
-        return {
+        # Create using dictionary structure like real API response
+        location_data = {
             "nb_results": 2,
             "results": [
                 {
@@ -42,7 +44,7 @@ class TestMantiksUseCase:
                     "country": None
                 },
                 {
-                    "id": 2, 
+                    "id": 2,
                     "name": "Paris",
                     "full_name": "Paris, France",
                     "type": "city",
@@ -50,6 +52,10 @@ class TestMantiksUseCase:
                 }
             ]
         }
+        
+        # Validate using the model and return as dict
+        location_response = LocationResponseDTO.model_validate(location_data)
+        return location_response.model_dump()
 
     @pytest.fixture
     def sample_company_response(self) -> dict:
@@ -59,7 +65,8 @@ class TestMantiksUseCase:
         Returns:
             dict: Mock company response data.
         """
-        return {
+        # Create using dictionary structure like real API response
+        company_data = {
             "companies": [
                 {
                     "id": "company_1",
@@ -76,8 +83,8 @@ class TestMantiksUseCase:
                             "job_title": "Senior Python Developer",
                             "location": "Paris, France",
                             "salary": {
-                                "min": 80000,
-                                "max": 120000
+                                "min": 80000.0,
+                                "max": 120000.0
                             },
                             "job_seniority": "Senior",
                             "job_type": "Full-time",
@@ -96,6 +103,10 @@ class TestMantiksUseCase:
             "nb_companies": 1,
             "nb_jobs": 1
         }
+        
+        # Validate using the model and return as dict
+        company_response = CompanyResponseDTO.model_validate(company_data)
+        return company_response.model_dump()
 
     @pytest.fixture
     def mantiks_api(self, mantiks_config: MantiksConfig) -> MantiksAPI:
