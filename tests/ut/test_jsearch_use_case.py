@@ -4,7 +4,7 @@ from prospectio_api_mcp.application.use_cases.get_leads import GetCompanyJobsUse
 from prospectio_api_mcp.domain.services.leads.jsearch import JsearchStrategy
 from prospectio_api_mcp.infrastructure.services.jsearch import JsearchAPI
 from prospectio_api_mcp.config import JsearchConfig
-from prospectio_api_mcp.domain.entities.leads import Leads
+# Line removed as it is unused
 
 
 class TestJsearchUseCase:
