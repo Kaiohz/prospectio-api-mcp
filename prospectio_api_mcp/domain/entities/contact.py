@@ -10,7 +10,9 @@ class Contact(BaseModel):
     company_id: Optional[str] = Field(
         None, description="Name of the company associated with the contact"
     )
-    job_id: Optional[str] = Field(None, description="ID of the job associated with the contact")
+    job_id: Optional[str] = Field(
+        None, description="ID of the job associated with the contact"
+    )
     name: Optional[str] = Field(None, description="Name of the contact")
     email: Optional[str] = Field(None, description="Email address of the contact")
     title: Optional[str] = Field(None, description="Title of the contact")
@@ -19,8 +21,10 @@ class Contact(BaseModel):
         None, description="URL to the contact's profile (e.g., LinkedIn)"
     )
 
+
 class ContactEntity(RootModel[List[Contact]]):
     """
     DTO for a list of contacts.
     """
+
     pass

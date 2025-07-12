@@ -10,8 +10,6 @@ from infrastructure.dto.mantiks.location import LocationResponseDTO
 from config import MantiksConfig
 from infrastructure.api.client import BaseApiClient
 from typing import TypeVar
-from uuid import UUID, uuid4
-
 
 T = TypeVar("T")
 
@@ -34,7 +32,6 @@ class MantiksAPI(CompanyJobsPort):
         self.locations_endpoint = "/location/search"
         self.companys_endpoint = "/company/search"
 
-
     async def to_company_entity(self, dto: CompanyResponseDTO) -> CompanyEntity:
         """
         Maps a CompanyDTO object from the infrastructure layer to a Company entity in the domain layer.
@@ -47,22 +44,16 @@ class MantiksAPI(CompanyJobsPort):
         """
         companies: list[Company] = []
         for mantiks_company in dto.companies if dto.companies else []:
-            company = Company(
+            company = Company(  # type: ignore
                 id=mantiks_company.id,
                 name=mantiks_company.name,
-                industry=None,
-                compatibility=None,
                 source="mantiks",
-                location=None,
                 size=f"{mantiks_company.min_company_size} - {mantiks_company.max_company_size}",
-                revenue=None,
                 website=mantiks_company.website,
-                description=None,
-                opportunities=None,
             )
             companies.append(company)
         return CompanyEntity(companies)
-    
+
     async def to_job_entity(self, dto: CompanyResponseDTO) -> JobEntity:
         jobs: list[Job] = []
         for company in dto.companies if dto.companies else []:
@@ -70,31 +61,34 @@ class MantiksAPI(CompanyJobsPort):
                 job_entity = Job(
                     id=job.job_id,
                     company_id=company.id,
-                    date_creation= job.date_creation,
+                    date_creation=job.date_creation,
                     description=job.description,
                     job_title=job.job_title,
                     location=job.location,
-                    salary=f"{job.salary.min} - {job.salary.max}" if job.salary else None,
+                    salary=(
+                        f"{job.salary.min} - {job.salary.max}" if job.salary else None
+                    ),
                     job_seniority=job.job_seniority,
                     job_type=job.job_type,
                     sectors=" ".join(job.sectors) if job.sectors else None,
-                    apply_url=[job.indeed_apply_url or "", job.linkedin_apply_url or ""],
+                    apply_url=[
+                        job.indeed_apply_url or "",
+                        job.linkedin_apply_url or "",
+                    ],
                 )
                 jobs.append(job_entity)
         return JobEntity(jobs)
-    
+
     async def to_contact_entity(self, dto: CompanyResponseDTO) -> ContactEntity:
         contacts: list[Contact] = []
         for company in dto.companies if dto.companies else []:
             for job in company.jobs if company.jobs else []:
-                contact_entity = Contact(
+                contact_entity = Contact(  # type: ignore
                     company_id=company.id,
                     job_id=job.job_id,
                     name=job.linkedin_recruiter_name or None,
-                    email=None,
                     title=job.linkedin_recruiter_title or None,
-                    phone=None,
-                    profile_url=job.linkedin_recruiter_link or None
+                    profile_url=job.linkedin_recruiter_link or None,
                 )
                 contacts.append(contact_entity)
         return ContactEntity(contacts)
@@ -139,7 +133,7 @@ class MantiksAPI(CompanyJobsPort):
         locations = await self._check_error(mantiks_client, result, LocationResponseDTO)
         return locations
 
-    async def fetch_company_jobs(self, location: str, job_title: list[str]) -> dict:
+    async def fetch_company_jobs(self, location: str, job_title: list[str]) -> Leads:
         """
         Fetch leads from the Mantiks API based on location and job titles.
 
@@ -162,12 +156,12 @@ class MantiksAPI(CompanyJobsPort):
         }
         result = await mantiks_client.get(self.companys_endpoint, params)
         companies = await self._check_error(mantiks_client, result, CompanyResponseDTO)
+
         company_entity = await self.to_company_entity(companies)
         job_entity = await self.to_job_entity(companies)
         contact_entity = await self.to_contact_entity(companies)
+        
         leads = Leads(
-            companies=company_entity,
-            jobs=job_entity,
-            contacts=contact_entity
+            companies=company_entity, jobs=job_entity, contacts=contact_entity
         )
-        return leads.model_dump()
+        return leads

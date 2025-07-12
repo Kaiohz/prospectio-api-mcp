@@ -6,11 +6,9 @@ from config import ActiveJobsDBConfig, JsearchConfig, MantiksConfig, MockConfig
 from domain.services.leads.active_jobs_db import ActiveJobsDBStrategy
 from domain.services.leads.jsearch import JsearchStrategy
 from domain.services.leads.mantiks import MantiksStrategy
-from domain.services.leads.mock import MockStrategy
 from infrastructure.services.active_jobs_db import ActiveJobsDBAPI
 from infrastructure.services.jsearch import JsearchAPI
 from infrastructure.services.mantiks import MantiksAPI
-from infrastructure.services.mock import MockAPI
 from mcp_routes import mcp_router
 from config import Config
 
@@ -25,9 +23,6 @@ _COMPANY_JOBS_STRATEGIES: dict[str, Callable] = {
         port=ActiveJobsDBAPI(ActiveJobsDBConfig()),
         location=location,
         job_title=job_title,
-    ),
-    "mock": lambda location, job_title: MockStrategy(
-        port=MockAPI(MockConfig()), location=location, job_title=job_title
     ),
 }
 

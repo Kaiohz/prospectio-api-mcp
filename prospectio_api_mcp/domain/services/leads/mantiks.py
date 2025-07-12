@@ -1,5 +1,6 @@
 from domain.ports.company_jobs import CompanyJobsPort
 from domain.services.leads.strategy import CompanyJobsStrategy
+from domain.entities.leads import Leads
 
 
 class MantiksStrategy(CompanyJobsStrategy):
@@ -20,7 +21,7 @@ class MantiksStrategy(CompanyJobsStrategy):
         """
         super().__init__(location, job_title, port)
 
-    async def execute(self) -> dict:
+    async def execute(self) -> Leads:
         """
         Execute the strategy to fetch leads from Mantiks.
 

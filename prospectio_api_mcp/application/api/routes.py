@@ -4,14 +4,17 @@ from application.use_cases.get_leads import GetCompanyJobsUseCase
 from collections.abc import Callable
 import logging
 import traceback
-
 from domain.services.leads.strategy import CompanyJobsStrategy
+from domain.entities.leads import Leads
+
 
 mcp_company_jobs = FastMCP(name="Prospectio MCP", stateless_http=True)
 logger = logging.getLogger(__name__)
 
 
-def get_company_jobs_router(jobs_strategy: dict[str, Callable[[str, list[str]], CompanyJobsStrategy]]) -> APIRouter:
+def get_company_jobs_router(
+    jobs_strategy: dict[str, Callable[[str, list[str]], CompanyJobsStrategy]],
+) -> APIRouter:
     """
     Create an APIRouter for company jobs endpoints with injected strategy.
 
@@ -51,7 +54,8 @@ def get_company_jobs_router(jobs_strategy: dict[str, Callable[[str, list[str]], 
             if source not in jobs_strategy:
                 raise ValueError(f"Unknown source: {source}")
             strategy = jobs_strategy[source](location, job_title)
-            return await GetCompanyJobsUseCase(strategy).get_leads()
+            leads = await GetCompanyJobsUseCase(strategy).get_leads()
+            return leads.model_dump()
         except Exception as e:
             logger.error(f"Error in get company jobs: {e}\n{traceback.format_exc()}")
             raise HTTPException(status_code=500, detail=str(e))

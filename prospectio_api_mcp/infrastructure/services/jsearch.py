@@ -1,9 +1,13 @@
+from uuid import uuid4
 import httpx
 from typing import TypeVar
 from domain.ports.company_jobs import CompanyJobsPort
 from infrastructure.dto.rapidapi.jsearch import JSearchResponseDTO
 from config import JsearchConfig
 from infrastructure.api.client import BaseApiClient
+from domain.entities.company import Company, CompanyEntity
+from domain.entities.job import Job, JobEntity
+from prospectio_api_mcp.domain.entities.leads import Leads
 
 T = TypeVar("T")
 
@@ -54,20 +58,62 @@ class JsearchAPI(CompanyJobsPort):
         await client.close()
         return dto
 
-    async def fetch_company_jobs(self, location: str, job_title: list[str]) -> dict:
+    async def to_company_entity(self, dto: JSearchResponseDTO) -> tuple[CompanyEntity, list[str]]:
+        """
+        Convert JSearch response DTO to CompanyEntity.
+        
+        Args:
+            dto (JSearchResponseDTO): The JSearch API response data.
+            
+        Returns:
+            CompanyEntity: Entity containing companies from JSearch data.
+        """
+        companies: list[Company] = []
+        ids: list[str] = []
+        for jsearch_company in dto.data if dto.data else []:
+            company = Company(  # type: ignore
+                id=str(uuid4()), name=jsearch_company.employer_name, source="jsearch"
+            )
+            ids.append(company.id or str(uuid4()))
+            companies.append(company)
+        return CompanyEntity(companies), ids
+
+    async def to_job_entity(self, dto: JSearchResponseDTO, ids: list[str]) -> JobEntity:
+        """
+        Convert JSearch response DTO to JobEntity.
+        
+        Args:
+            dto (JSearchResponseDTO): The JSearch API response data.
+            
+        Returns:
+            JobEntity: Entity containing jobs from JSearch data.
+        """
+        jobs: list[Job] = []
+        for index, job in enumerate(dto.data) if dto.data else []:
+            job_entity = Job(  # type: ignore
+                id=job.job_id,
+                company_id=ids[index],
+                date_creation=job.job_posted_at_datetime_utc,
+                description=job.job_description,
+                job_title=job.job_title,
+                location=job.job_location,
+                salary=f"{job.job_min_salary or ""} - {job.job_max_salary or ""}",
+                job_type=job.job_employment_type,
+                apply_url=[job.job_apply_link or "", job.job_google_link or ""],
+            )
+            jobs.append(job_entity)
+        return JobEntity(jobs)
+
+    async def fetch_company_jobs(self, location: str, job_title: list[str]) -> Leads:
         """
         Fetch jobs from the JSearch API based on search parameters.
 
         Args:
-            query (str): The search query string.
-            page (int, optional): The page number. Defaults to 1.
-            num_pages (int, optional): Number of pages to fetch. Defaults to 1.
-            country (Optional[str], optional): Country code. Defaults to None.
-            date_posted (Optional[str], optional): Date posted filter. Defaults to None.
-            language (Optional[str], optional): Language filter. Defaults to None.
+            location (str): The location to search jobs in.
+            job_title (list[str]): List of job titles to search for.
 
         Returns:
-            JSearchResponseDTO: The DTO containing the job search results.
+            Leads: The leads containing companies and jobs data.
         """
         params = {
             "query": f"{" ".join(job_title)} in {location}",
@@ -76,7 +122,15 @@ class JsearchAPI(CompanyJobsPort):
             "date_posted": "month",
             "country": location[0:2].lower(),
         }
+
         client = BaseApiClient(self.api_base, self.headers)
         result = await client.get(self.search_endpoint, params)
         jsearch = await self._check_error(client, result, JSearchResponseDTO)
-        return jsearch.model_dump()
+        company_entity, ids = await self.to_company_entity(jsearch)
+        job_entity = await self.to_job_entity(jsearch, ids)
+        leads = Leads(
+            companies=company_entity,
+            jobs=job_entity,
+            contacts=None,
+        )
+        return leads

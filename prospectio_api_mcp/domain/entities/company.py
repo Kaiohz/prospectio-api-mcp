@@ -36,4 +36,5 @@ class CompanyEntity(RootModel[List[Company]]):
     """
     DTO for a list of active jobs.
     """
+
     pass

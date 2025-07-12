@@ -1,4 +1,5 @@
 from domain.services.leads.strategy import CompanyJobsStrategy
+from domain.entities.leads import Leads
 
 
 class GetCompanyJobsUseCase:
@@ -19,7 +20,7 @@ class GetCompanyJobsUseCase:
         """
         self.strategy = strategy
 
-    async def get_leads(self) -> dict:
+    async def get_leads(self) -> Leads:
         """
         Retrieve leads using the selected strategy for the given source.
 

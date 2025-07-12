@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from domain.ports.company_jobs import CompanyJobsPort
+from domain.entities.leads import Leads
 
 
 class CompanyJobsStrategy(ABC):
@@ -24,7 +25,7 @@ class CompanyJobsStrategy(ABC):
         self.job_title = job_title
 
     @abstractmethod
-    async def execute(self) -> dict:
+    async def execute(self) -> Leads:
         """
         Execute the strategy to fetch leads from the provider.
 
