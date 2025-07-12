@@ -59,45 +59,49 @@ class ActiveJobsDBAPI(CompanyJobsPort):
         await client.close()
         return dto
 
-    async def to_company_entity(self, dto: ActiveJobsResponseDTO) -> tuple[CompanyEntity, list[str]]:
+    async def to_company_entity(
+        self, dto: ActiveJobsResponseDTO
+    ) -> tuple[CompanyEntity, list[str]]:
         """
         Convert Active Jobs DB response DTO to CompanyEntity.
-        
+
         Args:
             dto (ActiveJobsResponseDTO): The Active Jobs DB API response data.
-            
+
         Returns:
             tuple[CompanyEntity, list[str]]: Entity containing companies and their IDs.
         """
         companies: list[Company] = []
         ids: list[str] = []
-        
+
         for active_job in dto.active_jobs if dto.active_jobs else []:
             company_id = str(uuid4())
             company = Company(  # type: ignore
                 id=company_id,
                 name=active_job.organization,
                 source="active_jobs_db",
-                website=active_job.organization_url
+                website=active_job.organization_url,
             )
             ids.append(company_id)
             companies.append(company)
-        
+
         return CompanyEntity(companies), ids
 
-    async def to_job_entity(self, dto: ActiveJobsResponseDTO, ids: list[str]) -> JobEntity:
+    async def to_job_entity(
+        self, dto: ActiveJobsResponseDTO, ids: list[str]
+    ) -> JobEntity:
         """
         Convert Active Jobs DB response DTO to JobEntity.
-        
+
         Args:
             dto (ActiveJobsResponseDTO): The Active Jobs DB API response data.
             ids (list[str]): List of company IDs to associate with jobs.
-            
+
         Returns:
             JobEntity: Entity containing jobs from Active Jobs DB data.
         """
         jobs: list[Job] = []
-        
+
         for index, active_job in enumerate(dto.active_jobs) if dto.active_jobs else []:
             job_entity = Job(  # type: ignore
                 id=active_job.id,
@@ -105,13 +109,21 @@ class ActiveJobsDBAPI(CompanyJobsPort):
                 date_creation=active_job.date_posted,
                 description=active_job.description_text,
                 job_title=active_job.title,
-                location=", ".join(active_job.locations_derived) if active_job.locations_derived else None,
+                location=(
+                    ", ".join(active_job.locations_derived)
+                    if active_job.locations_derived
+                    else None
+                ),
                 salary=str(active_job.salary_raw) if active_job.salary_raw else None,
-                job_type=", ".join(active_job.employment_type) if active_job.employment_type else None,
-                apply_url=[active_job.url or ""]
+                job_type=(
+                    ", ".join(active_job.employment_type)
+                    if active_job.employment_type
+                    else None
+                ),
+                apply_url=[active_job.url or ""],
             )
             jobs.append(job_entity)
-        
+
         return JobEntity(jobs)
 
     async def fetch_company_jobs(self, location: str, job_title: list[str]) -> Leads:
@@ -135,12 +147,8 @@ class ActiveJobsDBAPI(CompanyJobsPort):
         client = BaseApiClient(self.api_base, self.headers)
         result = await client.get(self.endpoint, params)
         active_jobs = await self._check_error(client, result, ActiveJobsResponseDTO)
-        
+
         company_entity, ids = await self.to_company_entity(active_jobs)
         job_entity = await self.to_job_entity(active_jobs, ids)
-        
-        return Leads(
-            companies=company_entity,
-            jobs=job_entity,
-            contacts=None
-        )
+
+        return Leads(companies=company_entity, jobs=job_entity, contacts=None)
