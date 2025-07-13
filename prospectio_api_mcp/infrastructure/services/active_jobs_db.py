@@ -1,7 +1,7 @@
 import httpx
 from uuid import uuid4
 from typing import TypeVar
-from domain.ports.company_jobs import CompanyJobsPort
+from domain.ports.company_jobs import FetchLeadsPort
 from infrastructure.dto.rapidapi.active_jobs_db import ActiveJobsResponseDTO
 from config import ActiveJobsDBConfig
 from infrastructure.api.client import BaseApiClient
@@ -13,7 +13,7 @@ from datetime import datetime
 T = TypeVar("T")
 
 
-class ActiveJobsDBAPI(CompanyJobsPort):
+class ActiveJobsDBAPI(FetchLeadsPort):
     """
     Adapter for the Active Jobs DB API to fetch job data.
     """
@@ -127,7 +127,7 @@ class ActiveJobsDBAPI(CompanyJobsPort):
 
         return JobEntity(jobs)
 
-    async def fetch_company_jobs(self, location: str, job_title: list[str]) -> Leads:
+    async def fetch_leads(self, location: str, job_title: list[str]) -> Leads:
         """
         Fetch jobs from the Active Jobs DB API based on search parameters.
 

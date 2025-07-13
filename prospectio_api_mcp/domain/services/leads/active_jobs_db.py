@@ -1,4 +1,4 @@
-from domain.ports.company_jobs import CompanyJobsPort
+from domain.ports.company_jobs import FetchLeadsPort
 from domain.services.leads.strategy import CompanyJobsStrategy
 from domain.entities.leads import Leads
 
@@ -10,7 +10,7 @@ class ActiveJobsDBStrategy(CompanyJobsStrategy):
     Implements the CompanyJobsStrategy interface for the ActiveJobsDB provider.
     """
 
-    def __init__(self, location: str, job_title: list[str], port: CompanyJobsPort):
+    def __init__(self, location: str, job_title: list[str], port: FetchLeadsPort):
         """
         Initialize the ActiveJobsDBStrategy.
 

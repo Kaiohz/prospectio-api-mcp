@@ -1,7 +1,7 @@
 from uuid import uuid4
 import httpx
 from typing import TypeVar
-from domain.ports.company_jobs import CompanyJobsPort
+from domain.ports.company_jobs import FetchLeadsPort
 from infrastructure.dto.rapidapi.jsearch import JSearchResponseDTO
 from config import JsearchConfig
 from infrastructure.api.client import BaseApiClient
@@ -13,7 +13,7 @@ from datetime import datetime
 T = TypeVar("T")
 
 
-class JsearchAPI(CompanyJobsPort):
+class JsearchAPI(FetchLeadsPort):
     """
     Adapter for the JSearch API to fetch job data.
     """
@@ -112,7 +112,7 @@ class JsearchAPI(CompanyJobsPort):
             jobs.append(job_entity)
         return JobEntity(jobs)
 
-    async def fetch_company_jobs(self, location: str, job_title: list[str]) -> Leads:
+    async def fetch_leads(self, location: str, job_title: list[str]) -> Leads:
         """
         Fetch jobs from the JSearch API based on search parameters.
 

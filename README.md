@@ -2,6 +2,8 @@
 
 A FastAPI-based application that implements the Model Context Protocol (MCP) for lead prospecting. The project follows Clean Architecture principles with a clear separation of concerns across domain, application, and infrastructure layers.
 
+The application now includes persistent storage capabilities with PostgreSQL and pgvector integration, allowing leads data to be stored and managed efficiently.
+
 ## 🏗️ Project Architecture
 
 This project implements **Clean Architecture** (also known as Hexagonal Architecture) with the following layers:
@@ -15,31 +17,47 @@ This project implements **Clean Architecture** (also known as Hexagonal Architec
 prospectio-api-mcp/
 ├── pyproject.toml              # Poetry project configuration
 ├── poetry.lock                 # Poetry lock file
+├── docker-compose.yml          # Docker Compose configuration with PostgreSQL
+├── Dockerfile                  # Docker configuration for the application
+├── database/
+│   └── init.sql                # Database schema initialization
+├── .github/
+│   └── workflows/
+│       └── ci.yaml             # GitHub Actions CI/CD pipeline
 ├── README.md                   # This file
 └── prospectio_api_mcp/
     ├── main.py                 # FastAPI application entry point
     ├── config.py               # Application configuration settings
     ├── domain/                 # Domain layer (business entities, ports, strategies)
     │   ├── entities/
-    │   │   └── leads.py        # Lead, Company, and Contact entities
+    │   │   ├── leads.py        # Lead entities aggregation
+    │   │   ├── leads_result.py # Lead insertion result entity
+    │   │   ├── company.py      # Company entity
+    │   │   ├── job.py          # Job entity
+    │   │   └── contact.py      # Contact entity
     │   ├── ports/
-    │   │   └── company_jobs.py # Company jobs port interface
+    │   │   ├── company_jobs.py # Company jobs port interface
+    │   │   └── leads_repository.py # Leads repository port interface
     │   └── services/
     │       └── leads/
     │           ├── active_jobs_db.py   # ActiveJobsDB strategy
     │           ├── jsearch.py          # Jsearch strategy
     │           ├── mantiks.py          # Mantiks strategy
-    │           ├── mock.py             # Mock strategy
     │           └── strategy.py         # Abstract strategy base class
     ├── application/            # Application layer (use cases & API)
     │   ├── api/
     │   │   └── routes.py       # API routes
     │   └── use_cases/
-    │       └── get_leads.py    # GetCompanyJobsUseCase
+    │       └── insert_leads.py # InsertCompanyJobsUseCase
     └── infrastructure/         # Infrastructure layer (external concerns)
         ├── api/
         │   └── client.py           # API client
         ├── dto/
+        │   ├── database/
+        │   │   ├── base.py         # SQLAlchemy base model
+        │   │   ├── company.py      # Company database model
+        │   │   ├── job.py          # Job database model
+        │   │   └── contact.py      # Contact database model
         │   ├── mantiks/
         │   │   ├── company.py      # Mantiks company DTO
         │   │   └── location.py     # Mantiks location DTO
@@ -50,35 +68,39 @@ prospectio-api-mcp/
             ├── active_jobs_db.py     # Active Jobs DB API implementation
             ├── jsearch.py            # Jsearch API implementation
             ├── mantiks.py            # Mantiks API implementation
-            └── mock.py               # Mock API implementation
+            └── leads_database.py     # PostgreSQL database repository
 ```
 
 ## 🔧 Core Components
 
 ### Domain Layer (`prospectio_api_mcp/domain/`)
 
-#### Entities (`prospectio_api_mcp/domain/entities/leads.py`)
-- **`Contact`**: Represents a business contact (name, email, phone)
-- **`Company`**: Represents a company (name, industry, size, location)
-- **`Leads`**: Aggregates companies and contacts for lead data
+#### Entities
+- **`Contact`** (`contact.py`): Represents a business contact (name, email, phone, title)
+- **`Company`** (`company.py`): Represents a company (name, industry, size, location, description)
+- **`Job`** (`job.py`): Represents a job posting (title, description, location, salary, requirements)
+- **`Leads`** (`leads.py`): Aggregates companies, jobs, and contacts for lead data
+- **`LeadsResult`** (`leads_result.py`): Represents the result of a lead insertion operation
 
-#### Ports (`prospectio_api_mcp/domain/ports/company_jobs.py`)
-- **`CompanyJobsPort`**: Abstract interface for fetching company jobs from any data source
-  - `fetch_company_jobs(location: str, job_title: list[str]) -> dict`: Abstract method for job search
+#### Ports
+- **`CompanyJobsPort`** (`company_jobs.py`): Abstract interface for fetching company jobs from any data source
+  - `fetch_company_jobs(location: str, job_title: list[str]) -> Leads`: Abstract method for job search
+- **`LeadsRepositoryPort`** (`leads_repository.py`): Abstract interface for persisting leads data
+  - `save_leads(leads: Leads) -> None`: Abstract method for saving leads to storage
 
 #### Strategies (`prospectio_api_mcp/domain/services/leads/`)
 - **`CompanyJobsStrategy`** (`strategy.py`): Abstract base class for job retrieval strategies
 - **Concrete Strategies**: Implementations for each data source:
-  - `ActiveJobsDBStrategy`, `JsearchStrategy`, `MantiksStrategy`, `MockStrategy`
+  - `ActiveJobsDBStrategy`, `JsearchStrategy`, `MantiksStrategy`
 
 ### Application Layer (`prospectio_api_mcp/application/`)
 
 #### API (`prospectio_api_mcp/application/api/routes.py`)
 - **APIRouter**: Defines FastAPI endpoints for company jobs
 
-#### Use Cases (`prospectio_api_mcp/application/use_cases/get_leads.py`)
-- **`GetCompanyJobsUseCase`**: Orchestrates the process of getting company jobs from different sources
-  - Accepts a strategy and delegates the job retrieval logic
+#### Use Cases (`prospectio_api_mcp/application/use_cases/insert_leads.py`)
+- **`InsertCompanyJobsUseCase`**: Orchestrates the process of retrieving and inserting company jobs from different sources
+  - Accepts a strategy and repository, retrieves leads and persists them to the database
 
 ### Infrastructure Layer (`prospectio_api_mcp/infrastructure/`)
 
@@ -86,16 +108,17 @@ prospectio-api-mcp/
 - **`BaseApiClient`**: Async HTTP client for external API calls
 
 #### DTOs (`prospectio_api_mcp/infrastructure/dto/`)
-- **Mantiks DTOs**: `company.py`, `location.py`
-- **RapidAPI DTOs**: `active_jobs_db.py`, `jsearch.py`
+- **Database DTOs**: `base.py`, `company.py`, `job.py`, `contact.py` - SQLAlchemy models for persistence
+- **Mantiks DTOs**: `company.py`, `location.py` - Data transfer objects for Mantiks API
+- **RapidAPI DTOs**: `active_jobs_db.py`, `jsearch.py` - Data transfer objects for RapidAPI services
 
 #### Services (`prospectio_api_mcp/infrastructure/services/`)
 - **`ActiveJobsDBAPI`**: Adapter for Active Jobs DB API
 - **`JsearchAPI`**: Adapter for Jsearch API
 - **`MantiksAPI`**: Adapter for Mantiks API
-- **`MockAPI`**: Mock implementation for testing
+- **`LeadsDatabase`**: PostgreSQL repository implementation for leads persistence
 
-All services implement the `CompanyJobsPort` interface and can be easily swapped or extended.
+All API services implement the `CompanyJobsPort` interface, and the database service implements the `LeadsRepositoryPort` interface, allowing for easy swapping and extension.
 
 ## 🚀 Application Entry Point (`prospectio_api_mcp/main.py`)
 
@@ -104,9 +127,10 @@ The FastAPI application is configured to:
 - **Expose Multiple Protocols**:
   - REST API available at `/rest/v1/`
   - MCP protocol available at `/prospectio/`
-- **Integrate Routers**: Includes company jobs routes for lead management via FastAPI's APIRouter.
+- **Integrate Routers**: Includes leads insertion routes for lead management via FastAPI's APIRouter.
 - **Load Configuration**: Loads environment-based settings from `config.py` using Pydantic.
-- **Dependency Injection**: Injects service implementations and strategies into endpoints for clean separation.
+- **Dependency Injection**: Injects service implementations, strategies, and repository into endpoints for clean separation.
+- **Database Integration**: Configures PostgreSQL connection for persistent storage of leads data.
 
 ## ⚙️ Configuration
 
@@ -128,6 +152,7 @@ To run the application, you need to configure your environment variables. This i
     - `RAPIDAPI_API_KEY`: Your API key for RapidAPI.
     - `JSEARCH_API_URL`: The base URL for the Jsearch API.
     - `ACTIVE_JOBS_DB_URL`: The base URL for the Active Jobs DB API.
+    - `DATABASE_URL`: PostgreSQL connection string (e.g., `postgresql+asyncpg://user:password@host:port/database`)
 
 The application uses Pydantic Settings to load these variables from the `.env` file (see `prospectio_api_mcp/config.py`).
 
@@ -138,37 +163,21 @@ The application uses Pydantic Settings to load these variables from the `.env` f
 - **MCP (1.10.1)**: Model Context Protocol implementation
 - **Pydantic (2.10.3)**: Data validation and serialization
 - **HTTPX (0.28.1)**: HTTP client for external API calls
+- **SQLAlchemy (2.0.41)**: Database ORM for PostgreSQL integration
+- **asyncpg (0.30.0)**: Async PostgreSQL driver
+- **psycopg (3.2.4)**: PostgreSQL adapter
 
 ### Development Dependencies
 - **Pytest**: Testing framework
 
 ## 🔄 Data Flow
 
-1. **HTTP Request**: Client makes a request to `/rest/v1/company-jobs/{source}` with query parameters (e.g., location, job_title).
+1. **HTTP Request**: Client makes a POST request to `/rest/v1/insert/leads/{source}` with JSON body containing location and job_title parameters.
 2. **Route Handler**: The FastAPI route in `application/api/routes.py` receives the request and extracts parameters.
 3. **Strategy Mapping**: The handler selects the appropriate strategy (e.g., `ActiveJobsDBStrategy`, `JsearchStrategy`, etc.) based on the source.
-4. **Use Case Execution**: `GetCompanyJobsUseCase` is instantiated with the selected strategy.
-5. **Strategy Execution**: The use case delegates to the strategy's `execute()` method.
+4. **Use Case Execution**: `InsertCompanyJobsUseCase` is instantiated with the selected strategy and repository.
+5. **Strategy Execution**: The use case delegates to the strategy's `execute()` method to fetch leads data.
 6. **Port Execution**: The strategy calls the port's `fetch_company_jobs(location, job_title)` method, which is implemented by the infrastructure adapter (e.g., `ActiveJobsDBAPI`).
-7. **Data Return**: Job data is returned through the use case and API layer back to the client as a JSON response.
-
-## 🎯 Design Patterns
-
-### 1. **Clean Architecture**
-- Clear separation of concerns
-- Dependency inversion (infrastructure depends on application, not vice versa)
-
-### 2. **Strategy Pattern**
-- Different strategies for different lead sources
-- Easy to add new lead sources without modifying existing code
-
-### 3. **Port-Adapter Pattern (Hexagonal Architecture)**
-- Ports define interfaces for external dependencies
-- Adapters implement these interfaces for specific technologies
-
-### 4. **Dependency Injection**
-- Services are injected into use cases
-- Promotes testability and flexibility
 
 ## 🧪 Testing
 
@@ -219,6 +228,15 @@ poetry run pytest tests/ut/test_active_jobs_db_use_case.py -v
 poetry run pytest tests/ut/test_mantiks_use_case.py::TestMantiksUseCase::test_get_leads_success -v
 ```
 
+### **Environment Variables for Testing**
+
+Tests require a `.env` file for configuration. Copy the example file:
+```bash
+cp .env.example .env
+```
+
+The CI pipeline automatically handles environment setup and database initialization.
+
 ## 🏃‍♂️ Running the Application
 
 Before running the application, make sure you have set up your environment variables as described in the [**Configuration**](#️-configuration) section.
@@ -236,6 +254,8 @@ Before running the application, make sure you have set up your environment varia
    ```
 
 ### Option 2: Docker Compose (Recommended)
+
+The Docker Compose setup includes both the application and PostgreSQL database with pgvector extension.
 
 1. **Build and Run with Docker Compose**:
    ```bash
@@ -261,15 +281,16 @@ Before running the application, make sure you have set up your environment varia
    docker-compose logs -f
    
    # View logs for specific service
-   docker-compose logs -f prospectio-api
-   ```
+   docker-compose logs -f prospectio-api-mcp
+  ```
 
 ### Accessing the APIs
 
 Once the application is running (locally or via Docker), you can access:
-- **REST API**: `http://localhost:<YOUR_PORT>/rest/v1/company-jobs/{source}`
-  - `source` can be: mantiks, active_jobs_db, jsearch, mock
-  - Example: `http://localhost:<YOUR_PORT>/rest/v1/company-jobs/mantiks?location=Paris&job_title=Engineer`
+- **REST API**: `http://localhost:<YOUR_PORT>/rest/v1/insert/leads/{source}`
+  - `source` can be: mantiks, active_jobs_db, jsearch
+  - Method: POST with JSON body containing `location` and `job_title` array
+  - Example: `http://localhost:<YOUR_PORT>/rest/v1/insert/leads/mantiks`
 - **API Documentation**: `http://localhost:<YOUR_PORT>/docs`
 - **MCP Endpoint**: `http://localhost:<YOUR_PORT>/prospectio/mcp/sse`
 
@@ -294,8 +315,8 @@ curl --request GET \
 **Local REST API:**
 ```sh
 curl --request POST \
-  --url 'http://localhost:7002/rest/v1/company/jobs/jsearch?=' \
-  --header 'Accept: application/json, text/event-stream' \
+  --url 'http://localhost:7002/rest/v1/insert/leads/jsearch' \
+  --header 'Accept: application/json' \
   --header 'Content-Type: application/json' \
   --data '{
 	"location": "France",
@@ -314,7 +335,7 @@ curl --request POST \
   "id": 1,
   "method": "tools/call",
   "params": {
-    "name": "get_company_jobs",
+    "name": "insert_leads",
     "arguments": {
       "source": "jsearch",
       "job_title": ["Python"],

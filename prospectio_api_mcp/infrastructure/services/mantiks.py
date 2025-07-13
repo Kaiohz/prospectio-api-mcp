@@ -4,7 +4,7 @@ from domain.entities.company import Company, CompanyEntity
 from domain.entities.contact import Contact, ContactEntity
 from domain.entities.leads import Leads
 from domain.entities.job import JobEntity, Job
-from domain.ports.company_jobs import CompanyJobsPort
+from domain.ports.company_jobs import FetchLeadsPort
 from infrastructure.dto.mantiks.company_response import CompanyResponseDTO
 from infrastructure.dto.mantiks.location import LocationResponseDTO
 from config import MantiksConfig
@@ -15,7 +15,7 @@ from datetime import datetime
 T = TypeVar("T")
 
 
-class MantiksAPI(CompanyJobsPort):
+class MantiksAPI(FetchLeadsPort):
     """
     Adapter for the Mantiks API to fetch lead and location data.
     """
@@ -134,7 +134,7 @@ class MantiksAPI(CompanyJobsPort):
         locations = await self._check_error(mantiks_client, result, LocationResponseDTO)
         return locations
 
-    async def fetch_company_jobs(self, location: str, job_title: list[str]) -> Leads:
+    async def fetch_leads(self, location: str, job_title: list[str]) -> Leads:
         """
         Fetch leads from the Mantiks API based on location and job titles.
 
