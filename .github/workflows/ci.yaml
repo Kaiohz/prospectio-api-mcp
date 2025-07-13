@@ -7,6 +7,21 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: pgvector/pgvector:0.8.0-pg17
+        env:
+          POSTGRES_USER: prospectio
+          POSTGRES_PASSWORD: prospectio
+          POSTGRES_DB: prospectio
+        options: >-
+          --health-cmd "pg_isready -U prospectio -d prospectio"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     
     steps:
     - name: Checkout code

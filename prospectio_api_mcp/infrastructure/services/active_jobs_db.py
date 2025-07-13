@@ -8,7 +8,7 @@ from infrastructure.api.client import BaseApiClient
 from domain.entities.company import Company, CompanyEntity
 from domain.entities.job import Job, JobEntity
 from domain.entities.leads import Leads
-
+from datetime import datetime
 
 T = TypeVar("T")
 
@@ -103,10 +103,11 @@ class ActiveJobsDBAPI(CompanyJobsPort):
         jobs: list[Job] = []
 
         for index, active_job in enumerate(dto.active_jobs) if dto.active_jobs else []:
+            active_job.id = str(uuid4())
             job_entity = Job(  # type: ignore
                 id=active_job.id,
                 company_id=ids[index] if index < len(ids) else str(uuid4()),
-                date_creation=active_job.date_posted,
+                date_creation=active_job.date_posted or datetime.now().isoformat(),
                 description=active_job.description_text,
                 job_title=active_job.title,
                 location=(

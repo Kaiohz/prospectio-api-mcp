@@ -16,8 +16,8 @@ COPY pyproject.toml ./
 
 RUN poetry install --no-root
 
-COPY . .
+COPY prospectio_api_mcp ./prospectio_api_mcp
 
 EXPOSE 7002
 
-CMD ["poetry", "run", "fastapi", "run", "src/main.py", "--host", "0.0.0.0", "--port", "7002"]
+CMD ["poetry", "run", "fastapi", "run", "prospectio_api_mcp/main.py", "--host", "0.0.0.0", "--port", "7002"]

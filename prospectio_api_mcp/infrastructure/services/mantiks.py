@@ -10,6 +10,7 @@ from infrastructure.dto.mantiks.location import LocationResponseDTO
 from config import MantiksConfig
 from infrastructure.api.client import BaseApiClient
 from typing import TypeVar
+from datetime import datetime
 
 T = TypeVar("T")
 
@@ -61,7 +62,7 @@ class MantiksAPI(CompanyJobsPort):
                 job_entity = Job(
                     id=job.job_id,
                     company_id=company.id,
-                    date_creation=job.date_creation,
+                    date_creation=job.date_creation or datetime.now().isoformat(),
                     description=job.description,
                     job_title=job.job_title,
                     location=job.location,

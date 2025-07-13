@@ -8,6 +8,7 @@ from infrastructure.api.client import BaseApiClient
 from domain.entities.company import Company, CompanyEntity
 from domain.entities.job import Job, JobEntity
 from prospectio_api_mcp.domain.entities.leads import Leads
+from datetime import datetime
 
 T = TypeVar("T")
 
@@ -92,10 +93,15 @@ class JsearchAPI(CompanyJobsPort):
         """
         jobs: list[Job] = []
         for index, job in enumerate(dto.data) if dto.data else []:
+            job.job_id = str(uuid4())
             job_entity = Job(  # type: ignore
                 id=job.job_id,
                 company_id=ids[index],
-                date_creation=job.job_posted_at_datetime_utc,
+                date_creation=(
+                    job.job_posted_at_datetime_utc.rstrip("Z")
+                    if job.job_posted_at_datetime_utc
+                    else datetime.now().isoformat()
+                ),
                 description=job.job_description,
                 job_title=job.job_title,
                 location=job.job_location,

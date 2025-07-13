@@ -293,9 +293,14 @@ curl --request GET \
 
 **Local REST API:**
 ```sh
-curl --request GET \
-  --url 'http://localhost:7002/rest/v1/company-jobs/active_jobs_db?job_title=python&location=france' \
-  --header 'Accept: application/json, text/event-stream'
+curl --request POST \
+  --url 'http://localhost:7002/rest/v1/company/jobs/jsearch?=' \
+  --header 'Accept: application/json, text/event-stream' \
+  --header 'Content-Type: application/json' \
+  --data '{
+	"location": "France",
+	"job_title": ["Python"]
+}'
 ```
 
 **MCP SSE Endpoint:**

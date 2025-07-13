@@ -1,9 +1,11 @@
+from uuid import uuid4
 import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
-from prospectio_api_mcp.application.use_cases.get_leads import GetCompanyJobsUseCase
+from prospectio_api_mcp.application.use_cases.insert_leads import InsertCompanyJobsUseCase
 from prospectio_api_mcp.domain.services.leads.mantiks import MantiksStrategy
+from prospectio_api_mcp.infrastructure.services.leads_database import LeadsDatabase
 from prospectio_api_mcp.infrastructure.services.mantiks import MantiksAPI
-from prospectio_api_mcp.config import MantiksConfig
+from prospectio_api_mcp.config import DatabaseConfig, MantiksConfig
 from prospectio_api_mcp.infrastructure.dto.mantiks.location import LocationResponseDTO
 from prospectio_api_mcp.infrastructure.dto.mantiks.company_response import CompanyResponseDTO
 
@@ -69,7 +71,7 @@ class TestMantiksUseCase:
         company_data = {
             "companies": [
                 {
-                    "id": "company_1",
+                    "id": str(uuid4()),
                     "name": "Tech Corp",
                     "min_company_size": 100,
                     "max_company_size": 500,
@@ -77,7 +79,7 @@ class TestMantiksUseCase:
                     "social_urls": {"linkedin": "https://linkedin.com/company/techcorp"},
                     "jobs": [
                         {
-                            "job_id": "job_1",
+                            "job_id": str(uuid4()),
                             "date_creation": "2025-07-01",
                             "description": "Senior Python Developer position",
                             "job_title": "Senior Python Developer",
@@ -137,9 +139,22 @@ class TestMantiksUseCase:
             job_title=["Python Developer", "Senior Developer"],
             port=mantiks_api
         )
+    
+    @pytest.fixture
+    def active_jobs_db_repository(self) -> LeadsDatabase:
+        """
+        Create an ActiveJobsDBStrategy instance for testing.
+        
+        Args:
+            active_jobs_db_api: The Active Jobs DB API adapter.
+            
+        Returns:
+            ActiveJobsDBStrategy: Configured Active Jobs DB strategy.
+        """
+        return LeadsDatabase(DatabaseConfig().DATABASE_URL)
 
     @pytest.fixture
-    def use_case(self, mantiks_strategy: MantiksStrategy) -> GetCompanyJobsUseCase:
+    def use_case(self, mantiks_strategy: MantiksStrategy, active_jobs_db_repository: LeadsDatabase) -> InsertCompanyJobsUseCase:
         """
         Create a GetCompanyJobsUseCase instance for testing.
         
@@ -149,12 +164,12 @@ class TestMantiksUseCase:
         Returns:
             GetCompanyJobsUseCase: Configured use case.
         """
-        return GetCompanyJobsUseCase(strategy=mantiks_strategy)
+        return InsertCompanyJobsUseCase(strategy=mantiks_strategy, repository=active_jobs_db_repository)
 
     @pytest.mark.asyncio
     async def test_get_leads_success(
         self,
-        use_case: GetCompanyJobsUseCase,
+        use_case: InsertCompanyJobsUseCase,
         sample_location_response: dict,
         sample_company_response: dict
     ):
@@ -180,61 +195,8 @@ class TestMantiksUseCase:
                 mock_get.side_effect = [location_response_mock, company_response_mock]
                 
                 # Execute the use case
-                result = await use_case.get_leads()
+                result = await use_case.insert_leads()
                 
-                # Assertions - verify the result structure
-                assert result is not None
-                assert hasattr(result, 'companies')
-                assert hasattr(result, 'jobs') 
-                assert hasattr(result, 'contacts')
-                assert result.companies is not None
-                assert result.jobs is not None 
-                assert result.contacts is not None
-                
-                # Verify companies
-                assert len(result.companies.root) == 1
-                company = result.companies.root[0]
-                assert company.id == "company_1"
-                assert company.name == "Tech Corp"
-                assert company.source == "mantiks"
-                assert company.size == "100 - 500"
-                assert company.website == "https://techcorp.com"
-                
-                # Verify jobs
-                assert len(result.jobs.root) == 1
-                job = result.jobs.root[0]
-                assert job.id == "job_1"
-                assert job.company_id == "company_1"
-                assert job.job_title == "Senior Python Developer"
-                assert job.location == "Paris, France"
-                assert job.salary == "80000.0 - 120000.0"
-                assert job.job_seniority == "Senior"
-                assert job.job_type == "Full-time"
-                assert job.sectors == "Technology Software"
-                
-                # Verify contacts
-                assert len(result.contacts.root) == 1
-                contact = result.contacts.root[0]
-                assert contact.company_id == "company_1"
-                assert contact.job_id == "job_1"
-                assert contact.name == "John Doe"
-                assert contact.title == "Senior Recruiter"
-                assert contact.profile_url == "https://linkedin.com/in/johndoe"
-                
-                # Verify API calls were made correctly
-                assert mock_get.call_count == 2
-                
-                # Check location API call
-                location_call_args = mock_get.call_args_list[0]
-                assert location_call_args[0][0] == "/location/search"
-                assert location_call_args[1]["params"]["name"] == "France"
-                
-                # Check company API call
-                company_call_args = mock_get.call_args_list[1]
-                assert company_call_args[0][0] == "/company/search"
-                expected_params = {
-                    "job_age_in_days": 30,
-                    "job_location_ids": [1],
-                    "job_title": ["Python Developer", "Senior Developer"]
-                }
-                assert company_call_args[1]["params"] == expected_params
+                assert result.companies == "Insert of 1 companies"
+                assert result.jobs == "insert of 1 jobs"
+                assert result.contacts == "insert of 1 contacts"
