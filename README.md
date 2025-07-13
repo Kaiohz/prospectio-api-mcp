@@ -36,7 +36,7 @@ prospectio-api-mcp/
     │   │   ├── job.py          # Job entity
     │   │   └── contact.py      # Contact entity
     │   ├── ports/
-    │   │   ├── company_jobs.py # Company jobs port interface
+    │   │   ├── fetch_leads.py  # Fetch leads port interface
     │   │   └── leads_repository.py # Leads repository port interface
     │   └── services/
     │       └── leads/
