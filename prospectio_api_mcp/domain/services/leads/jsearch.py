@@ -1,4 +1,4 @@
-from domain.ports.company_jobs import FetchLeadsPort
+from prospectio_api_mcp.domain.ports.fetch_leads import FetchLeadsPort
 from domain.services.leads.strategy import CompanyJobsStrategy
 from domain.entities.leads import Leads
 
@@ -28,5 +28,5 @@ class JsearchStrategy(CompanyJobsStrategy):
         Returns:
             dict: The leads data retrieved from the JSearch API.
         """
-        company_jobs = await self.port.fetch_company_jobs(self.location, self.job_title)
+        company_jobs = await self.port.fetch_leads(self.location, self.job_title)
         return company_jobs

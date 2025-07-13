@@ -1,7 +1,7 @@
 import httpx
 from uuid import uuid4
 from typing import TypeVar
-from domain.ports.company_jobs import FetchLeadsPort
+from prospectio_api_mcp.domain.ports.fetch_leads import FetchLeadsPort
 from infrastructure.dto.rapidapi.active_jobs_db import ActiveJobsResponseDTO
 from config import ActiveJobsDBConfig
 from infrastructure.api.client import BaseApiClient

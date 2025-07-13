@@ -4,7 +4,7 @@ from domain.entities.company import Company, CompanyEntity
 from domain.entities.contact import Contact, ContactEntity
 from domain.entities.leads import Leads
 from domain.entities.job import JobEntity, Job
-from domain.ports.company_jobs import FetchLeadsPort
+from prospectio_api_mcp.domain.ports.fetch_leads import FetchLeadsPort
 from infrastructure.dto.mantiks.company_response import CompanyResponseDTO
 from infrastructure.dto.mantiks.location import LocationResponseDTO
 from config import MantiksConfig
