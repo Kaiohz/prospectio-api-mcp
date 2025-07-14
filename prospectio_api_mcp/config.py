@@ -43,3 +43,11 @@ class ActiveJobsDBConfig(RapidApiConfig):
     ACTIVE_JOBS_DB_URL: str = Field(
         ..., json_schema_extra={"env": "ACTIVE_JOBS_DB_URL"}
     )
+
+
+class DatabaseConfig(BaseSettings):
+    """
+    PostgreSQL database configuration.
+    """
+
+    DATABASE_URL: str = Field(..., json_schema_extra={"env": "DATABASE_URL"})

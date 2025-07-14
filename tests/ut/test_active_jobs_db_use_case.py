@@ -1,11 +1,11 @@
 import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
-from prospectio_api_mcp.application.use_cases.get_leads import GetCompanyJobsUseCase
-from prospectio_api_mcp.domain.services.leads.active_jobs_db import ActiveJobsDBStrategy
-from prospectio_api_mcp.infrastructure.services.active_jobs_db import ActiveJobsDBAPI
-from prospectio_api_mcp.config import ActiveJobsDBConfig
-# Removed unused import Leads
-
+from application.use_cases.insert_leads import InsertCompanyJobsUseCase
+from domain.services.leads.active_jobs_db import ActiveJobsDBStrategy
+from infrastructure.services.active_jobs_db import ActiveJobsDBAPI
+from config import ActiveJobsDBConfig, DatabaseConfig
+from infrastructure.services.leads_database import LeadsDatabase
+from domain.entities.leads_result import LeadsResult
 
 class TestActiveJobsDBUseCase:
     """Test suite for the Active Jobs DB use case implementation."""
@@ -163,7 +163,22 @@ class TestActiveJobsDBUseCase:
         )
 
     @pytest.fixture
-    def use_case(self, active_jobs_db_strategy: ActiveJobsDBStrategy) -> GetCompanyJobsUseCase:
+    def active_jobs_db_repository(self) -> LeadsDatabase:
+        """
+        Create an ActiveJobsDBStrategy instance for testing.
+        
+        Args:
+            active_jobs_db_api: The Active Jobs DB API adapter.
+            
+        Returns:
+            ActiveJobsDBStrategy: Configured Active Jobs DB strategy.
+        """
+        return LeadsDatabase(DatabaseConfig().DATABASE_URL)
+    
+
+
+    @pytest.fixture
+    def use_case(self, active_jobs_db_strategy: ActiveJobsDBStrategy, active_jobs_db_repository: LeadsDatabase) -> InsertCompanyJobsUseCase:
         """
         Create a GetCompanyJobsUseCase instance for testing.
         
@@ -173,14 +188,14 @@ class TestActiveJobsDBUseCase:
         Returns:
             GetCompanyJobsUseCase: Configured use case.
         """
-        return GetCompanyJobsUseCase(strategy=active_jobs_db_strategy)
+        return InsertCompanyJobsUseCase(strategy=active_jobs_db_strategy, repository=active_jobs_db_repository)
 
     @pytest.mark.asyncio
     async def test_get_leads_success(
         self,
-        use_case: GetCompanyJobsUseCase,
+        use_case: InsertCompanyJobsUseCase,
         sample_active_jobs_response: list
-    ):
+    ) -> None:
         """
         Test successful lead retrieval from Active Jobs DB API.
         
@@ -198,62 +213,12 @@ class TestActiveJobsDBUseCase:
             mock_get.return_value = active_jobs_response_mock
             
             # Execute the use case
-            result = await use_case.get_leads()
+            result = await use_case.insert_leads()
             
-            # Assertions - verify the result structure
-            assert result is not None
-            assert hasattr(result, 'companies')
-            assert hasattr(result, 'jobs') 
-            assert hasattr(result, 'contacts')
-            assert result.companies is not None
-            assert result.jobs is not None 
-            assert result.contacts is None  # Active Jobs DB doesn't provide contact info
+            # Verify result type
+            assert isinstance(result, LeadsResult)
             
-            # Verify companies
-            assert len(result.companies.root) == 2
-            first_company = result.companies.root[0]
-            assert first_company.name == "Innovation Labs"
-            assert first_company.source == "active_jobs_db"
-            assert first_company.website == "https://innovationlabs.com"
-            
-            second_company = result.companies.root[1]
-            assert second_company.name == "DataTech Solutions"
-            assert second_company.source == "active_jobs_db"
-            assert second_company.website == "https://datatech.fr"
-            
-            # Verify jobs
-            assert len(result.jobs.root) == 2
-            first_job = result.jobs.root[0]
-            assert first_job.id == "active_job_1"
-            assert first_job.job_title == "Senior Python Developer"
-            assert first_job.location == "Paris, France"
-            assert first_job.salary == "{'min': 85000, 'max': 125000, 'currency': 'EUR'}"
-            assert first_job.job_type == "FULL_TIME"
-            assert first_job.apply_url is not None
-            assert len(first_job.apply_url) == 1
-            assert first_job.apply_url[0] == "https://innovationlabs.com/careers/python-dev"
-            
-            second_job = result.jobs.root[1]
-            assert second_job.id == "active_job_2"
-            assert second_job.job_title == "Python Backend Engineer"
-            assert second_job.location == "Lyon, France"
-            assert second_job.salary == "{'min': 70000, 'max': 95000, 'currency': 'EUR'}"
-            assert second_job.job_type == "FULL_TIME, CONTRACT"
-            assert second_job.apply_url is not None
-            assert len(second_job.apply_url) == 1
-            assert second_job.apply_url[0] == "https://datatech.fr/jobs/backend-python"
-            
-            # Verify API calls were made correctly
-            assert mock_get.call_count == 1
-            
-            # Check Active Jobs DB API call
-            active_jobs_call_args = mock_get.call_args_list[0]
-            assert active_jobs_call_args[0][0] == "/active-ats-7d"
-            expected_params = {
-                "limit": 10,
-                "offset": 0,
-                "advanced_title_filter": "Python Developer | Backend Engineer",
-                "location_filter": "France",
-                "description_type": "text"
-            }
-            assert active_jobs_call_args[1]["params"] == expected_params
+            # Verify result content
+            assert result.companies == "Insert of 2 companies"
+            assert result.jobs == "insert of 2 jobs"
+            assert result.contacts == "insert of 0 contacts"

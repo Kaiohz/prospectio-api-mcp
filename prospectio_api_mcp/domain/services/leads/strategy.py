@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from domain.ports.company_jobs import CompanyJobsPort
+from prospectio_api_mcp.domain.ports.fetch_leads import FetchLeadsPort
 from domain.entities.leads import Leads
 
 
@@ -11,7 +11,7 @@ class CompanyJobsStrategy(ABC):
     It should be extended by concrete implementations for each provider.
     """
 
-    def __init__(self, location: str, job_title: list[str], port: CompanyJobsPort):
+    def __init__(self, location: str, job_title: list[str], port: FetchLeadsPort):
         """
         Initialize the strategy with location, job titles, and the provider port.
 

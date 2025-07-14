@@ -1,19 +1,19 @@
 import httpx
 from uuid import uuid4
 from typing import TypeVar
-from domain.ports.company_jobs import CompanyJobsPort
+from prospectio_api_mcp.domain.ports.fetch_leads import FetchLeadsPort
 from infrastructure.dto.rapidapi.active_jobs_db import ActiveJobsResponseDTO
 from config import ActiveJobsDBConfig
 from infrastructure.api.client import BaseApiClient
 from domain.entities.company import Company, CompanyEntity
 from domain.entities.job import Job, JobEntity
 from domain.entities.leads import Leads
-
+from datetime import datetime
 
 T = TypeVar("T")
 
 
-class ActiveJobsDBAPI(CompanyJobsPort):
+class ActiveJobsDBAPI(FetchLeadsPort):
     """
     Adapter for the Active Jobs DB API to fetch job data.
     """
@@ -103,10 +103,11 @@ class ActiveJobsDBAPI(CompanyJobsPort):
         jobs: list[Job] = []
 
         for index, active_job in enumerate(dto.active_jobs) if dto.active_jobs else []:
+            active_job.id = str(uuid4())
             job_entity = Job(  # type: ignore
                 id=active_job.id,
                 company_id=ids[index] if index < len(ids) else str(uuid4()),
-                date_creation=active_job.date_posted,
+                date_creation=active_job.date_posted or datetime.now().isoformat(),
                 description=active_job.description_text,
                 job_title=active_job.title,
                 location=(
@@ -126,7 +127,7 @@ class ActiveJobsDBAPI(CompanyJobsPort):
 
         return JobEntity(jobs)
 
-    async def fetch_company_jobs(self, location: str, job_title: list[str]) -> Leads:
+    async def fetch_leads(self, location: str, job_title: list[str]) -> Leads:
         """
         Fetch jobs from the Active Jobs DB API based on search parameters.
 

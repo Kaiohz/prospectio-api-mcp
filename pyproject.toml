@@ -7,18 +7,10 @@ authors = [
 ]
 license = {text = "Apache 2.0"}
 requires-python = ">=3.12.7"
-dependencies = [
-    "pydantic==2.10.3",
-    "httpx==0.28.1",
-    "mcp==1.10.1",
-    "fastapi[standard]==0.115.14",
-]
 
 [tool.pytest.ini_options]
-pythonpath = [
-  ".",
-  "prospectio_api_mcp"
-]
+pythonpath = ["prospectio_api_mcp"]
+addopts = ["-v", "--tb=short"]
 testpaths = ["tests"]
 asyncio_mode = "auto"
 
@@ -32,9 +24,14 @@ license = "Apache 2.0"
 [tool.poetry.dependencies]
 python = "^3.12.7"
 pydantic = "2.10.3"
-httpx = "0.28.1"
+httpx = {extras = ["http2"], version = "0.28.1"}
 mcp = "1.10.1"
 fastapi = { version = "0.115.14", extras = ["standard"]}
+psycopg = "3.2.4"
+psycopg-binary = "3.2.4"
+SQLAlchemy = "2.0.41"
+asyncpg = "0.30.0"
+greenlet = "3.2.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "8.4.1"

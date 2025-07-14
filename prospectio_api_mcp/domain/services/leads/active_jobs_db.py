@@ -1,4 +1,4 @@
-from domain.ports.company_jobs import CompanyJobsPort
+from prospectio_api_mcp.domain.ports.fetch_leads import FetchLeadsPort
 from domain.services.leads.strategy import CompanyJobsStrategy
 from domain.entities.leads import Leads
 
@@ -10,7 +10,7 @@ class ActiveJobsDBStrategy(CompanyJobsStrategy):
     Implements the CompanyJobsStrategy interface for the ActiveJobsDB provider.
     """
 
-    def __init__(self, location: str, job_title: list[str], port: CompanyJobsPort):
+    def __init__(self, location: str, job_title: list[str], port: FetchLeadsPort):
         """
         Initialize the ActiveJobsDBStrategy.
 
@@ -28,5 +28,5 @@ class ActiveJobsDBStrategy(CompanyJobsStrategy):
         Returns:
             dict: The leads data retrieved from the ActiveJobsDB API.
         """
-        company_jobs = await self.port.fetch_company_jobs(self.location, self.job_title)
+        company_jobs = await self.port.fetch_leads(self.location, self.job_title)
         return company_jobs

@@ -1,0 +1,11 @@
+{
+    "include": [
+        "prospectio_api_mcp",
+        "tests"
+    ],
+    "extraPaths": [
+        "prospectio_api_mcp"
+    ],
+    "pythonVersion": "3.11",
+    "typeCheckingMode": "basic"
+}

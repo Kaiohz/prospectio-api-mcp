@@ -1,14 +1,43 @@
 services:
-  prospectio-mcp-api:
+  prospectio-api-mcp:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: prospectio-mcp-api
+    container_name: prospectio-api-mcp
     ports:
       - "7002:7002"
+    environment:
+      - EXPOSE=stdio
+      - MASTER_KEY=apikey
+      - ALLOWED_ORIGINS=http://localhost:3000
+      - MANTIKS_API_URL=https://api.mantiks.io
+      - MANTIKS_API_KEY=apikey
+      - RAPIDAPI_API_KEY=apikey
+      - JSEARCH_API_URL=https://jsearch.p.rapidapi.com
+      - ACTIVE_JOBS_DB_URL=https://active-jobs-db.p.rapidapi.com
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:7002/docs"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: pgvector/pgvector:0.8.0-pg17
+    container_name: prospectio-pgvector
+    environment:
+      POSTGRES_USER: prospectio
+      POSTGRES_PASSWORD: prospectio
+      POSTGRES_DB: prospectio
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prospectio -d prospectio"]
+      interval: 5s
+      timeout: 5s
+      retries: 5

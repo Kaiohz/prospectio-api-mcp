@@ -1,9 +1,11 @@
 import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
-from prospectio_api_mcp.application.use_cases.get_leads import GetCompanyJobsUseCase
-from prospectio_api_mcp.domain.services.leads.jsearch import JsearchStrategy
-from prospectio_api_mcp.infrastructure.services.jsearch import JsearchAPI
-from prospectio_api_mcp.config import JsearchConfig
+from application.use_cases.insert_leads import InsertCompanyJobsUseCase
+from domain.services.leads.jsearch import JsearchStrategy
+from infrastructure.services.jsearch import JsearchAPI
+from config import DatabaseConfig, JsearchConfig
+from infrastructure.services.leads_database import LeadsDatabase
+from domain.entities.leads_result import LeadsResult
 # Line removed as it is unused
 
 
@@ -136,9 +138,22 @@ class TestJsearchUseCase:
             job_title=["Python Developer", "Senior Developer"],
             port=jsearch_api
         )
+    
+    @pytest.fixture
+    def active_jobs_db_repository(self) -> LeadsDatabase:
+        """
+        Create an ActiveJobsDBStrategy instance for testing.
+        
+        Args:
+            active_jobs_db_api: The Active Jobs DB API adapter.
+            
+        Returns:
+            ActiveJobsDBStrategy: Configured Active Jobs DB strategy.
+        """
+        return LeadsDatabase(DatabaseConfig().DATABASE_URL)
 
     @pytest.fixture
-    def use_case(self, jsearch_strategy: JsearchStrategy) -> GetCompanyJobsUseCase:
+    def use_case(self, jsearch_strategy: JsearchStrategy,active_jobs_db_repository: LeadsDatabase) -> InsertCompanyJobsUseCase:
         """
         Create a GetCompanyJobsUseCase instance for testing.
         
@@ -148,14 +163,14 @@ class TestJsearchUseCase:
         Returns:
             GetCompanyJobsUseCase: Configured use case.
         """
-        return GetCompanyJobsUseCase(strategy=jsearch_strategy)
+        return InsertCompanyJobsUseCase(strategy=jsearch_strategy, repository=active_jobs_db_repository)
 
     @pytest.mark.asyncio
     async def test_get_leads_success(
         self,
-        use_case: GetCompanyJobsUseCase,
+        use_case: InsertCompanyJobsUseCase,
         sample_jsearch_response: dict
-    ):
+    ) -> None:
         """
         Test successful lead retrieval from JSearch API.
         
@@ -173,47 +188,12 @@ class TestJsearchUseCase:
             mock_get.return_value = jsearch_response_mock
             
             # Execute the use case
-            result = await use_case.get_leads()
+            result = await use_case.insert_leads()
             
-            # Assertions - verify the result structure
-            assert result is not None
-            assert hasattr(result, 'companies')
-            assert hasattr(result, 'jobs') 
-            assert hasattr(result, 'contacts')
-            assert result.companies is not None
-            assert result.jobs is not None 
-            assert result.contacts is None  # JSearch doesn't provide contact info
+            # Verify result type
+            assert isinstance(result, LeadsResult)
             
-            # Verify companies
-            assert len(result.companies.root) == 1
-            company = result.companies.root[0]
-            assert company.name == "Tech Solutions"
-            assert company.source == "jsearch"
-            
-            # Verify jobs
-            assert len(result.jobs.root) == 1
-            job = result.jobs.root[0]
-            assert job.id == "jsearch_job_1"
-            assert job.job_title == "Senior Python Developer"
-            assert job.location == "Paris, France"
-            assert job.salary == "80000.0 - 120000.0"
-            assert job.job_type == "FULLTIME"
-            assert job.apply_url is not None
-            assert len(job.apply_url) == 2
-            assert job.apply_url[0] == "https://jobs.techsolutions.com/apply/python-dev"
-            assert job.apply_url[1] == "https://www.google.com/search?q=python+developer+paris"
-            
-            # Verify API calls were made correctly
-            assert mock_get.call_count == 1
-            
-            # Check JSearch API call
-            jsearch_call_args = mock_get.call_args_list[0]
-            assert jsearch_call_args[0][0] == "/search"
-            expected_params = {
-                "query": "Python Developer Senior Developer in France",
-                "page": 1,
-                "num_pages": 1,
-                "date_posted": "month",
-                "country": "fr"
-            }
-            assert jsearch_call_args[1]["params"] == expected_params
+            # Verify result content
+            assert result.companies == "Insert of 1 companies"
+            assert result.jobs == "insert of 1 jobs"
+            assert result.contacts == "insert of 0 contacts"

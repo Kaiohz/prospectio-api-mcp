@@ -1,8 +1,8 @@
 import contextlib
 from typing import Callable
 from fastapi import FastAPI
-from application.api.routes import get_company_jobs_router, mcp_company_jobs
-from config import ActiveJobsDBConfig, JsearchConfig, MantiksConfig, MockConfig
+from application.api.routes import leads_router, mcp_company_jobs
+from config import ActiveJobsDBConfig, JsearchConfig, MantiksConfig
 from domain.services.leads.active_jobs_db import ActiveJobsDBStrategy
 from domain.services.leads.jsearch import JsearchStrategy
 from domain.services.leads.mantiks import MantiksStrategy
@@ -11,8 +11,10 @@ from infrastructure.services.jsearch import JsearchAPI
 from infrastructure.services.mantiks import MantiksAPI
 from mcp_routes import mcp_router
 from config import Config
+from infrastructure.services.leads_database import LeadsDatabase
+from config import DatabaseConfig
 
-_COMPANY_JOBS_STRATEGIES: dict[str, Callable] = {
+_LEADS_STRATEGIES: dict[str, Callable] = {
     "mantiks": lambda location, job_title: MantiksStrategy(
         port=MantiksAPI(MantiksConfig()), location=location, job_title=job_title
     ),
@@ -26,8 +28,9 @@ _COMPANY_JOBS_STRATEGIES: dict[str, Callable] = {
     ),
 }
 
-# Create Company Jobs Routes object
-jobs_routes = get_company_jobs_router(_COMPANY_JOBS_STRATEGIES)
+jobs_routes = leads_router(
+    _LEADS_STRATEGIES, LeadsDatabase(DatabaseConfig().DATABASE_URL)
+)
 
 
 @contextlib.asynccontextmanager

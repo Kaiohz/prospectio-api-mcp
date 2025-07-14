@@ -1,32 +1,48 @@
-from domain.services.leads.strategy import CompanyJobsStrategy
+from typing import Union
+from domain.entities.company import CompanyEntity
+from domain.entities.contact import ContactEntity
+from domain.entities.job import JobEntity
 from domain.entities.leads import Leads
+from domain.ports.leads_repository import LeadsRepositoryPort
 
 
-class GetCompanyJobsUseCase:
+class GetLeadsUseCase:
     """
-    Use case for retrieving leads with contacts from a specified source using the strategy pattern.
-    This class selects the appropriate strategy based on the source and delegates the lead retrieval logic.
+    Use case for retrieving different types of data (companies, jobs, contacts, leads) from the repository.
+    This class acts as a dispatcher to fetch specific data types based on the requested type.
     """
 
-    def __init__(self, strategy: CompanyJobsStrategy):
+    def __init__(self, type: str, repository: LeadsRepositoryPort):
         """
-        Initialize the GetLeadsUseCase with the required parameters and available strategies.
+        Initialize the InsertCompanyJobsUseCase with the data type and repository.
 
         Args:
-            source (str): The lead source identifier (e.g., 'mantiks', 'clearbit').
-            location (str): The location to search for leads.
-            job_title (list[str]): List of job titles to filter leads.
-            port (ProspectAPIPort): The port interface to the external prospect API.
+            type (str): The data type to retrieve ('companies', 'jobs', 'contacts', or 'leads').
+            repository (LeadsRepositoryPort): The repository interface for data access.
         """
-        self.strategy = strategy
+        self.type = type
+        self.repository = repository
 
-    async def get_leads(self) -> Leads:
+    async def get_leads(self) -> Union[Leads, CompanyEntity, JobEntity, ContactEntity]:
         """
-        Retrieve leads using the selected strategy for the given source.
+        Retrieve data based on the specified type from the repository.
 
         Returns:
-            str: The leads data as a string (JSON or similar).
+            Union[Leads, CompanyEntity, JobEntity, ContactEntity]: The retrieved data object 
+            corresponding to the requested type.
+            
         Raises:
-            KeyError: If the specified source is not supported.
+            KeyError: If the specified type is not supported ('companies', 'jobs', 'contacts', 'leads').
         """
-        return await self.strategy.execute()
+        if self.type == "companies":
+            return await self.repository.get_companies()
+        elif self.type == "jobs":
+            return await self.repository.get_jobs()
+        elif self.type == "contacts":
+            return await self.repository.get_contacts()
+        elif self.type == "leads":
+            return await self.repository.get_leads()
+        else:
+            raise KeyError(f"Unsupported type: {self.type}")
+
+
