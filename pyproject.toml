@@ -9,10 +9,8 @@ license = {text = "Apache 2.0"}
 requires-python = ">=3.12.7"
 
 [tool.pytest.ini_options]
-pythonpath = [
-  ".",
-  "prospectio_api_mcp"
-]
+pythonpath = ["prospectio_api_mcp"]
+addopts = ["-v", "--tb=short"]
 testpaths = ["tests"]
 asyncio_mode = "auto"
 

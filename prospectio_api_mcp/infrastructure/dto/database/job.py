@@ -1,4 +1,5 @@
 from typing import List, Optional
+from datetime import datetime
 from sqlalchemy import ARRAY, DateTime, String, Text, JSON, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID
@@ -25,7 +26,7 @@ class Job(Base):
         ForeignKey("companies.id", ondelete="CASCADE"),
         doc="ID of the company associated with the job",
     )
-    date_creation: Mapped[Optional[str]] = mapped_column(
+    date_creation: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), doc="Creation date of the job posting"
     )
     description: Mapped[Optional[str]] = mapped_column(

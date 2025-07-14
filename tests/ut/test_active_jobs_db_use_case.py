@@ -1,11 +1,11 @@
-from operator import eq
 import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
-from prospectio_api_mcp.application.use_cases.insert_leads import InsertCompanyJobsUseCase
-from prospectio_api_mcp.domain.services.leads.active_jobs_db import ActiveJobsDBStrategy
-from prospectio_api_mcp.infrastructure.services.active_jobs_db import ActiveJobsDBAPI
-from prospectio_api_mcp.config import ActiveJobsDBConfig, DatabaseConfig
-from prospectio_api_mcp.infrastructure.services.leads_database import LeadsDatabase
+from application.use_cases.insert_leads import InsertCompanyJobsUseCase
+from domain.services.leads.active_jobs_db import ActiveJobsDBStrategy
+from infrastructure.services.active_jobs_db import ActiveJobsDBAPI
+from config import ActiveJobsDBConfig, DatabaseConfig
+from infrastructure.services.leads_database import LeadsDatabase
+from domain.entities.leads_result import LeadsResult
 
 class TestActiveJobsDBUseCase:
     """Test suite for the Active Jobs DB use case implementation."""
@@ -195,7 +195,7 @@ class TestActiveJobsDBUseCase:
         self,
         use_case: InsertCompanyJobsUseCase,
         sample_active_jobs_response: list
-    ):
+    ) -> None:
         """
         Test successful lead retrieval from Active Jobs DB API.
         
@@ -215,6 +215,10 @@ class TestActiveJobsDBUseCase:
             # Execute the use case
             result = await use_case.insert_leads()
             
+            # Verify result type
+            assert isinstance(result, LeadsResult)
+            
+            # Verify result content
             assert result.companies == "Insert of 2 companies"
             assert result.jobs == "insert of 2 jobs"
             assert result.contacts == "insert of 0 contacts"

@@ -1,10 +1,11 @@
 import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
-from prospectio_api_mcp.application.use_cases.insert_leads import InsertCompanyJobsUseCase
-from prospectio_api_mcp.domain.services.leads.jsearch import JsearchStrategy
-from prospectio_api_mcp.infrastructure.services.jsearch import JsearchAPI
-from prospectio_api_mcp.config import DatabaseConfig, JsearchConfig
-from prospectio_api_mcp.infrastructure.services.leads_database import LeadsDatabase
+from application.use_cases.insert_leads import InsertCompanyJobsUseCase
+from domain.services.leads.jsearch import JsearchStrategy
+from infrastructure.services.jsearch import JsearchAPI
+from config import DatabaseConfig, JsearchConfig
+from infrastructure.services.leads_database import LeadsDatabase
+from domain.entities.leads_result import LeadsResult
 # Line removed as it is unused
 
 
@@ -169,7 +170,7 @@ class TestJsearchUseCase:
         self,
         use_case: InsertCompanyJobsUseCase,
         sample_jsearch_response: dict
-    ):
+    ) -> None:
         """
         Test successful lead retrieval from JSearch API.
         
@@ -189,6 +190,10 @@ class TestJsearchUseCase:
             # Execute the use case
             result = await use_case.insert_leads()
             
+            # Verify result type
+            assert isinstance(result, LeadsResult)
+            
+            # Verify result content
             assert result.companies == "Insert of 1 companies"
             assert result.jobs == "insert of 1 jobs"
             assert result.contacts == "insert of 0 contacts"

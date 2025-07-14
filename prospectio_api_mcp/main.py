@@ -1,7 +1,7 @@
 import contextlib
 from typing import Callable
 from fastapi import FastAPI
-from application.api.routes import get_company_jobs_router, mcp_company_jobs
+from application.api.routes import leads_router, mcp_company_jobs
 from config import ActiveJobsDBConfig, JsearchConfig, MantiksConfig
 from domain.services.leads.active_jobs_db import ActiveJobsDBStrategy
 from domain.services.leads.jsearch import JsearchStrategy
@@ -28,8 +28,7 @@ _LEADS_STRATEGIES: dict[str, Callable] = {
     ),
 }
 
-# Create Company Jobs Routes object
-jobs_routes = get_company_jobs_router(
+jobs_routes = leads_router(
     _LEADS_STRATEGIES, LeadsDatabase(DatabaseConfig().DATABASE_URL)
 )
 

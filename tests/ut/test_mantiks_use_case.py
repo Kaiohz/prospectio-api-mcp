@@ -1,13 +1,14 @@
 from uuid import uuid4
 import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
-from prospectio_api_mcp.application.use_cases.insert_leads import InsertCompanyJobsUseCase
-from prospectio_api_mcp.domain.services.leads.mantiks import MantiksStrategy
-from prospectio_api_mcp.infrastructure.services.leads_database import LeadsDatabase
-from prospectio_api_mcp.infrastructure.services.mantiks import MantiksAPI
-from prospectio_api_mcp.config import DatabaseConfig, MantiksConfig
-from prospectio_api_mcp.infrastructure.dto.mantiks.location import LocationResponseDTO
-from prospectio_api_mcp.infrastructure.dto.mantiks.company_response import CompanyResponseDTO
+from application.use_cases.insert_leads import InsertCompanyJobsUseCase
+from domain.services.leads.mantiks import MantiksStrategy
+from infrastructure.services.leads_database import LeadsDatabase
+from infrastructure.services.mantiks import MantiksAPI
+from config import DatabaseConfig, MantiksConfig
+from infrastructure.dto.mantiks.location import LocationResponseDTO
+from infrastructure.dto.mantiks.company_response import CompanyResponseDTO
+from domain.entities.leads_result import LeadsResult
 
 
 class TestMantiksUseCase:
@@ -172,7 +173,7 @@ class TestMantiksUseCase:
         use_case: InsertCompanyJobsUseCase,
         sample_location_response: dict,
         sample_company_response: dict
-    ):
+    ) -> None:
         """
         Test successful lead retrieval from Mantiks API.
         
@@ -197,6 +198,10 @@ class TestMantiksUseCase:
                 # Execute the use case
                 result = await use_case.insert_leads()
                 
+                # Verify result type
+                assert isinstance(result, LeadsResult)
+                
+                # Verify result content
                 assert result.companies == "Insert of 1 companies"
                 assert result.jobs == "insert of 1 jobs"
                 assert result.contacts == "insert of 1 contacts"

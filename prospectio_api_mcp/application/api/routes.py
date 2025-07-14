@@ -14,7 +14,7 @@ mcp_company_jobs = FastMCP(name="Prospectio MCP", stateless_http=True)
 logger = logging.getLogger(__name__)
 
 
-def get_company_jobs_router(
+def leads_router(
     jobs_strategy: dict[str, Callable[[str, list[str]], CompanyJobsStrategy]],
     repository: LeadsRepositoryPort,
 ) -> APIRouter:
@@ -29,6 +29,15 @@ def get_company_jobs_router(
     """
     company_jobs_router = APIRouter()
 
+    @company_jobs_router.post("/get/leads/{type}")
+    @mcp_company_jobs.tool(
+        description="Return companies, jobs, contacts from the database." \
+        "The first parameter is the type of data to retrieve, it can be companies, jobs, contacts or leads.",
+    )
+    async def get_leads(type: str = Path(..., description="Lead source")) -> dict:
+        leads = await repository.get_leads()
+        return leads.model_dump()
+        
     @company_jobs_router.post("/insert/leads/{source}")
     @mcp_company_jobs.tool(
         description="Find leads and insert them in database from the specified source."
