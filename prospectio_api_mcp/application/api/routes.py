@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Body, HTTPException, Path
 from mcp.server.fastmcp import FastMCP
+from application.use_cases.get_leads import GetLeadsUseCase
 from prospectio_api_mcp.application.use_cases.insert_leads import (
     InsertCompanyJobsUseCase,
 )
@@ -35,7 +36,7 @@ def leads_router(
         "The first parameter is the type of data to retrieve, it can be companies, jobs, contacts or leads.",
     )
     async def get_leads(type: str = Path(..., description="Lead source")) -> dict:
-        leads = await repository.get_leads()
+        leads = await GetLeadsUseCase(type, repository).get_leads()
         return leads.model_dump()
         
     @company_jobs_router.post("/insert/leads/{source}")

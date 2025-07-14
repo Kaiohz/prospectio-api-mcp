@@ -6,7 +6,7 @@ from domain.entities.leads import Leads
 from domain.ports.leads_repository import LeadsRepositoryPort
 
 
-class InsertCompanyJobsUseCase:
+class GetLeadsUseCase:
     """
     Use case for retrieving different types of data (companies, jobs, contacts, leads) from the repository.
     This class acts as a dispatcher to fetch specific data types based on the requested type.

@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock
-from application.use_cases.get_leads import InsertCompanyJobsUseCase
+from application.use_cases.get_leads import GetLeadsUseCase
 from config import DatabaseConfig
 from domain.entities.leads import Leads
 from domain.entities.company import Company, CompanyEntity
@@ -151,7 +151,7 @@ class TestGetLeads:
         return mock_repo
 
     @pytest.fixture
-    def companies_use_case(self, mock_repository: AsyncMock) -> InsertCompanyJobsUseCase:
+    def companies_use_case(self, mock_repository: AsyncMock) -> GetLeadsUseCase:
         """
         Create a use case instance configured to retrieve companies.
         
@@ -161,10 +161,10 @@ class TestGetLeads:
         Returns:
             InsertCompanyJobsUseCase: Configured use case for companies.
         """
-        return InsertCompanyJobsUseCase(type="companies", repository=mock_repository)
+        return GetLeadsUseCase(type="companies", repository=mock_repository)
 
     @pytest.fixture
-    def jobs_use_case(self, mock_repository: AsyncMock) -> InsertCompanyJobsUseCase:
+    def jobs_use_case(self, mock_repository: AsyncMock) -> GetLeadsUseCase:
         """
         Create a use case instance configured to retrieve jobs.
         
@@ -174,10 +174,10 @@ class TestGetLeads:
         Returns:
             InsertCompanyJobsUseCase: Configured use case for jobs.
         """
-        return InsertCompanyJobsUseCase(type="jobs", repository=mock_repository)
+        return GetLeadsUseCase(type="jobs", repository=mock_repository)
 
     @pytest.fixture
-    def contacts_use_case(self, mock_repository: AsyncMock) -> InsertCompanyJobsUseCase:
+    def contacts_use_case(self, mock_repository: AsyncMock) -> GetLeadsUseCase:
         """
         Create a use case instance configured to retrieve contacts.
         
@@ -187,10 +187,10 @@ class TestGetLeads:
         Returns:
             InsertCompanyJobsUseCase: Configured use case for contacts.
         """
-        return InsertCompanyJobsUseCase(type="contacts", repository=mock_repository)
+        return GetLeadsUseCase(type="contacts", repository=mock_repository)
 
     @pytest.fixture
-    def leads_use_case(self, mock_repository: AsyncMock) -> InsertCompanyJobsUseCase:
+    def leads_use_case(self, mock_repository: AsyncMock) -> GetLeadsUseCase:
         """
         Create a use case instance configured to retrieve leads.
         
@@ -200,12 +200,12 @@ class TestGetLeads:
         Returns:
             InsertCompanyJobsUseCase: Configured use case for leads.
         """
-        return InsertCompanyJobsUseCase(type="leads", repository=mock_repository)
+        return GetLeadsUseCase(type="leads", repository=mock_repository)
 
     @pytest.mark.asyncio
     async def test_get_companies_success(
         self,
-        companies_use_case: InsertCompanyJobsUseCase,
+        companies_use_case: GetLeadsUseCase,
         mock_repository: AsyncMock
     ):
         """
@@ -233,7 +233,7 @@ class TestGetLeads:
     @pytest.mark.asyncio
     async def test_get_jobs_success(
         self,
-        jobs_use_case: InsertCompanyJobsUseCase,
+        jobs_use_case: GetLeadsUseCase,
         mock_repository: AsyncMock
     ):
         """
@@ -261,7 +261,7 @@ class TestGetLeads:
     @pytest.mark.asyncio
     async def test_get_contacts_success(
         self,
-        contacts_use_case: InsertCompanyJobsUseCase,
+        contacts_use_case: GetLeadsUseCase,
         mock_repository: AsyncMock
     ):
         """
@@ -289,7 +289,7 @@ class TestGetLeads:
     @pytest.mark.asyncio
     async def test_get_leads_success(
         self,
-        leads_use_case: InsertCompanyJobsUseCase,
+        leads_use_case: GetLeadsUseCase,
         mock_repository: AsyncMock
     ):
         """
