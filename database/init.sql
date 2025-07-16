@@ -49,6 +49,18 @@ CREATE TABLE IF NOT EXISTS contacts (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Create profiles table
+CREATE TABLE IF NOT EXISTS profile (
+    id SERIAL PRIMARY KEY,
+    last_name VARCHAR(255),
+    job_title VARCHAR(255),
+    location VARCHAR(255),
+    bio TEXT,
+    work_experience JSON,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_jobs_company_id ON jobs(company_id);
 CREATE INDEX IF NOT EXISTS idx_contacts_company_id ON contacts(company_id);
@@ -79,5 +91,10 @@ CREATE TRIGGER update_jobs_updated_at
 
 CREATE TRIGGER update_contacts_updated_at 
     BEFORE UPDATE ON contacts 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_profiles_updated_at 
+    BEFORE UPDATE ON profile
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();

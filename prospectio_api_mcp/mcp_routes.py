@@ -1,19 +1,14 @@
-from collections.abc import Sequence
 from fastapi import APIRouter
-from mcp import Tool
 from pydantic import BaseModel
 from typing import Any, Dict, Optional
-from application.api.routes import mcp_company_jobs
-from mcp.types import (
-    ContentBlock,
-)
-
 import httpx
 from fastapi import Response, Request
 from urllib.parse import urlparse, urlunparse
+from mcp.server.fastmcp import FastMCP
 
 
 mcp_router = APIRouter()
+mcp_prospectio = FastMCP(name="Prospectio MCP", stateless_http=True)
 
 headers = {"accept": "application/json, text/event-stream"}
 
