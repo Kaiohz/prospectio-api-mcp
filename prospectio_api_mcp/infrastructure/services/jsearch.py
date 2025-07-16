@@ -107,7 +107,7 @@ class JsearchAPI(FetchLeadsPort):
                 description=job.job_description,
                 job_title=job.job_title,
                 location=job.job_location,
-                salary=f"{job.job_min_salary or ""} - {job.job_max_salary or ""}",
+                salary=f"{job.job_min_salary or ''} - {job.job_max_salary or ''}",
                 job_type=job.job_employment_type,
                 apply_url=[job.job_apply_link or "", job.job_google_link or ""],
             )
@@ -149,12 +149,9 @@ class JsearchAPI(FetchLeadsPort):
             }
             params_list.append(params)
         
-        for params in params_list:
-            if not params.get("query"):
-                raise ValueError("Query parameter cannot be empty.")
-            await asyncio.gather(
-                *[self.process_results(company_result, job_result, params) for params in params_list]
-            )
+        await asyncio.gather(
+            *[self.process_results(company_result, job_result, params) for params in params_list]
+        )
 
         # Combine results into a Leads object
         leads = Leads(
