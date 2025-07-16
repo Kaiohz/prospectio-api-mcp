@@ -17,27 +17,47 @@ This project implements **Clean Architecture** (also known as Hexagonal Architec
 prospectio-api-mcp/
 ├── pyproject.toml              # Poetry project configuration
 ├── poetry.lock                 # Poetry lock file
+├── uv.lock                     # UV lock file
+├── pyrightconfig.json          # Pyright configuration
 ├── docker-compose.yml          # Docker Compose configuration with PostgreSQL
 ├── Dockerfile                  # Docker configuration for the application
 ├── database/
 │   └── init.sql                # Database schema initialization
 ├── .github/
+│   ├── copilot-instructions.md # GitHub Copilot instructions
 │   └── workflows/
 │       └── ci.yaml             # GitHub Actions CI/CD pipeline
+├── .gemini/                    # Gemini AI configuration
+│   ├── GEMINI.md               # Gemini documentation
+│   ├── settings.json           # Gemini settings
+│   └── settings_exemple.json   # Gemini settings example
+├── curls/
+│   └── list.http               # HTTP requests for testing
+├── tests/
+│   └── ut/                     # Unit tests
+│       ├── test_active_jobs_db_use_case.py
+│       ├── test_get_leads.py
+│       ├── test_jsearch_use_case.py
+│       ├── test_mantiks_use_case.py
+│       └── test_profile.py
 ├── README.md                   # This file
 └── prospectio_api_mcp/
     ├── main.py                 # FastAPI application entry point
     ├── config.py               # Application configuration settings
+    ├── mcp_routes.py           # MCP protocol routes
     ├── domain/                 # Domain layer (business entities, ports, strategies)
     │   ├── entities/
     │   │   ├── leads.py        # Lead entities aggregation
     │   │   ├── leads_result.py # Lead insertion result entity
     │   │   ├── company.py      # Company entity
     │   │   ├── job.py          # Job entity
-    │   │   └── contact.py      # Contact entity
+    │   │   ├── contact.py      # Contact entity
+    │   │   ├── profile.py      # Profile entity
+    │   │   └── work_experience.py # Work experience entity
     │   ├── ports/
     │   │   ├── fetch_leads.py  # Fetch leads port interface
-    │   │   └── leads_repository.py # Leads repository port interface
+    │   │   ├── leads_repository.py # Leads repository port interface
+    │   │   └── profile_respository.py # Profile repository port interface
     │   └── services/
     │       └── leads/
     │           ├── active_jobs_db.py   # ActiveJobsDB strategy
@@ -46,9 +66,12 @@ prospectio-api-mcp/
     │           └── strategy.py         # Abstract strategy base class
     ├── application/            # Application layer (use cases & API)
     │   ├── api/
-    │   │   └── routes.py       # API routes
+    │   │   ├── leads_routes.py # Leads API routes
+    │   │   └── profile_routes.py # Profile API routes
     │   └── use_cases/
-    │       └── insert_leads.py # InsertCompanyJobsUseCase
+    │       ├── insert_leads.py # InsertCompanyJobsUseCase
+    │       ├── get_leads.py    # GetLeadsUseCase
+    │       └── profile.py      # Profile use cases
     └── infrastructure/         # Infrastructure layer (external concerns)
         ├── api/
         │   └── client.py           # API client
@@ -57,10 +80,15 @@ prospectio-api-mcp/
         │   │   ├── base.py         # SQLAlchemy base model
         │   │   ├── company.py      # Company database model
         │   │   ├── job.py          # Job database model
-        │   │   └── contact.py      # Contact database model
+        │   │   ├── contact.py      # Contact database model
+        │   │   ├── profile.py      # Profile database model
+        │   │   └── work_experience.py # Work experience database model
         │   ├── mantiks/
         │   │   ├── company.py      # Mantiks company DTO
-        │   │   └── location.py     # Mantiks location DTO
+        │   │   ├── company_response.py # Mantiks company response DTO
+        │   │   ├── job.py          # Mantiks job DTO
+        │   │   ├── location.py     # Mantiks location DTO
+        │   │   └── salary.py       # Mantiks salary DTO
         │   └── rapidapi/
         │       ├── active_jobs_db.py # Active Jobs DB DTO
         │       └── jsearch.py        # Jsearch DTO
@@ -68,7 +96,8 @@ prospectio-api-mcp/
             ├── active_jobs_db.py     # Active Jobs DB API implementation
             ├── jsearch.py            # Jsearch API implementation
             ├── mantiks.py            # Mantiks API implementation
-            └── leads_database.py     # PostgreSQL database repository
+            ├── leads_database.py     # PostgreSQL leads database repository
+            └── profile_database.py   # PostgreSQL profile database repository
 ```
 
 ## 🔧 Core Components
@@ -81,12 +110,16 @@ prospectio-api-mcp/
 - **`Job`** (`job.py`): Represents a job posting (title, description, location, salary, requirements)
 - **`Leads`** (`leads.py`): Aggregates companies, jobs, and contacts for lead data
 - **`LeadsResult`** (`leads_result.py`): Represents the result of a lead insertion operation
+- **`Profile`** (`profile.py`): Represents a user profile with personal and professional information
+- **`WorkExperience`** (`work_experience.py`): Represents work experience entries for a profile
 
 #### Ports
-- **`CompanyJobsPort`** (`company_jobs.py`): Abstract interface for fetching company jobs from any data source
+- **`CompanyJobsPort`** (`fetch_leads.py`): Abstract interface for fetching company jobs from any data source
   - `fetch_company_jobs(location: str, job_title: list[str]) -> Leads`: Abstract method for job search
 - **`LeadsRepositoryPort`** (`leads_repository.py`): Abstract interface for persisting leads data
   - `save_leads(leads: Leads) -> None`: Abstract method for saving leads to storage
+- **`ProfileRepositoryPort`** (`profile_respository.py`): Abstract interface for profile data management
+  - Profile-related repository operations
 
 #### Strategies (`prospectio_api_mcp/domain/services/leads/`)
 - **`CompanyJobsStrategy`** (`strategy.py`): Abstract base class for job retrieval strategies
@@ -95,12 +128,15 @@ prospectio-api-mcp/
 
 ### Application Layer (`prospectio_api_mcp/application/`)
 
-#### API (`prospectio_api_mcp/application/api/routes.py`)
-- **APIRouter**: Defines FastAPI endpoints for company jobs
+#### API (`prospectio_api_mcp/application/api/`)
+- **`leads_routes.py`**: Defines FastAPI endpoints for leads management
+- **`profile_routes.py`**: Defines FastAPI endpoints for profile management
 
-#### Use Cases (`prospectio_api_mcp/application/use_cases/insert_leads.py`)
-- **`InsertCompanyJobsUseCase`**: Orchestrates the process of retrieving and inserting company jobs from different sources
+#### Use Cases (`prospectio_api_mcp/application/use_cases/`)
+- **`InsertCompanyJobsUseCase`** (`insert_leads.py`): Orchestrates the process of retrieving and inserting company jobs from different sources
   - Accepts a strategy and repository, retrieves leads and persists them to the database
+- **`GetLeadsUseCase`** (`get_leads.py`): Handles retrieval of leads data
+- **`ProfileUseCase`** (`profile.py`): Manages profile-related operations
 
 ### Infrastructure Layer (`prospectio_api_mcp/infrastructure/`)
 
@@ -108,8 +144,8 @@ prospectio-api-mcp/
 - **`BaseApiClient`**: Async HTTP client for external API calls
 
 #### DTOs (`prospectio_api_mcp/infrastructure/dto/`)
-- **Database DTOs**: `base.py`, `company.py`, `job.py`, `contact.py` - SQLAlchemy models for persistence
-- **Mantiks DTOs**: `company.py`, `location.py` - Data transfer objects for Mantiks API
+- **Database DTOs**: `base.py`, `company.py`, `job.py`, `contact.py`, `profile.py`, `work_experience.py` - SQLAlchemy models for persistence
+- **Mantiks DTOs**: `company.py`, `company_response.py`, `job.py`, `location.py`, `salary.py` - Data transfer objects for Mantiks API
 - **RapidAPI DTOs**: `active_jobs_db.py`, `jsearch.py` - Data transfer objects for RapidAPI services
 
 #### Services (`prospectio_api_mcp/infrastructure/services/`)
@@ -117,6 +153,7 @@ prospectio-api-mcp/
 - **`JsearchAPI`**: Adapter for Jsearch API
 - **`MantiksAPI`**: Adapter for Mantiks API
 - **`LeadsDatabase`**: PostgreSQL repository implementation for leads persistence
+- **`ProfileDatabase`**: PostgreSQL repository implementation for profile management
 
 All API services implement the `CompanyJobsPort` interface, and the database service implements the `LeadsRepositoryPort` interface, allowing for easy swapping and extension.
 
@@ -126,11 +163,11 @@ The FastAPI application is configured to:
 - **Manage Application Lifespan**: Handles startup and shutdown events, including MCP session lifecycle.
 - **Expose Multiple Protocols**:
   - REST API available at `/rest/v1/`
-  - MCP protocol available at `/prospectio/`
-- **Integrate Routers**: Includes leads insertion routes for lead management via FastAPI's APIRouter.
+  - MCP protocol available at `/prospectio/` (implemented in `mcp_routes.py`)
+- **Integrate Routers**: Includes leads insertion routes and profile routes for comprehensive lead and profile management via FastAPI's APIRouter.
 - **Load Configuration**: Loads environment-based settings from `config.py` using Pydantic.
 - **Dependency Injection**: Injects service implementations, strategies, and repository into endpoints for clean separation.
-- **Database Integration**: Configures PostgreSQL connection for persistent storage of leads data.
+- **Database Integration**: Configures PostgreSQL connection for persistent storage of leads data and profiles.
 
 ## ⚙️ Configuration
 
@@ -190,7 +227,9 @@ tests/
 └── ut/                                    # Unit tests
     ├── test_mantiks_use_case.py          # Mantiks strategy tests
     ├── test_jsearch_use_case.py          # JSearch strategy tests
-    └── test_active_jobs_db_use_case.py   # Active Jobs DB strategy tests
+    ├── test_active_jobs_db_use_case.py   # Active Jobs DB strategy tests
+    ├── test_get_leads.py                 # Get leads use case tests
+    └── test_profile.py                   # Profile use case tests
 ```
 
 ### Running Tests
@@ -220,6 +259,12 @@ poetry run pytest tests/ut/test_jsearch_use_case.py -v
 
 # Run Active Jobs DB tests only
 poetry run pytest tests/ut/test_active_jobs_db_use_case.py -v
+
+# Run Get Leads tests only
+poetry run pytest tests/ut/test_get_leads.py -v
+
+# Run Profile tests only
+poetry run pytest tests/ut/test_profile.py -v
 ```
 
 #### **Run Specific Test Methods:**
