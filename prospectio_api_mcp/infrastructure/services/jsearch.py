@@ -9,6 +9,8 @@ from domain.entities.company import Company, CompanyEntity
 from domain.entities.job import Job, JobEntity
 from prospectio_api_mcp.domain.entities.leads import Leads
 from datetime import datetime
+import asyncio
+
 
 T = TypeVar("T")
 
@@ -105,12 +107,22 @@ class JsearchAPI(FetchLeadsPort):
                 description=job.job_description,
                 job_title=job.job_title,
                 location=job.job_location,
-                salary=f"{job.job_min_salary or ""} - {job.job_max_salary or ""}",
+                salary=f"{job.job_min_salary or ''} - {job.job_max_salary or ''}",
                 job_type=job.job_employment_type,
                 apply_url=[job.job_apply_link or "", job.job_google_link or ""],
             )
             jobs.append(job_entity)
         return JobEntity(jobs)
+    
+    async def process_results(self, company_result: CompanyEntity, job_result: JobEntity, params: dict) -> None:
+            await asyncio.sleep(1)  # Rate limiting to avoid hitting API limits
+            client = BaseApiClient(self.api_base, self.headers)
+            result = await client.get(self.search_endpoint, params)
+            jsearch = await self._check_error(client, result, JSearchResponseDTO)
+            company_entity, ids = await self.to_company_entity(jsearch)
+            job_entity = await self.to_job_entity(jsearch, ids)
+            company_result.root.extend(company_entity.root)
+            job_result.root.extend(job_entity.root)
 
     async def fetch_leads(self, location: str, job_title: list[str]) -> Leads:
         """
@@ -123,22 +135,28 @@ class JsearchAPI(FetchLeadsPort):
         Returns:
             Leads: The leads containing companies and jobs data.
         """
-        params = {
-            "query": f"{" ".join(job_title)} in {location}",
-            "page": 1,
-            "num_pages": 1,
-            "date_posted": "month",
-            "country": location[0:2].lower(),
-        }
+        params_list = []
+        company_result: CompanyEntity = CompanyEntity([])
+        job_result: JobEntity = JobEntity([])
 
-        client = BaseApiClient(self.api_base, self.headers)
-        result = await client.get(self.search_endpoint, params)
-        jsearch = await self._check_error(client, result, JSearchResponseDTO)
-        company_entity, ids = await self.to_company_entity(jsearch)
-        job_entity = await self.to_job_entity(jsearch, ids)
+        for title in job_title[:2]:
+            params = {
+                "query": f"{title} in {location}",
+                "page": 1,
+                "num_pages": 1,
+                "date_posted": "month",
+                "country": location[0:2].lower(),
+            }
+            params_list.append(params)
+        
+        await asyncio.gather(
+            *[self.process_results(company_result, job_result, params) for params in params_list]
+        )
+
+        # Combine results into a Leads object
         leads = Leads(
-            companies=company_entity,
-            jobs=job_entity,
+            companies=company_result,
+            jobs=job_result,
             contacts=None,
         )
         return leads

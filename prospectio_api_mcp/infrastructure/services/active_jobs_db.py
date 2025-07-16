@@ -141,7 +141,7 @@ class ActiveJobsDBAPI(FetchLeadsPort):
         params = {
             "limit": 10,
             "offset": 0,
-            "advanced_title_filter": f"{" | ".join(job_title)}",
+            "advanced_title_filter": f"{' | '.join(job_title)}",
             "location_filter": location,
             "description_type": "text",
         }

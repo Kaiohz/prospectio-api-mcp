@@ -83,7 +83,9 @@ class LeadsDatabase(LeadsRepositoryPort):
         async with AsyncSession(self.engine) as session:
             try:
                 # Query all jobs from database
-                result = await session.execute(select(JobDB))
+                result = await session.execute(
+                    select(JobDB).order_by(JobDB.date_creation.desc())
+                )
                 job_dbs = result.scalars().all()
                 
                 # Convert database models to domain entities

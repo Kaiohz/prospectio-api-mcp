@@ -194,6 +194,6 @@ class TestJsearchUseCase:
             assert isinstance(result, LeadsResult)
             
             # Verify result content
-            assert result.companies == "Insert of 1 companies"
-            assert result.jobs == "insert of 1 jobs"
+            assert result.companies == "Insert of 2 companies"
+            assert result.jobs == "insert of 2 jobs"
             assert result.contacts == "insert of 0 contacts"
