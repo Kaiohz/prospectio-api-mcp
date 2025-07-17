@@ -26,11 +26,6 @@ class MantiksConfig(BaseSettings):
     MANTIKS_API_KEY: str = Field(..., json_schema_extra={"env": "MANTIKS_API_KEY"})
 
 
-class MockConfig(BaseSettings):
-    MOCK_API_URL: str = "https://api.mock.com"
-    MOCK_API_KEY: str = "mock-key"
-
-
 class RapidApiConfig(BaseSettings):
     RAPIDAPI_API_KEY: str = Field(..., json_schema_extra={"env": "RAPIDAPI_API_KEY"})
 
