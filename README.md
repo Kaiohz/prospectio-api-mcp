@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/kaiohz-prospectio-api-mcp-badge.png)](https://mseep.ai/app/kaiohz-prospectio-api-mcp)
+
 # Prospectio MCP API
 
 A FastAPI-based application that implements the Model Context Protocol (MCP) for lead prospecting. The project follows Clean Architecture principles with a clear separation of concerns across domain, application, and infrastructure layers.
