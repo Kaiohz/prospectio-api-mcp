@@ -218,6 +218,7 @@ class LeadsDatabase(LeadsRepositoryPort):
             job_type=job_data.job_type,
             sectors=job_data.sectors,
             apply_url=job_data.apply_url,
+            compatibility_score=job_data.compatibility_score,
         )
 
     def _convert_contact_to_db(self, contact_data: Contact) -> ContactDB:

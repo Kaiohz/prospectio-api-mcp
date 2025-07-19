@@ -32,7 +32,6 @@ class LeadsProcessor:
                     job_description=job.description,
                     job_location=job.location or ''
                 )
-                print(f"Calculated score for job {job.job_title}: {result.score}")
                 return job, result.score
         
         tasks = [calculate_single_score(job) for job in jobs.root]
