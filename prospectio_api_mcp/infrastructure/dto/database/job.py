@@ -1,9 +1,10 @@
 from typing import List, Optional
 from datetime import datetime
-from sqlalchemy import ARRAY, DateTime, String, Text, JSON, ForeignKey
+from sqlalchemy import ARRAY, INTEGER, DateTime, String, Text, JSON, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
+from domain.ports import compatibility_score
 from infrastructure.dto.database.base import Base
 
 
@@ -52,6 +53,9 @@ class Job(Base):
     )
     apply_url: Mapped[Optional[List[str]]] = mapped_column(
         ARRAY(String), doc="List of URLs to apply for the job"
+    )
+    compatibility_score: Mapped[Optional[int]] = mapped_column(
+        INTEGER, doc="Compatibility score for the job"
     )
 
     def __repr__(self) -> str:

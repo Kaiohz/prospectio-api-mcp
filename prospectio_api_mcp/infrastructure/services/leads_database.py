@@ -262,6 +262,7 @@ class LeadsDatabase(LeadsRepositoryPort):
             job_type=job_db.job_type,
             sectors=job_db.sectors,
             apply_url=job_db.apply_url,
+            compatibility_score=job_db.compatibility_score,
         )
 
     def _convert_db_to_company(self, company_db: CompanyDB) -> Company:

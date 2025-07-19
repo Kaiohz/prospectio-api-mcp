@@ -1,9 +1,9 @@
 from prospectio_api_mcp.domain.ports.fetch_leads import FetchLeadsPort
-from domain.services.leads.strategy import CompanyJobsStrategy
+from domain.services.leads.strategy import LeadsStrategy
 from domain.entities.leads import Leads
 
 
-class JsearchStrategy(CompanyJobsStrategy):
+class JsearchStrategy(LeadsStrategy):
     """
     Strategy for retrieving leads with contacts from JSearch.
 
