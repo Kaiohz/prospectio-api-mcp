@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
-from prospectio_api_mcp.domain.ports.fetch_leads import FetchLeadsPort
+from domain.ports.fetch_leads import FetchLeadsPort
 from domain.entities.leads import Leads
 
 
-class CompanyJobsStrategy(ABC):
+class LeadsStrategy(ABC):
     """
     Abstract base class for company jobs lead retrieval strategies.
 

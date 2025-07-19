@@ -1,15 +1,21 @@
-from domain.services.leads.strategy import CompanyJobsStrategy
+from domain.ports.profile_respository import ProfileRepositoryPort
+from domain.services.leads.strategy import LeadsStrategy
 from domain.entities.leads_result import LeadsResult
-from prospectio_api_mcp.domain.ports.leads_repository import LeadsRepositoryPort
+from domain.ports.leads_repository import LeadsRepositoryPort
+from domain.services.leads.leads_processor import LeadsProcessor
 
 
-class InsertCompanyJobsUseCase:
+class InsertLeadsUseCase:
     """
     Use case for retrieving leads with contacts from a specified source using the strategy pattern.
     This class selects the appropriate strategy based on the source and delegates the lead retrieval logic.
     """
 
-    def __init__(self, strategy: CompanyJobsStrategy, repository: LeadsRepositoryPort):
+    def __init__(self, strategy: LeadsStrategy, 
+                 repository: LeadsRepositoryPort, 
+                 leads_processor: LeadsProcessor,
+                 profile_repository: ProfileRepositoryPort
+        ):
         """
         Initialize the GetLeadsUseCase with the required parameters and available strategies.
 
@@ -21,6 +27,8 @@ class InsertCompanyJobsUseCase:
         """
         self.strategy = strategy
         self.repository = repository
+        self.leads_processor = leads_processor
+        self.profile_repository = profile_repository
 
     async def insert_leads(self) -> LeadsResult:
         """
@@ -31,13 +39,13 @@ class InsertCompanyJobsUseCase:
         Raises:
             KeyError: If the specified source is not supported.
         """
+        profile = await self.profile_repository.get_profile()
+        if not profile:
+            raise ValueError("Profile not found. Please create a profile before inserting leads.")
         leads = await self.strategy.execute()
-        nb_of_companies = len(leads.companies.root) if leads.companies else 0
-        nb_of_jobs = len(leads.jobs.root) if leads.jobs else 0
-        nb_of_contacts = len(leads.contacts.root) if leads.contacts else 0
+        if leads.jobs:
+            await self.leads_processor.calculate_compatibility_scores(profile,leads.jobs)
+        leads_result = await self.leads_processor.calculate_statistics(leads)        
+
         await self.repository.save_leads(leads)
-        return LeadsResult(
-            companies=f"Insert of {nb_of_companies} companies",
-            jobs=f"insert of {nb_of_jobs} jobs",
-            contacts=f"insert of {nb_of_contacts} contacts",
-        )
+        return leads_result

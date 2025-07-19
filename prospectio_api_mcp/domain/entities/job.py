@@ -1,6 +1,8 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field, RootModel
 
+from domain.ports import compatibility_score
+
 
 class Job(BaseModel):
     """
@@ -29,6 +31,9 @@ class Job(BaseModel):
     )
     apply_url: Optional[list[str]] = Field(
         None, description="List of URLs to apply for the job"
+    )
+    compatibility_score: Optional[int] = Field(
+        None, description="Compatibility score for the job"
     )
 
 

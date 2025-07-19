@@ -3,12 +3,14 @@ from typing import Callable
 from fastapi import FastAPI
 from application.api.leads_routes import leads_router
 from application.api.profile_routes import profile_router
+from infrastructure.api.llm_client_factory import LLMClientFactory
+from infrastructure.services.compatibility_score import CompatibilityScoreLLM
 from infrastructure.services.profile_database import ProfileDatabase
 from mcp_routes import mcp_prospectio
-from config import ActiveJobsDBConfig, JsearchConfig, MantiksConfig
-from domain.services.leads.active_jobs_db import ActiveJobsDBStrategy
-from domain.services.leads.jsearch import JsearchStrategy
-from domain.services.leads.mantiks import MantiksStrategy
+from config import ActiveJobsDBConfig, JsearchConfig, LLMConfig, MantiksConfig
+from domain.services.leads.strategies.active_jobs_db import ActiveJobsDBStrategy
+from domain.services.leads.strategies.jsearch import JsearchStrategy
+from domain.services.leads.strategies.mantiks import MantiksStrategy
 from infrastructure.services.active_jobs_db import ActiveJobsDBAPI
 from infrastructure.services.jsearch import JsearchAPI
 from infrastructure.services.mantiks import MantiksAPI
@@ -16,6 +18,10 @@ from mcp_routes import mcp_router
 from config import Config
 from infrastructure.services.leads_database import LeadsDatabase
 from config import DatabaseConfig
+
+llm_client = LLMClientFactory(
+    config=LLMConfig(),
+).create_client()
 
 _LEADS_STRATEGIES: dict[str, Callable] = {
     "mantiks": lambda location, job_title: MantiksStrategy(
@@ -32,7 +38,11 @@ _LEADS_STRATEGIES: dict[str, Callable] = {
 }
 
 jobs_routes = leads_router(
-    _LEADS_STRATEGIES, LeadsDatabase(DatabaseConfig().DATABASE_URL)
+    _LEADS_STRATEGIES, 
+    LeadsDatabase(DatabaseConfig().DATABASE_URL),
+    CompatibilityScoreLLM(llm_client),
+    ProfileDatabase(DatabaseConfig().DATABASE_URL),
+    LLMConfig().CONCURRENT_CALLS
 )
 
 profile_routes = profile_router(ProfileDatabase(DatabaseConfig().DATABASE_URL))
