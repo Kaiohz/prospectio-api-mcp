@@ -7,7 +7,7 @@ from domain.entities.profile import Profile
 from domain.entities.work_experience import WorkExperience
 from infrastructure.dto.database.profile import ProfileDTO
 
-
+@pytest.mark.order(1)
 class TestProfileUseCase:
     """Test suite for the Profile use case implementation."""
 
