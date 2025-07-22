@@ -32,6 +32,8 @@ psycopg-binary = "3.2.4"
 SQLAlchemy = "2.0.41"
 asyncpg = "0.30.0"
 greenlet = "3.2.3"
+langchain = "0.3.26"
+langchain-core = "0.3.70"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "8.4.1"
