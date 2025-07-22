@@ -62,7 +62,7 @@ def leads_router(
     @mcp_prospectio.tool(
         description="Use this ONLY when the user asks for NEW opportunities or when get/leads returns insufficient data. " \
         "This tool searches external sources and inserts NEW leads into the database. " \
-        "Sources available: 'mantiks', 'jsearch', 'active_jobs_db'. " \
+        "Sources available: 'mantiks', 'jsearch', 'active_jobs_db'. use mantiks if none of the others worked" \
         "Requires location (country code) and job titles as technologies (e.g., 'Developer Python', 'Developer AI'). " \
         "IMPORTANT: Before using this, check the user profile or ask to update it if missing. " \
         "Example JSON: {\"source\": \"mantiks\", \"location\": \"FR\", \"job_title\": [\"Developer Python\", \"Data Scientist\"]}"

@@ -44,7 +44,6 @@ def profile_router(
             dict: Empty dictionary indicating successful operation.
         """
         try:
-
             return await ProfileUseCase(repository).upsert_profile(profile)
         except Exception as e:
             logger.error(f"Error in get company jobs: {e}\n{traceback.format_exc()}")
@@ -59,7 +58,11 @@ def profile_router(
     )
     async def get_profile() -> Profile:
         """Retourne le profil utilisateur complet avec toutes les informations."""
-        return await ProfileUseCase(repository).get_profile()
+        try:
+            return await ProfileUseCase(repository).get_profile()
+        except Exception as e:
+            logger.error(f"Error in get profile: {e}\n{traceback.format_exc()}")
+            raise HTTPException(status_code=500, detail=str(e))
 
     return profile_router
 

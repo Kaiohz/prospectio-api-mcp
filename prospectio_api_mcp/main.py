@@ -15,7 +15,7 @@ from infrastructure.services.active_jobs_db import ActiveJobsDBAPI
 from infrastructure.services.jsearch import JsearchAPI
 from infrastructure.services.mantiks import MantiksAPI
 from mcp_routes import mcp_router
-from config import Config
+from config import AppConfig
 from infrastructure.services.leads_database import LeadsDatabase
 from config import DatabaseConfig
 
@@ -52,7 +52,8 @@ profile_routes = profile_router(ProfileDatabase(DatabaseConfig().DATABASE_URL))
 async def lifespan(app: FastAPI):
     """Manage the lifespan of both HTTP and stdio MCP servers."""
     async with contextlib.AsyncExitStack() as stack:
-        await stack.enter_async_context(mcp_prospectio.session_manager.run())
+        if AppConfig().EXPOSE == "streamable":
+            await stack.enter_async_context(mcp_prospectio.session_manager.run())
         yield
 
 
@@ -64,8 +65,10 @@ app.include_router(jobs_routes, prefix=REST_PATH, tags=["Prospects"])
 app.include_router(mcp_router, prefix=REST_PATH, tags=["MCP Prospectio"])
 app.include_router(profile_routes, prefix=REST_PATH, tags=["Profile"])
 
-app.mount(MCP_PATH, mcp_prospectio.streamable_http_app())
+if AppConfig().EXPOSE == "streamable":
+    app.mount(MCP_PATH, mcp_prospectio.streamable_http_app())
+if AppConfig().EXPOSE == "sse":
+    app.mount(MCP_PATH, mcp_prospectio.sse_app())
 
 if __name__ == "__main__":
-    if Config().EXPOSE == "stdio":
-        mcp_prospectio.run(transport="stdio")
+    mcp_prospectio.run(transport="stdio")

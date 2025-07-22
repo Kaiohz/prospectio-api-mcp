@@ -4,6 +4,7 @@ from pydantic_settings import BaseSettings
 from dotenv import find_dotenv, load_dotenv
 
 dotenv_path = find_dotenv(filename=".env", usecwd=True)
+
 if not dotenv_path:
     current_dir = Path(__file__).parent
     project_root = current_dir.parent.parent
@@ -15,7 +16,7 @@ if dotenv_path:
     load_dotenv(dotenv_path=dotenv_path)
 
 
-class Config(BaseSettings):
+class AppConfig(BaseSettings):
     EXPOSE: str = Field(..., json_schema_extra={"env": "EXPOSE"})
     MASTER_KEY: str = Field(..., json_schema_extra={"env": "MASTER_KEY"})
     ALLOWED_ORIGINS: str = Field(..., json_schema_extra={"env": "ALLOWED_ORIGINS"})

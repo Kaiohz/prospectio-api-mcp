@@ -84,7 +84,7 @@ class LeadsDatabase(LeadsRepositoryPort):
             try:
                 # Query all jobs from database
                 result = await session.execute(
-                    select(JobDB).order_by(JobDB.date_creation.desc())
+                    select(JobDB).order_by(JobDB.date_creation.desc()).limit(5)
                 )
                 job_dbs = result.scalars().all()
                 

@@ -11,7 +11,7 @@ from domain.entities.compatibility_score import CompatibilityScore
 class CompatibilityScoreLLM(CompatibilityScorePort):
 
     def __init__(self, client: LLMGenericClient):
-        self.client = client
+        super().__init__(client)
 
     async def get_compatibility_score(self, profile: Profile, job_description: str, job_location: str) -> CompatibilityScore:
         """
