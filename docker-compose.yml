@@ -27,7 +27,7 @@ services:
 
   db:
     image: pgvector/pgvector:0.8.0-pg17
-    container_name: prospectio-pgvector
+    container_name: prospectio-api-mcp-pgvector
     environment:
       POSTGRES_USER: prospectio
       POSTGRES_PASSWORD: prospectio

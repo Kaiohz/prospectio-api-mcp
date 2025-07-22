@@ -51,9 +51,6 @@ coverage.xml
 # pipenv
 Pipfile.lock
 
-# poetry
-poetry.lock
-
 # uv
 uv.lock
 

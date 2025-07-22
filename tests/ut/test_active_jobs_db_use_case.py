@@ -1,14 +1,98 @@
 import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
-from application.use_cases.insert_leads import InsertCompanyJobsUseCase
-from domain.services.leads.active_jobs_db import ActiveJobsDBStrategy
+from application.use_cases.insert_leads import InsertLeadsUseCase
+from domain.entities.compatibility_score import CompatibilityScore
+from domain.entities.profile import Profile
+from domain.entities.work_experience import WorkExperience
+from domain.ports.profile_respository import ProfileRepositoryPort
+from domain.services.leads.leads_processor import LeadsProcessor
+from domain.services.leads.strategies.active_jobs_db import ActiveJobsDBStrategy
+from infrastructure.api.llm_client_factory import LLMClientFactory
+from infrastructure.dto.database.profile import ProfileDTO
 from infrastructure.services.active_jobs_db import ActiveJobsDBAPI
-from config import ActiveJobsDBConfig, DatabaseConfig
+from config import ActiveJobsDBConfig, DatabaseConfig, LLMConfig
+from infrastructure.services.compatibility_score import CompatibilityScoreLLM
 from infrastructure.services.leads_database import LeadsDatabase
 from domain.entities.leads_result import LeadsResult
+from infrastructure.services.profile_database import ProfileDatabase
+from langchain_core.runnables.base import RunnableSequence
 
 class TestActiveJobsDBUseCase:
     """Test suite for the Active Jobs DB use case implementation."""
+
+    @pytest.fixture
+    def sample_profile_data(self) -> Profile:
+        """
+        Sample Profile data for testing.
+        
+        Returns:
+            Profile: Mock profile data.
+        """
+        return Profile(
+            job_title="Senior Python Developer",
+            location="Paris, France",
+            bio="Experienced Python developer with expertise in FastAPI and Clean Architecture",
+            work_experience=[
+                WorkExperience(
+                    company="Tech Solutions",
+                    position="Senior Python Developer",
+                    start_date="2022-01-01",
+                    end_date="2025-01-01",
+                    description="Developed and maintained Python applications using FastAPI"
+                ),
+                WorkExperience(
+                    company="StartupCorp",
+                    position="Python Developer",
+                    start_date="2020-06-01",
+                    end_date="2021-12-31",
+                    description="Built microservices and REST APIs"
+                )
+            ]
+        )
+
+    @pytest.fixture
+    def sample_profile_dto(self) -> ProfileDTO:
+        """
+        Sample ProfileDTO data for testing.
+        
+        Returns:
+            ProfileDTO: Mock profile DTO data.
+        """
+        profile_dto = ProfileDTO()
+        profile_dto.id = 1
+        profile_dto.job_title = "Senior Python Developer"
+        profile_dto.location = "Paris, France"
+        profile_dto.bio = "Experienced Python developer with expertise in FastAPI and Clean Architecture"
+        profile_dto.work_experience = [
+            {
+                "company": "Tech Solutions",
+                "position": "Senior Python Developer",
+                "start_date": "2022-01-01",
+                "end_date": "2025-01-01",
+                "description": "Developed and maintained Python applications using FastAPI"
+            },
+            {
+                "company": "StartupCorp",
+                "position": "Python Developer",
+                "start_date": "2020-06-01",
+                "end_date": "2021-12-31",
+                "description": "Built microservices and REST APIs"
+            }
+        ]
+        return profile_dto
+
+    @pytest.fixture
+    def profile_database(self, database_config: DatabaseConfig) -> ProfileDatabase:
+        """
+        Create a ProfileDatabase instance for testing.
+        
+        Args:
+            database_config: The test configuration.
+            
+        Returns:
+            ProfileDatabase: Configured profile database repository.
+        """
+        return ProfileDatabase(database_config.DATABASE_URL)
 
     @pytest.fixture
     def active_jobs_db_config(self) -> ActiveJobsDBConfig:
@@ -175,10 +259,51 @@ class TestActiveJobsDBUseCase:
         """
         return LeadsDatabase(DatabaseConfig().DATABASE_URL)
     
+    @pytest.fixture
+    def compatibility_score_llm(self) -> dict:
+        """
+        Create a mock CompatibilityScoreLLM for testing.
+        
+        Returns:
+            LeadsProcessor: Mocked compatibility score processor.
+        """
+        return {"score": 85}
+    
+    @pytest.fixture
+    def profile_repository(self) -> ProfileRepositoryPort:
+        """
+        Create a mock ProfileRepositoryPort for testing.
+        
+        Returns:
+            ProfileRepositoryPort: Mocked profile repository.
+        """
+        return ProfileDatabase(DatabaseConfig().DATABASE_URL)
+    
+    @pytest.fixture
+    def leads_processor(self) -> LeadsProcessor:
+        """
+        Create a LeadsProcessor instance for testing.
+        
+        Returns:
+            LeadsProcessor: Configured leads processor.
+        """
+        llm_client = LLMClientFactory(
+            config=LLMConfig(),
+        ).create_client()
+
+        return LeadsProcessor(
+            compatibility_score_port=CompatibilityScoreLLM(llm_client),
+            concurrent_calls=LLMConfig().CONCURRENT_CALLS
+        )
 
 
     @pytest.fixture
-    def use_case(self, active_jobs_db_strategy: ActiveJobsDBStrategy, active_jobs_db_repository: LeadsDatabase) -> InsertCompanyJobsUseCase:
+    def use_case(self, 
+                 active_jobs_db_strategy: ActiveJobsDBStrategy, 
+                 active_jobs_db_repository: LeadsDatabase, 
+                 leads_processor: LeadsProcessor,
+                 profile_repository: ProfileRepositoryPort
+    ) -> InsertLeadsUseCase:
         """
         Create a GetCompanyJobsUseCase instance for testing.
         
@@ -188,13 +313,19 @@ class TestActiveJobsDBUseCase:
         Returns:
             GetCompanyJobsUseCase: Configured use case.
         """
-        return InsertCompanyJobsUseCase(strategy=active_jobs_db_strategy, repository=active_jobs_db_repository)
+        return InsertLeadsUseCase(
+            strategy=active_jobs_db_strategy, 
+            repository=active_jobs_db_repository, 
+            leads_processor=leads_processor, 
+            profile_repository=profile_repository
+        )
 
     @pytest.mark.asyncio
     async def test_get_leads_success(
         self,
-        use_case: InsertCompanyJobsUseCase,
-        sample_active_jobs_response: list
+        use_case: InsertLeadsUseCase,
+        sample_active_jobs_response: list,
+        compatibility_score_llm: dict
     ) -> None:
         """
         Test successful lead retrieval from Active Jobs DB API.
@@ -208,17 +339,15 @@ class TestActiveJobsDBUseCase:
         active_jobs_response_mock.status_code = 200
         active_jobs_response_mock.json.return_value = sample_active_jobs_response
 
-        with patch('httpx.AsyncClient.get', new_callable=AsyncMock) as mock_get:
-            # Configure the mock to return the Active Jobs DB response
+        with patch('httpx.AsyncClient.get', new_callable=AsyncMock) as mock_get, \
+                patch.object(RunnableSequence, 'ainvoke', new_callable=AsyncMock) as mock_ainvoke:          
+            
             mock_get.return_value = active_jobs_response_mock
-            
-            # Execute the use case
+            mock_ainvoke.return_value = compatibility_score_llm
+
             result = await use_case.insert_leads()
-            
-            # Verify result type
+
             assert isinstance(result, LeadsResult)
-            
-            # Verify result content
             assert result.companies == "Insert of 2 companies"
             assert result.jobs == "insert of 2 jobs"
             assert result.contacts == "insert of 0 contacts"

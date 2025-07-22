@@ -18,7 +18,10 @@ class ProfileUseCase:
         Returns:
             Profile: The user profile entity.
         """
-        return await self.repository.get_profile()
+        profile = await self.repository.get_profile()
+        if not profile:
+            raise ValueError("Profile not found or incomplete. Please use upsert to create or update the profile.")
+        return profile
 
 
 

@@ -1,15 +1,20 @@
 from uuid import uuid4
 import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
-from application.use_cases.insert_leads import InsertCompanyJobsUseCase
-from domain.services.leads.mantiks import MantiksStrategy
+from application.use_cases.insert_leads import InsertLeadsUseCase
+from domain.ports.profile_respository import ProfileRepositoryPort
+from domain.services.leads.leads_processor import LeadsProcessor
+from domain.services.leads.strategies.mantiks import MantiksStrategy
+from infrastructure.api.llm_client_factory import LLMClientFactory
+from infrastructure.services.compatibility_score import CompatibilityScoreLLM
 from infrastructure.services.leads_database import LeadsDatabase
 from infrastructure.services.mantiks import MantiksAPI
-from config import DatabaseConfig, MantiksConfig
+from config import DatabaseConfig, LLMConfig, MantiksConfig
 from infrastructure.dto.mantiks.location import LocationResponseDTO
 from infrastructure.dto.mantiks.company_response import CompanyResponseDTO
 from domain.entities.leads_result import LeadsResult
-
+from infrastructure.services.profile_database import ProfileDatabase
+from langchain_core.runnables.base import RunnableSequence
 
 class TestMantiksUseCase:
     """Test suite for the Mantiks use case implementation."""
@@ -153,26 +158,69 @@ class TestMantiksUseCase:
             ActiveJobsDBStrategy: Configured Active Jobs DB strategy.
         """
         return LeadsDatabase(DatabaseConfig().DATABASE_URL)
+    
+    @pytest.fixture
+    def compatibility_score_llm(self) -> dict:
+        """
+        Create a mock CompatibilityScoreLLM for testing.
+        
+        Returns:
+            LeadsProcessor: Mocked compatibility score processor.
+        """
+        return {"score": 85}
+    
+    @pytest.fixture
+    def profile_repository(self) -> ProfileRepositoryPort:
+        """
+        Create a mock ProfileRepositoryPort for testing.
+        
+        Returns:
+            ProfileRepositoryPort: Mocked profile repository.
+        """
+        return ProfileDatabase(DatabaseConfig().DATABASE_URL)
+    
+    @pytest.fixture
+    def leads_processor(self) -> LeadsProcessor:
+        """
+        Create a LeadsProcessor instance for testing.
+        
+        Returns:
+            LeadsProcessor: Configured leads processor.
+        """
+        llm_client = LLMClientFactory(
+            config=LLMConfig(),
+        ).create_client()
+
+        return LeadsProcessor(
+            compatibility_score_port=CompatibilityScoreLLM(llm_client),
+            concurrent_calls=LLMConfig().CONCURRENT_CALLS
+        )
 
     @pytest.fixture
-    def use_case(self, mantiks_strategy: MantiksStrategy, active_jobs_db_repository: LeadsDatabase) -> InsertCompanyJobsUseCase:
+    def use_case(self, 
+                 mantiks_strategy: MantiksStrategy, 
+                 active_jobs_db_repository: LeadsDatabase, 
+                 leads_processor: LeadsProcessor,
+                 profile_repository: ProfileRepositoryPort
+    ) -> InsertLeadsUseCase:
         """
         Create a GetCompanyJobsUseCase instance for testing.
         
         Args:
-            mantiks_strategy: The Mantiks strategy.
+            jsearch_strategy: The JSearch strategy.
             
         Returns:
             GetCompanyJobsUseCase: Configured use case.
         """
-        return InsertCompanyJobsUseCase(strategy=mantiks_strategy, repository=active_jobs_db_repository)
+        return InsertLeadsUseCase(strategy=mantiks_strategy, repository=active_jobs_db_repository,leads_processor=leads_processor, profile_repository=profile_repository)
 
     @pytest.mark.asyncio
     async def test_get_leads_success(
         self,
-        use_case: InsertCompanyJobsUseCase,
+        use_case: InsertLeadsUseCase,
         sample_location_response: dict,
-        sample_company_response: dict
+        sample_company_response: dict,
+        compatibility_score_llm: dict
     ) -> None:
         """
         Test successful lead retrieval from Mantiks API.
@@ -191,9 +239,12 @@ class TestMantiksUseCase:
         company_response_mock.status_code = 200
         company_response_mock.json.return_value = sample_company_response
 
-        with patch('httpx.AsyncClient.get', new_callable=AsyncMock) as mock_get:
+        with patch('httpx.AsyncClient.get', new_callable=AsyncMock) as mock_get, \
+                patch.object(RunnableSequence, 'ainvoke', new_callable=AsyncMock) as mock_ainvoke: 
+
                 # Configure the mock to return different responses for different calls
                 mock_get.side_effect = [location_response_mock, company_response_mock]
+                mock_ainvoke.return_value = compatibility_score_llm
                 
                 # Execute the use case
                 result = await use_case.insert_leads()

@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     job_type VARCHAR(100),
     sectors VARCHAR(255),
     apply_url TEXT[],
+    compatibility_score INTEGER,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -52,7 +53,6 @@ CREATE TABLE IF NOT EXISTS contacts (
 -- Create profiles table
 CREATE TABLE IF NOT EXISTS profile (
     id SERIAL PRIMARY KEY,
-    last_name VARCHAR(255),
     job_title VARCHAR(255),
     location VARCHAR(255),
     bio TEXT,

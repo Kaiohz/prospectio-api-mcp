@@ -77,7 +77,8 @@ class TestGetLeads:
                 job_seniority="Senior",
                 job_type="Full-time",
                 sectors="Technology",
-                apply_url=["https://jobs.techsolutions.com/apply/python-dev"]
+                apply_url=["https://jobs.techsolutions.com/apply/python-dev"],
+                compatibility_score=95
             ),
             Job(
                 id="job_2",
@@ -90,7 +91,8 @@ class TestGetLeads:
                 job_seniority="Mid-level",
                 job_type="Full-time",
                 sectors="Software",
-                apply_url=["https://innovative-corp.com/careers/frontend-dev"]
+                apply_url=["https://innovative-corp.com/careers/frontend-dev"],
+                compatibility_score=88
             )
         ]
 
@@ -320,6 +322,13 @@ class TestGetLeads:
         assert result.jobs is not None
         assert len(result.jobs.root) == 2
         assert result.jobs.root[0].job_title == "Senior Python Developer"
+        assert result.jobs.root[0].company_id == "company_1"
+        assert result.jobs.root[1].job_title == "Frontend Developer"
+        assert result.jobs.root[1].company_id == "company_2"
+        assert result.jobs.root[1].apply_url == ["https://innovative-corp.com/careers/frontend-dev"]
+        assert result.jobs.root[0].apply_url == ["https://jobs.techsolutions.com/apply/python-dev"]
+        assert result.jobs.root[0].compatibility_score == 95
+        assert result.jobs.root[1].compatibility_score == 88
         
         # Verify contacts
         assert result.contacts is not None

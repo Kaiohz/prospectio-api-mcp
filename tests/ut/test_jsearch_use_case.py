@@ -1,13 +1,18 @@
 import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
-from application.use_cases.insert_leads import InsertCompanyJobsUseCase
-from domain.services.leads.jsearch import JsearchStrategy
+from application.use_cases.insert_leads import InsertLeadsUseCase
+from domain.ports.profile_respository import ProfileRepositoryPort
+from domain.services.leads import leads_processor
+from domain.services.leads.leads_processor import LeadsProcessor
+from domain.services.leads.strategies.jsearch import JsearchStrategy
+from infrastructure.api.llm_client_factory import LLMClientFactory
+from infrastructure.services.compatibility_score import CompatibilityScoreLLM
 from infrastructure.services.jsearch import JsearchAPI
-from config import DatabaseConfig, JsearchConfig
+from config import DatabaseConfig, JsearchConfig, LLMConfig
 from infrastructure.services.leads_database import LeadsDatabase
 from domain.entities.leads_result import LeadsResult
-# Line removed as it is unused
-
+from infrastructure.services.profile_database import ProfileDatabase
+from langchain_core.runnables.base import RunnableSequence
 
 class TestJsearchUseCase:
     """Test suite for the JSearch use case implementation."""
@@ -153,7 +158,49 @@ class TestJsearchUseCase:
         return LeadsDatabase(DatabaseConfig().DATABASE_URL)
 
     @pytest.fixture
-    def use_case(self, jsearch_strategy: JsearchStrategy,active_jobs_db_repository: LeadsDatabase) -> InsertCompanyJobsUseCase:
+    def compatibility_score_llm(self) -> dict:
+        """
+        Create a mock CompatibilityScoreLLM for testing.
+        
+        Returns:
+            LeadsProcessor: Mocked compatibility score processor.
+        """
+        return {"score": 85}
+    
+    @pytest.fixture
+    def profile_repository(self) -> ProfileRepositoryPort:
+        """
+        Create a mock ProfileRepositoryPort for testing.
+        
+        Returns:
+            ProfileRepositoryPort: Mocked profile repository.
+        """
+        return ProfileDatabase(DatabaseConfig().DATABASE_URL)
+    
+    @pytest.fixture
+    def leads_processor(self) -> LeadsProcessor:
+        """
+        Create a LeadsProcessor instance for testing.
+        
+        Returns:
+            LeadsProcessor: Configured leads processor.
+        """
+        llm_client = LLMClientFactory(
+            config=LLMConfig(),
+        ).create_client()
+
+        return LeadsProcessor(
+            compatibility_score_port=CompatibilityScoreLLM(llm_client),
+            concurrent_calls=LLMConfig().CONCURRENT_CALLS
+        )
+
+    @pytest.fixture
+    def use_case(self, 
+                 jsearch_strategy: JsearchStrategy, 
+                 active_jobs_db_repository: LeadsDatabase, 
+                 leads_processor: LeadsProcessor,
+                 profile_repository: ProfileRepositoryPort
+    ) -> InsertLeadsUseCase:
         """
         Create a GetCompanyJobsUseCase instance for testing.
         
@@ -163,13 +210,14 @@ class TestJsearchUseCase:
         Returns:
             GetCompanyJobsUseCase: Configured use case.
         """
-        return InsertCompanyJobsUseCase(strategy=jsearch_strategy, repository=active_jobs_db_repository)
+        return InsertLeadsUseCase(strategy=jsearch_strategy, repository=active_jobs_db_repository,leads_processor=leads_processor, profile_repository=profile_repository)
 
     @pytest.mark.asyncio
     async def test_get_leads_success(
         self,
-        use_case: InsertCompanyJobsUseCase,
-        sample_jsearch_response: dict
+        use_case: InsertLeadsUseCase,
+        sample_jsearch_response: dict,
+        compatibility_score_llm: dict
     ) -> None:
         """
         Test successful lead retrieval from JSearch API.
@@ -183,9 +231,11 @@ class TestJsearchUseCase:
         jsearch_response_mock.status_code = 200
         jsearch_response_mock.json.return_value = sample_jsearch_response
 
-        with patch('httpx.AsyncClient.get', new_callable=AsyncMock) as mock_get:
+        with patch('httpx.AsyncClient.get', new_callable=AsyncMock) as mock_get, \
+                patch.object(RunnableSequence, 'ainvoke', new_callable=AsyncMock) as mock_ainvoke: 
             # Configure the mock to return the JSearch response
             mock_get.return_value = jsearch_response_mock
+            mock_ainvoke.return_value = compatibility_score_llm
             
             # Execute the use case
             result = await use_case.insert_leads()

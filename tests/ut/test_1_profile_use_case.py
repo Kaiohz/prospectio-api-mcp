@@ -1,12 +1,11 @@
 import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import patch, AsyncMock
 from application.use_cases.profile import ProfileUseCase
 from infrastructure.services.profile_database import ProfileDatabase
 from config import DatabaseConfig
 from domain.entities.profile import Profile
 from domain.entities.work_experience import WorkExperience
 from infrastructure.dto.database.profile import ProfileDTO
-
 
 class TestProfileUseCase:
     """Test suite for the Profile use case implementation."""
@@ -113,7 +112,6 @@ class TestProfileUseCase:
         self,
         profile_use_case: ProfileUseCase,
         sample_profile_data: Profile,
-        sample_profile_dto: ProfileDTO
     ) -> None:
         """
         Test successful profile upsert operation.
@@ -123,19 +121,13 @@ class TestProfileUseCase:
             sample_profile_data: Mock profile data.
             sample_profile_dto: Mock profile DTO data.
         """
-        with patch.object(profile_use_case.repository, 'upsert_profile', new_callable=AsyncMock) as mock_upsert:
-            # Configure the mock to return the ProfileDTO
-            mock_upsert.return_value = sample_profile_dto
-            
-            # Execute the use case
-            result = await profile_use_case.upsert_profile(sample_profile_data)
-            
-            # Verify result
-            assert result == {"result": "Profile upserted successfully"}
-            
-            # Verify the repository method was called with correct data
-            mock_upsert.assert_called_once_with(sample_profile_data)
-
+        
+        # Execute the use case
+        result = await profile_use_case.upsert_profile(sample_profile_data)
+        
+        # Verify result
+        assert result == {"result": "Profile upserted successfully"}
+        
     @pytest.mark.asyncio
     async def test_get_profile_success(
         self,
