@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import patch, AsyncMock
 from application.use_cases.profile import ProfileUseCase
 from infrastructure.services.profile_database import ProfileDatabase
 from config import DatabaseConfig
@@ -7,7 +7,6 @@ from domain.entities.profile import Profile
 from domain.entities.work_experience import WorkExperience
 from infrastructure.dto.database.profile import ProfileDTO
 
-@pytest.mark.order(1)
 class TestProfileUseCase:
     """Test suite for the Profile use case implementation."""
 
