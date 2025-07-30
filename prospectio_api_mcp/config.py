@@ -48,21 +48,17 @@ class DatabaseConfig(BaseSettings):
 
     DATABASE_URL: str = Field(..., json_schema_extra={"env": "DATABASE_URL"})
 
+
 class LLMConfig(BaseSettings):
     """
     Configuration for the LLM client.
     """
+
     MODEL: str = Field(..., json_schema_extra={"env": "MODEL"})
     TEMPERATURE: float = Field(0.7, json_schema_extra={"env": "TEMPERATURE"})
     OLLAMA_BASE_URL: str = Field(
         "http://localhost:11434", json_schema_extra={"env": "OLLAMA_BASE_URL"}
     )
-    GOOGLE_API_KEY: str = Field(
-        ..., json_schema_extra={"env": "GOOGLE_API_KEY"}
-    )
-    MISTRAL_API_KEY: str = Field(
-        ..., json_schema_extra={"env": "MISTRAL_API_KEY"}
-    )
-    CONCURRENT_CALLS: int = Field(
-        ..., json_schema_extra={"env": "CONCURRENT_CALLS"}
-    )
+    GOOGLE_API_KEY: str = Field(..., json_schema_extra={"env": "GOOGLE_API_KEY"})
+    MISTRAL_API_KEY: str = Field(..., json_schema_extra={"env": "MISTRAL_API_KEY"})
+    CONCURRENT_CALLS: int = Field(..., json_schema_extra={"env": "CONCURRENT_CALLS"})

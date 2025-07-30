@@ -113,16 +113,18 @@ class JsearchAPI(FetchLeadsPort):
             )
             jobs.append(job_entity)
         return JobEntity(jobs)
-    
-    async def process_results(self, company_result: CompanyEntity, job_result: JobEntity, params: dict) -> None:
-            await asyncio.sleep(1)  # Rate limiting to avoid hitting API limits
-            client = BaseApiClient(self.api_base, self.headers)
-            result = await client.get(self.search_endpoint, params)
-            jsearch = await self._check_error(client, result, JSearchResponseDTO)
-            company_entity, ids = await self.to_company_entity(jsearch)
-            job_entity = await self.to_job_entity(jsearch, ids)
-            company_result.root.extend(company_entity.root)
-            job_result.root.extend(job_entity.root)
+
+    async def process_results(
+        self, company_result: CompanyEntity, job_result: JobEntity, params: dict
+    ) -> None:
+        await asyncio.sleep(1)  # Rate limiting to avoid hitting API limits
+        client = BaseApiClient(self.api_base, self.headers)
+        result = await client.get(self.search_endpoint, params)
+        jsearch = await self._check_error(client, result, JSearchResponseDTO)
+        company_entity, ids = await self.to_company_entity(jsearch)
+        job_entity = await self.to_job_entity(jsearch, ids)
+        company_result.root.extend(company_entity.root)
+        job_result.root.extend(job_entity.root)
 
     async def fetch_leads(self, location: str, job_title: list[str]) -> Leads:
         """
@@ -148,9 +150,12 @@ class JsearchAPI(FetchLeadsPort):
                 "country": location[0:2].lower(),
             }
             params_list.append(params)
-        
+
         await asyncio.gather(
-            *[self.process_results(company_result, job_result, params) for params in params_list]
+            *[
+                self.process_results(company_result, job_result, params)
+                for params in params_list
+            ]
         )
 
         # Combine results into a Leads object

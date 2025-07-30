@@ -306,6 +306,11 @@ Before running the application, make sure you have set up your environment varia
 
 The Docker Compose setup includes both the application and PostgreSQL database with pgvector extension.
 
+First build a network for prospectio :
+```bash
+docker network create prospectio
+```
+
 1. **Build and Run with Docker Compose**:
    ```bash
    # Build and start the container

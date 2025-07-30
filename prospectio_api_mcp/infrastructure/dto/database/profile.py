@@ -10,7 +10,7 @@ class ProfileDTO(Base):
     Data Transfer Object for Profile.
     SQLAlchemy model for storing user profiles in the database.
     """
-    
+
     __tablename__ = "profile"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

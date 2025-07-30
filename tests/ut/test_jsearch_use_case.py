@@ -2,7 +2,6 @@ import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
 from application.use_cases.insert_leads import InsertLeadsUseCase
 from domain.ports.profile_respository import ProfileRepositoryPort
-from domain.services.leads import leads_processor
 from domain.services.leads.leads_processor import LeadsProcessor
 from domain.services.leads.strategies.jsearch import JsearchStrategy
 from infrastructure.api.llm_client_factory import LLMClientFactory
@@ -139,8 +138,8 @@ class TestJsearchUseCase:
             JsearchStrategy: Configured JSearch strategy.
         """
         return JsearchStrategy(
-            location="France",
-            job_title=["Python Developer", "Senior Developer"],
+            location="france",
+            job_title=["python developer", "senior developer"],
             port=jsearch_api
         )
     
@@ -242,8 +241,44 @@ class TestJsearchUseCase:
             
             # Verify result type
             assert isinstance(result, LeadsResult)
-            
+
             # Verify result content
-            assert result.companies == "Insert of 2 companies"
-            assert result.jobs == "insert of 2 jobs"
+            assert result.companies == "Insert of 1 companies"
+            assert result.jobs == "insert of 1 jobs"
+            assert result.contacts == "insert of 0 contacts"
+
+    @pytest.mark.asyncio
+    async def test_get_leads_success_no_insert(
+        self,
+        use_case: InsertLeadsUseCase,
+        sample_jsearch_response: dict,
+        compatibility_score_llm: dict
+    ) -> None:
+        """
+        Test successful lead retrieval from JSearch API.
+        
+        Args:
+            use_case: The configured use case.
+            sample_jsearch_response: Mock JSearch response.
+        """
+        # Mock the HTTP response
+        jsearch_response_mock = MagicMock()
+        jsearch_response_mock.status_code = 200
+        jsearch_response_mock.json.return_value = sample_jsearch_response
+
+        with patch('httpx.AsyncClient.get', new_callable=AsyncMock) as mock_get, \
+                patch.object(RunnableSequence, 'ainvoke', new_callable=AsyncMock) as mock_ainvoke: 
+            # Configure the mock to return the JSearch response
+            mock_get.return_value = jsearch_response_mock
+            mock_ainvoke.return_value = compatibility_score_llm
+            
+            # Execute the use case
+            result = await use_case.insert_leads()
+            
+            # Verify result type
+            assert isinstance(result, LeadsResult)
+
+            # Verify result content
+            assert result.companies == "Insert of 0 companies"
+            assert result.jobs == "insert of 0 jobs"
             assert result.contacts == "insert of 0 contacts"

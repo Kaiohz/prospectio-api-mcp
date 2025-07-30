@@ -40,12 +40,12 @@ class ProfileDatabase(ProfileRepositoryPort):
             work_experiences = [
                 WorkExperience(**exp) for exp in profile_dto.work_experience
             ]
-        
+
         return Profile(
             job_title=profile_dto.job_title,
             location=profile_dto.location,
             bio=profile_dto.bio,
-            work_experience=work_experiences
+            work_experience=work_experiences,
         )
 
     async def get_profile(self) -> Optional[Profile]:
@@ -63,11 +63,11 @@ class ProfileDatabase(ProfileRepositoryPort):
                 stmt = select(ProfileDTO).where(ProfileDTO.id == 1)
                 result = await session.execute(stmt)
                 profile_dto = result.scalar_one_or_none()
-                
+
                 if profile_dto:
                     return self._convert_dto_to_entity(profile_dto)
                 return None
-                
+
             except Exception as e:
                 raise e
 
@@ -85,34 +85,26 @@ class ProfileDatabase(ProfileRepositoryPort):
             try:
                 # Convert work_experience to JSON format
                 profile_data = profile.model_dump()
-                if profile_data.get('work_experience'):
-                    profile_data['work_experience'] = [
-                        exp.model_dump() if hasattr(exp, 'model_dump') else exp 
-                        for exp in profile_data['work_experience']
+                if profile_data.get("work_experience"):
+                    profile_data["work_experience"] = [
+                        exp.model_dump() if hasattr(exp, "model_dump") else exp
+                        for exp in profile_data["work_experience"]
                     ]
-                
+
                 # Update existing profile
                 stmt = (
                     insert(ProfileDTO)
-                    .values(
-                        id=1,
-                        **profile_data
-                    )
-                    .on_conflict_do_update(
-                        index_elements=['id'],
-                        set_=profile_data
-                    )
+                    .values(id=1, **profile_data)
+                    .on_conflict_do_update(index_elements=["id"], set_=profile_data)
                     .returning(ProfileDTO)
                 )
                 result = await session.execute(stmt)
                 profile_dto = result.scalar_one()
-                
+
                 await session.commit()
                 await session.refresh(profile_dto)
                 return profile_dto
-                
+
             except Exception as e:
                 await session.rollback()
                 raise e
-
-
