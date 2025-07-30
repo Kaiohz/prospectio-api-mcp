@@ -351,3 +351,35 @@ class TestActiveJobsDBUseCase:
             assert result.companies == "Insert of 2 companies"
             assert result.jobs == "insert of 2 jobs"
             assert result.contacts == "insert of 0 contacts"
+
+    @pytest.mark.asyncio
+    async def test_get_leads_success_no_insert(
+        self,
+        use_case: InsertLeadsUseCase,
+        sample_active_jobs_response: list,
+        compatibility_score_llm: dict
+    ) -> None:
+        """
+        Test successful lead retrieval from Active Jobs DB API.
+        
+        Args:
+            use_case: The configured use case.
+            sample_active_jobs_response: Mock Active Jobs DB response.
+        """
+        # Mock the HTTP response
+        active_jobs_response_mock = MagicMock()
+        active_jobs_response_mock.status_code = 200
+        active_jobs_response_mock.json.return_value = sample_active_jobs_response
+
+        with patch('httpx.AsyncClient.get', new_callable=AsyncMock) as mock_get, \
+                patch.object(RunnableSequence, 'ainvoke', new_callable=AsyncMock) as mock_ainvoke:          
+            
+            mock_get.return_value = active_jobs_response_mock
+            mock_ainvoke.return_value = compatibility_score_llm
+
+            result = await use_case.insert_leads()
+
+            assert isinstance(result, LeadsResult)
+            assert result.companies == "Insert of 0 companies"
+            assert result.jobs == "insert of 0 jobs"
+            assert result.contacts == "insert of 0 contacts"

@@ -1,8 +1,6 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field, RootModel
 
-from domain.ports import compatibility_score
-
 
 class Job(BaseModel):
     """

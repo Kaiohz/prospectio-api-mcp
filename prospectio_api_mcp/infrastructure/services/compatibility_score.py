@@ -13,7 +13,9 @@ class CompatibilityScoreLLM(CompatibilityScorePort):
     def __init__(self, client: LLMGenericClient):
         super().__init__(client)
 
-    async def get_compatibility_score(self, profile: Profile, job_description: str, job_location: str) -> CompatibilityScore:
+    async def get_compatibility_score(
+        self, profile: Profile, job_description: str, job_location: str
+    ) -> CompatibilityScore:
         """
         Get compatibility score for a profile against a job description.
 
@@ -26,8 +28,15 @@ class CompatibilityScoreLLM(CompatibilityScorePort):
         """
         prompt = PromptLoader().load_prompt("compatibility_score")
         template = PromptTemplate(
-            input_variables=["job_title", "profile_location", "bio", "work_experience", "job_location", "job_description"],
-            template=prompt
+            input_variables=[
+                "job_title",
+                "profile_location",
+                "bio",
+                "work_experience",
+                "job_location",
+                "job_description",
+            ],
+            template=prompt,
         )
         chain = template | self.client | JsonOutputParser()
         result = await chain.ainvoke(
@@ -37,7 +46,7 @@ class CompatibilityScoreLLM(CompatibilityScorePort):
                 "bio": profile.bio,
                 "work_experience": profile.work_experience,
                 "job_location": job_location,
-                "job_description": job_description
+                "job_description": job_description,
             }
         )
         return CompatibilityScore(**result)

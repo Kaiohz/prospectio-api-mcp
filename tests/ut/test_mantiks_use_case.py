@@ -256,3 +256,46 @@ class TestMantiksUseCase:
                 assert result.companies == "Insert of 1 companies"
                 assert result.jobs == "insert of 1 jobs"
                 assert result.contacts == "insert of 1 contacts"
+
+    @pytest.mark.asyncio
+    async def test_get_leads_success_no_insert(
+        self,
+        use_case: InsertLeadsUseCase,
+        sample_location_response: dict,
+        sample_company_response: dict,
+        compatibility_score_llm: dict
+    ) -> None:
+        """
+        Test successful lead retrieval from Mantiks API.
+        
+        Args:
+            use_case: The configured use case.
+            sample_location_response: Mock location response.
+            sample_company_response: Mock company response.
+        """
+        # Mock the HTTP responses
+        location_response_mock = MagicMock()
+        location_response_mock.status_code = 200
+        location_response_mock.json.return_value = sample_location_response
+
+        company_response_mock = MagicMock()
+        company_response_mock.status_code = 200
+        company_response_mock.json.return_value = sample_company_response
+
+        with patch('httpx.AsyncClient.get', new_callable=AsyncMock) as mock_get, \
+                patch.object(RunnableSequence, 'ainvoke', new_callable=AsyncMock) as mock_ainvoke: 
+
+                # Configure the mock to return different responses for different calls
+                mock_get.side_effect = [location_response_mock, company_response_mock]
+                mock_ainvoke.return_value = compatibility_score_llm
+                
+                # Execute the use case
+                result = await use_case.insert_leads()
+                
+                # Verify result type
+                assert isinstance(result, LeadsResult)
+                
+                # Verify result content
+                assert result.companies == "Insert of 0 companies"
+                assert result.jobs == "insert of 0 jobs"
+                assert result.contacts == "insert of 0 contacts"

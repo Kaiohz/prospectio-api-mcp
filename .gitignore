@@ -49,7 +49,7 @@ coverage.xml
 .python-version
 
 # pipenv
-Pipfile.lock
+Pipfile.lock:wq
 
 # uv
 uv.lock
@@ -63,6 +63,7 @@ uv.lock
 
 # FastAPI specific
 .env
+.env.docker
 *.sqlite3
 instance/
 

@@ -1,5 +1,5 @@
 [project]
-name = "prospectio-api-mcp"
+name = "prospectio_api_mcp"
 version = "0.1.0"
 description = "Prospectio MCP API"
 authors = [
@@ -15,7 +15,7 @@ testpaths = ["tests"]
 asyncio_mode = "auto"
 
 [tool.poetry]
-name = "prospectio-api-mcp"
+name = "prospectio_api_mcp"
 version = "0.1.0"
 description = "Prospectio MCP API"
 authors = ["Yohan Goncalves <yohan.goncalves.pro@gmail.com>"]
