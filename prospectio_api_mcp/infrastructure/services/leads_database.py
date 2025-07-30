@@ -134,13 +134,11 @@ class LeadsDatabase(LeadsRepositoryPort):
         """
         async with AsyncSession(self.engine) as session:
             try:
-                # Query companies by names
                 result = await session.execute(
                     select(CompanyDB).where(CompanyDB.name.in_(company_names))
                 )
                 company_dbs = result.scalars().all()
 
-                # Convert database models to domain entities
                 companies = [
                     self._convert_db_to_company(company_db)
                     for company_db in company_dbs

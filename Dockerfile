@@ -18,7 +18,7 @@ RUN --mount=type=cache,target=/root/.cache/pip poetry install --no-root
 
 COPY prospectio_api_mcp ./prospectio_api_mcp
 
-COPY .env .env
+COPY .env .
 
 EXPOSE 7002
 

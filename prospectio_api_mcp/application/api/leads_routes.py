@@ -45,14 +45,16 @@ def leads_router(
     @mcp_prospectio.tool(
         description="ALWAYS USE THIS FIRST to retrieve existing data from the database before searching for new opportunities. "
         "Returns companies, jobs, contacts or leads that are already stored in the database. "
+        "This endpoint is paginated: use the 'offset' parameter to paginate through results. Offset begins at 0. "
+        "Pagination size: 5 for companies, 10 for contacts, 3 for jobs. "
         "Use this tool when the user wants to see existing leads, companies, jobs, or contacts. "
         "Only use the insert/leads endpoint when the user specifically asks for new opportunities or when no relevant data is found in the database. "
         "The parameter 'type' can be: 'companies', 'jobs', 'contacts', or 'leads'. "
-        "Example: GET /get/leads/companies to get all companies from database."
+        "Example: GET /get/leads/companies/0 to get the first 5 companies, /get/leads/companies/5 for the next 5, /get/leads/contacts/0 for the first 10 contacts, /get/leads/jobs/0 for the first 3 jobs, etc."
     )
     async def get_leads(
         type: str = Path(..., description="Lead source"),
-        offset: int = Path(0, description="Offset for pagination"),
+        offset: int = Path(..., description="Offset for pagination"),
     ) -> Union[Leads, CompanyEntity, JobEntity, ContactEntity]:
         try:
             leads = await GetLeadsUseCase(type, repository).get_leads(offset)
