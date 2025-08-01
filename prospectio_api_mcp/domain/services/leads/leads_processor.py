@@ -9,6 +9,7 @@ import asyncio
 
 from domain.entities.contact import ContactEntity
 
+
 class LeadsProcessor:
     def __init__(
         self, compatibility_score_port: CompatibilityScorePort, concurrent_calls
@@ -29,15 +30,17 @@ class LeadsProcessor:
         seen = set()
         unique_contacts = []
         for contact in contacts.root:
-            name = contact.name.strip().lower() if contact.name else ""
-            title = contact.title.strip().lower() if contact.title else ""
-            identifier = (name, title)
+            contact.name = contact.name.strip().lower() if contact.name else ""
+            contact.title = contact.title.strip().lower() if contact.title else ""
+            identifier = (contact.name, contact.title)
             if identifier not in seen:
                 seen.add(identifier)
                 unique_contacts.append(contact)
         return ContactEntity(root=unique_contacts)
 
-    async def new_contacts(self, contacts: ContactEntity, db_contacts: ContactEntity) -> ContactEntity:
+    async def new_contacts(
+        self, contacts: ContactEntity, db_contacts: ContactEntity
+    ) -> ContactEntity:
         """
         Filter out contacts that already exist in the database, based on normalized name and title.
 
@@ -49,12 +52,20 @@ class LeadsProcessor:
             ContactEntity: Entity containing only new contacts not present in the database.
         """
         existing_contacts = {
-            (contact.name.strip().lower() if contact.name else "", contact.title.strip().lower() if contact.title else "")
+            (
+                contact.name.strip().lower() if contact.name else "",
+                contact.title.strip().lower() if contact.title else "",
+            )
             for contact in db_contacts.root
         }
         new_contacts = [
-            contact for contact in contacts.root
-            if (contact.name.strip().lower() if contact.name else "", contact.title.strip().lower() if contact.title else "") not in existing_contacts
+            contact
+            for contact in contacts.root
+            if (
+                contact.name.strip().lower() if contact.name else "",
+                contact.title.strip().lower() if contact.title else "",
+            )
+            not in existing_contacts
         ]
         return ContactEntity(root=new_contacts)
 
@@ -73,9 +84,14 @@ class LeadsProcessor:
             ContactEntity: Contacts with updated job_id and company_id if a match is found.
         """
         job_lookup = {
-            (job.job_title.strip().lower() if job.job_title else "", job.location.strip().lower() if job.location else ""): job.id
+            (
+                job.job_title.strip().lower() if job.job_title else "",
+                job.location.strip().lower() if job.location else "",
+            ): job.id
             for job in jobs.root
-            if job.id is not None and job.job_title is not None and job.location is not None
+            if job.id is not None
+            and job.job_title is not None
+            and job.location is not None
         }
         company_lookup = {
             company.name.strip().lower(): company.id
@@ -87,7 +103,10 @@ class LeadsProcessor:
                 name = contact.company_id.strip().lower()
                 contact.company_id = company_lookup.get(name, contact.company_id)
             if contact.title and contact.company_id:
-                key = (contact.title.strip().lower(), contact.company_id.strip().lower())
+                key = (
+                    contact.title.strip().lower(),
+                    contact.company_id.strip().lower(),
+                )
                 contact.job_id = job_lookup.get(key, contact.job_id)
         return contacts
 
@@ -122,10 +141,8 @@ class LeadsProcessor:
                 if company_id is not None:
                     job.company_id = company_id
         return jobs
-    
-    async def new_jobs(
-        self, jobs: JobEntity, db_jobs: JobEntity
-    ) -> JobEntity:
+
+    async def new_jobs(self, jobs: JobEntity, db_jobs: JobEntity) -> JobEntity:
         """
         Filter out jobs that already exist in the database, based on normalized job title, location, type, and company_id.
 
@@ -148,13 +165,15 @@ class LeadsProcessor:
         }
 
         new_jobs = [
-            job for job in jobs.root
+            job
+            for job in jobs.root
             if (
                 job.job_title.strip().lower() if job.job_title else "",
                 job.location.strip().lower() if job.location else "",
                 job.description.strip().lower() if job.description else "",
                 job.job_type.strip().lower() if job.job_type else "",
-            ) not in existing_jobs
+            )
+            not in existing_jobs
         ]
         return JobEntity(root=new_jobs)
 
@@ -179,8 +198,7 @@ class LeadsProcessor:
         new_companies = [
             company
             for company in companies.root
-            if company.name
-            and company.name.strip().lower() not in existing_companies
+            if company.name and company.name.strip().lower() not in existing_companies
         ]
         return CompanyEntity(root=new_companies)
 
@@ -200,9 +218,7 @@ class LeadsProcessor:
             job.job_title = job.job_title.strip().lower() if job.job_title else ""
             job.location = job.location.strip().lower() if job.location else ""
             job.job_type = job.job_type.strip().lower() if job.job_type else ""
-            job.description = (
-                job.description.strip().lower() if job.description else ""
-            )
+            job.description = job.description.strip().lower() if job.description else ""
 
             identifier = (job.job_title, job.location, job.job_type, job.description)
             if identifier not in seen:

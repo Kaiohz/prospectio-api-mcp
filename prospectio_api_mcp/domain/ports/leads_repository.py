@@ -36,7 +36,9 @@ class LeadsRepositoryPort(ABC):
         pass
 
     @abstractmethod
-    async def get_jobs_by_title_and_location(self, title: list[str], location: str) -> JobEntity:
+    async def get_jobs_by_title_and_location(
+        self, title: list[str], location: str
+    ) -> JobEntity:
         """
         Retrieve a job by its title and location from the database.
 
@@ -83,7 +85,9 @@ class LeadsRepositoryPort(ABC):
         pass
 
     @abstractmethod
-    async def get_contacts_by_name_and_title(self, names: list[str], titles: list[str]) -> ContactEntity:
+    async def get_contacts_by_name_and_title(
+        self, names: list[str], titles: list[str]
+    ) -> ContactEntity:
         """
         Retrieve contacts by their name and title from the database.
         Args:

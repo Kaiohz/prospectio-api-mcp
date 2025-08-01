@@ -62,14 +62,22 @@ class InsertLeadsUseCase:
         leads.jobs = await self.leads_processor.deduplicate_jobs(leads.jobs)
 
         if leads.contacts:
-            leads.contacts = await self.leads_processor.deduplicate_contacts(leads.contacts)
+            leads.contacts = await self.leads_processor.deduplicate_contacts(
+                leads.contacts
+            )
             names = [
-                contact.name for contact in leads.contacts.root if contact.name is not None
+                contact.name
+                for contact in leads.contacts.root
+                if contact.name is not None
             ]
             titles = [
-                contact.title for contact in leads.contacts.root if contact.title is not None
+                contact.title
+                for contact in leads.contacts.root
+                if contact.title is not None
             ]
-            db_contacts = await self.repository.get_contacts_by_name_and_title(names, titles)
+            db_contacts = await self.repository.get_contacts_by_name_and_title(
+                names, titles
+            )
 
         company_names = [
             company.name for company in leads.companies.root if company.name is not None
@@ -92,10 +100,14 @@ class InsertLeadsUseCase:
         leads.jobs = await self.leads_processor.new_jobs(leads.jobs, db_jobs)
 
         if leads.contacts and db_contacts:
-            leads.contacts = await self.leads_processor.new_contacts(leads.contacts, db_contacts)
+            leads.contacts = await self.leads_processor.new_contacts(
+                leads.contacts, db_contacts
+            )
 
-            leads.contacts = await self.leads_processor.change_contacts_job_and_company_id(
-                leads.contacts, leads.jobs, leads.companies
+            leads.contacts = (
+                await self.leads_processor.change_contacts_job_and_company_id(
+                    leads.contacts, leads.jobs, leads.companies
+                )
             )
 
         await self.leads_processor.calculate_compatibility_scores(profile, leads.jobs)

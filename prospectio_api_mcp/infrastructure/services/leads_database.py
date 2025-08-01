@@ -97,19 +97,25 @@ class LeadsDatabase(LeadsRepositoryPort):
                 return JobEntity(root=jobs)
             except Exception as e:
                 raise e
-            
-    async def get_jobs_by_title_and_location(self, title: list[str], location: str) -> JobEntity:
+
+    async def get_jobs_by_title_and_location(
+        self, title: list[str], location: str
+    ) -> JobEntity:
         """
-            Retrieve a job by its title and location from the database.
-            Args:
-                title (str): The job title to search for.
-                location (str): The job location to search for.
+        Retrieve jobs from the database that match any of the provided titles and the specified location (case-insensitive, partial match).
+
+        Args:
+            title (list[str]): List of job titles to search for (partial, case-insensitive match on any).
+            location (str): The job location to search for (partial, case-insensitive match).
+
+        Returns:
+            JobEntity: Domain entity containing the list of jobs matching the criteria. Returns an empty JobEntity if no jobs are found.
         """
         async with AsyncSession(self.engine) as session:
             try:
                 stmt = select(JobDB).where(
                     or_(*[JobDB.job_title.ilike(f"%{t}%") for t in title]),
-                    JobDB.location.ilike(f"%{location}%")                
+                    JobDB.location.ilike(f"%{location}%"),
                 )
                 result = await session.execute(stmt)
                 job_db = result.scalars().all()
@@ -198,17 +204,19 @@ class LeadsDatabase(LeadsRepositoryPort):
                 return ContactEntity(root=contacts)
             except Exception as e:
                 raise e
-            
-    async def get_contacts_by_name_and_title(self, names: list[str], titles: list[str]) -> ContactEntity:
+
+    async def get_contacts_by_name_and_title(
+        self, names: list[str], titles: list[str]
+    ) -> ContactEntity:
         """
-        Retrieve contacts from the database matching BOTH the provided name AND title (case-insensitive, partial match, AND condition).
+        Retrieve contacts from the database that match any of the provided names AND any of the provided titles (case-insensitive, partial match, AND condition).
 
         Args:
-            name (str): The contact name to search for.
-            title (str): The contact title to search for.
+            names (list[str]): List of contact names to search for (partial, case-insensitive match on any).
+            titles (list[str]): List of contact titles to search for (partial, case-insensitive match on any).
 
         Returns:
-            ContactEntity: Domain entity containing list of contacts matching both name and title.
+            ContactEntity: Domain entity containing the list of contacts matching both name and title criteria. Returns an empty ContactEntity if no contacts are found.
         """
         async with AsyncSession(self.engine) as session:
             try:
@@ -218,7 +226,10 @@ class LeadsDatabase(LeadsRepositoryPort):
                 )
                 result = await session.execute(stmt)
                 contact_dbs = result.scalars().all()
-                contacts = [self._convert_db_to_contact(contact_db) for contact_db in contact_dbs]
+                contacts = [
+                    self._convert_db_to_contact(contact_db)
+                    for contact_db in contact_dbs
+                ]
                 return ContactEntity(root=contacts)
             except Exception as e:
                 raise e
