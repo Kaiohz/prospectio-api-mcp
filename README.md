@@ -181,6 +181,7 @@ To run the application, you need to configure your environment variables. This i
     Copy the example file `.env.example` to a new file named `.env`.
     ```bash
     cp .env.example .env
+    cp .env .env.docker
     ```
 
 2.  **Edit the `.env` file**:
