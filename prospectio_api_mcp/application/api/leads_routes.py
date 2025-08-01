@@ -41,7 +41,7 @@ def leads_router(
     """
     company_jobs_router = APIRouter()
 
-    @company_jobs_router.get("/get/leads/{type}/{offset}")
+    @company_jobs_router.get("/leads/{type}/{offset}")
     @mcp_prospectio.tool(
         description="ALWAYS USE THIS FIRST to retrieve existing data from the database before searching for new opportunities. "
         "Returns companies, jobs, contacts or leads that are already stored in the database. "

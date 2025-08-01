@@ -1,41 +1,41 @@
-curl --request GET \
-  --url 'http://localhost:7002/rest/v1/company/jobs/jsearch?job_title=python&location=france' \
-  --header 'Accept: application/json, text/event-stream'
-
+curl --request POST \
+  --url 'http://localhost:7002/prospectio/rest/v1/insert/leads' \
+  --header 'Accept: application/json, text/event-stream' \
+  --header 'Content-Type: application/json' \
+  --data '{"source": "active_jobs_db","location": "France","job_title": ["Python","Fastapi"]}'
 ###
 
 curl --request GET \
-  --url 'http://localhost:7002/rest/v1/company/jobs/active_jobs_db?job_title=python&location=france' \
+  --url 'http://localhost:7002/prospectio/rest/v1/leads/jobs/0' \
+  --header 'Accept: application/json, text/event-stream'
+  
+###
+
+curl --request GET \
+  --url 'http://localhost:7002/prospectio/rest/v1/profile' \
   --header 'Accept: application/json, text/event-stream'
 
 ###
 
 curl --request POST \
-  --url http://localhost:7002/prospectio/mcp \
-  --header 'Accept: application/json, text/event-stream' \
+  --url http://localhost:7002/prospectio/rest/v1/profile/upsert \
   --header 'Content-Type: application/json' \
   --data '{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "method": "tools/list"
+	"job_title": "Software Developer",
+	"location": "FR",
+	"bio": "Passionate developer",
+	"work_experience": [
+		{
+			"company": "TechCorp",
+			"position": "Developer",
+			"start_date": "2020-01",
+			"end_date": "2023-12",
+			"description": "Full-stack development"
+		}
+	]
 }'
 
-###
 
-curl --request POST \
-  --url http://localhost:7002/prospectio/mcp/sse \
-  --header 'Accept: application/json, text/event-stream' \
-  --header 'Content-Type: application/json' \
-  --data '{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "method": "tools/call",
-  "params": {
-    "name": "get_company_jobs",
-    "arguments": {
-      "source": "jsearch",
-			"job_title": ["Python"],
-			"location": "France"
-    }
-  }
-}'
+
+
+

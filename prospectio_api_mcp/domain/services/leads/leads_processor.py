@@ -180,7 +180,6 @@ class LeadsProcessor:
             company
             for company in companies.root
             if company.name
-            if company.name is not None
             and company.name.strip().lower() not in existing_companies
         ]
         return CompanyEntity(root=new_companies)
