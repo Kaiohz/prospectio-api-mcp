@@ -1,4 +1,5 @@
 .env.local
+.env
 .env.*.local
 *.log
 .git
