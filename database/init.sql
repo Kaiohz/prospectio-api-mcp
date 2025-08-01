@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS jobs (
 CREATE TABLE IF NOT EXISTS contacts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     company_id UUID REFERENCES companies(id) ON DELETE CASCADE,
-    job_id UUID REFERENCES jobs(id) ON DELETE SET NULL,
+    job_id UUID REFERENCES jobs(id) ON DELETE CASCADE,
     name VARCHAR(255),
     email VARCHAR(320),
     title VARCHAR(255),

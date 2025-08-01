@@ -1,6 +1,6 @@
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from domain.ports.leads_repository import LeadsRepositoryPort
 from domain.entities.leads import Leads
 from infrastructure.dto.database.company import Company as CompanyDB
@@ -65,7 +65,7 @@ class LeadsDatabase(LeadsRepositoryPort):
 
                 session.add_all(jobs_to_insert)
                 await session.flush()
-                
+
                 session.add_all(contacts_to_insert)
                 await session.commit()
 
@@ -73,98 +73,233 @@ class LeadsDatabase(LeadsRepositoryPort):
                 await session.rollback()
                 raise e
 
-    async def get_jobs(self) -> JobEntity:
+    async def get_jobs(self, offset: int) -> JobEntity:
         """
-        Retrieve all jobs from the database.
+        Retrieve jobs from the database with pagination.
+
+        Args:
+            offset (int): Number of jobs to skip.
+            limit (int): Maximum number of jobs to return.
 
         Returns:
             JobEntity: Domain entity containing list of jobs.
         """
         async with AsyncSession(self.engine) as session:
             try:
-                # Query all jobs from database
                 result = await session.execute(
-                    select(JobDB).order_by(JobDB.date_creation.desc()).limit(5)
+                    select(JobDB)
+                    .order_by(JobDB.compatibility_score.desc())
+                    .offset(offset)
+                    .limit(3)
                 )
                 job_dbs = result.scalars().all()
-                
-                # Convert database models to domain entities
                 jobs = [self._convert_db_to_job(job_db) for job_db in job_dbs]
-                
                 return JobEntity(root=jobs)
-            
             except Exception as e:
-                raise e 
-    
-    async def get_companies(self) -> CompanyEntity:
+                raise e
+
+    async def get_jobs_by_title_and_location(
+        self, title: list[str], location: str
+    ) -> JobEntity:
         """
-        Retrieve all companies from the database.
+        Retrieve jobs from the database that match any of the provided titles and the specified location (case-insensitive, partial match).
+
+        Args:
+            title (list[str]): List of job titles to search for (partial, case-insensitive match on any).
+            location (str): The job location to search for (partial, case-insensitive match).
+
+        Returns:
+            JobEntity: Domain entity containing the list of jobs matching the criteria. Returns an empty JobEntity if no jobs are found.
+        """
+        async with AsyncSession(self.engine) as session:
+            try:
+                stmt = select(JobDB).where(
+                    or_(*[JobDB.job_title.ilike(f"%{t}%") for t in title]),
+                    JobDB.location.ilike(f"%{location}%"),
+                )
+                result = await session.execute(stmt)
+                job_db = result.scalars().all()
+
+                if job_db:
+                    jobs = [self._convert_db_to_job(job) for job in job_db]
+                    return JobEntity(root=jobs)
+                return JobEntity(root=[])
+
+            except Exception as e:
+                raise e
+
+    async def get_companies_by_names(self, company_names: List[str]) -> CompanyEntity:
+        """
+        Retrieve companies by their names from the database.
+
+        Args:
+            company_names (List[str]): List of company names to search for.
+
+        Returns:
+            CompanyEntity: Domain entity containing list of companies matching the names.
+        """
+        async with AsyncSession(self.engine) as session:
+            try:
+                result = await session.execute(
+                    select(CompanyDB).where(CompanyDB.name.in_(company_names))
+                )
+                company_dbs = result.scalars().all()
+
+                companies = [
+                    self._convert_db_to_company(company_db)
+                    for company_db in company_dbs
+                ]
+
+                return CompanyEntity(root=companies)
+
+            except Exception as e:
+                raise e
+
+    async def get_companies(self, offset: int = 0) -> CompanyEntity:
+        """
+        Retrieve companies from the database with pagination.
+
+        Args:
+            offset (int): Number of companies to skip (default: 0).
+            limit (int): Maximum number of companies to return (default: 10).
 
         Returns:
             CompanyEntity: Domain entity containing list of companies.
         """
         async with AsyncSession(self.engine) as session:
             try:
-                # Query all companies from database
-                result = await session.execute(select(CompanyDB))
+                result = await session.execute(
+                    select(CompanyDB).order_by(CompanyDB.id).offset(offset).limit(5)
+                )
                 company_dbs = result.scalars().all()
-                
-                # Convert database models to domain entities
-                companies = [self._convert_db_to_company(company_db) for company_db in company_dbs]
-                
+                companies = [
+                    self._convert_db_to_company(company_db)
+                    for company_db in company_dbs
+                ]
                 return CompanyEntity(root=companies)
-            
             except Exception as e:
                 raise e
 
-    async def get_contacts(self) -> ContactEntity:
+    async def get_contacts(self, offset: int = 0) -> ContactEntity:
         """
-        Retrieve all contacts from the database.
+        Retrieve contacts from the database with pagination.
+
+        Args:
+            offset (int): Number of contacts to skip (default: 0).
+            limit (int): Maximum number of contacts to return (default: 10).
 
         Returns:
             ContactEntity: Domain entity containing list of contacts.
         """
         async with AsyncSession(self.engine) as session:
             try:
-                # Query all contacts from database
-                result = await session.execute(select(ContactDB))
+                result = await session.execute(
+                    select(ContactDB).order_by(ContactDB.id).offset(offset).limit(10)
+                )
                 contact_dbs = result.scalars().all()
-                
-                # Convert database models to domain entities
-                contacts = [self._convert_db_to_contact(contact_db) for contact_db in contact_dbs]
-                
+                contacts = [
+                    self._convert_db_to_contact(contact_db)
+                    for contact_db in contact_dbs
+                ]
                 return ContactEntity(root=contacts)
-            
             except Exception as e:
                 raise e
 
-    async def get_leads(self) -> Leads:
+    async def get_contacts_by_name_and_title(
+        self, names: list[str], titles: list[str]
+    ) -> ContactEntity:
         """
-        Retrieve all leads data (companies, jobs, and contacts) from the database.
+        Retrieve contacts from the database that match any of the provided names AND any of the provided titles (case-insensitive, partial match, AND condition).
+
+        Args:
+            names (list[str]): List of contact names to search for (partial, case-insensitive match on any).
+            titles (list[str]): List of contact titles to search for (partial, case-insensitive match on any).
 
         Returns:
-            Leads: Domain entity containing all companies, jobs, and contacts.
+            ContactEntity: Domain entity containing the list of contacts matching both name and title criteria. Returns an empty ContactEntity if no contacts are found.
         """
         async with AsyncSession(self.engine) as session:
             try:
-                companies_result = await session.execute(select(CompanyDB))
-                jobs_result = await session.execute(select(JobDB))
-                contacts_result = await session.execute(select(ContactDB))
-                
-                company_dbs = companies_result.scalars().all()
+                stmt = select(ContactDB).where(
+                    or_(*[ContactDB.name.ilike(f"%{name}%") for name in names])
+                    & or_(*[ContactDB.title.ilike(f"%{title}%") for title in titles])
+                )
+                result = await session.execute(stmt)
+                contact_dbs = result.scalars().all()
+                contacts = [
+                    self._convert_db_to_contact(contact_db)
+                    for contact_db in contact_dbs
+                ]
+                return ContactEntity(root=contacts)
+            except Exception as e:
+                raise e
+
+    async def get_leads(
+        self,
+        offset: int,
+    ) -> Leads:
+        """
+        Retrieve paginated jobs and only the related companies and contacts for those jobs.
+
+        Args:
+            jobs_offset (int): Number of jobs to skip (default: 0).
+            jobs_limit (int): Maximum number of jobs to return (default: 10).
+
+        Returns:
+            Leads: Domain entity containing jobs, their companies, and their contacts.
+        """
+        async with AsyncSession(self.engine) as session:
+            try:
+
+                jobs_result = await session.execute(
+                    select(JobDB)
+                    .order_by(JobDB.compatibility_score.desc())
+                    .offset(offset)
+                    .limit(10)
+                )
                 job_dbs = jobs_result.scalars().all()
-                contact_dbs = contacts_result.scalars().all()
-                
-                companies = [self._convert_db_to_company(company_db) for company_db in company_dbs]
                 jobs = [self._convert_db_to_job(job_db) for job_db in job_dbs]
-                contacts = [self._convert_db_to_contact(contact_db) for contact_db in contact_dbs]
-                
+                job_ids = [job_db.id for job_db in job_dbs]
+                company_ids = list(
+                    {
+                        job_db.company_id
+                        for job_db in job_dbs
+                        if job_db.company_id is not None
+                    }
+                )
+
+                if company_ids:
+                    companies_result = await session.execute(
+                        select(CompanyDB).where(CompanyDB.id.in_(company_ids))
+                    )
+                    company_dbs = companies_result.scalars().all()
+                else:
+                    company_dbs = []
+                companies = [
+                    self._convert_db_to_company(company_db)
+                    for company_db in company_dbs
+                ]
+
+                if job_ids or company_ids:
+                    contacts_result = await session.execute(
+                        select(ContactDB).where(
+                            (ContactDB.job_id.in_(job_ids))
+                            | (ContactDB.company_id.in_(company_ids))
+                        )
+                    )
+                    contact_dbs = contacts_result.scalars().all()
+                else:
+                    contact_dbs = []
+                contacts = [
+                    self._convert_db_to_contact(contact_db)
+                    for contact_db in contact_dbs
+                ]
+
                 return Leads(
                     companies=CompanyEntity(companies),
                     jobs=JobEntity(jobs),
                     contacts=ContactEntity(contacts),
                 )
-            
             except Exception as e:
                 raise e
 
@@ -254,7 +389,9 @@ class LeadsDatabase(LeadsRepositoryPort):
         return Job(
             id=job_db.id,
             company_id=job_db.company_id,
-            date_creation=job_db.date_creation.isoformat() if job_db.date_creation else None,
+            date_creation=(
+                job_db.date_creation.isoformat() if job_db.date_creation else None
+            ),
             description=job_db.description,
             job_title=job_db.job_title,
             location=job_db.location,

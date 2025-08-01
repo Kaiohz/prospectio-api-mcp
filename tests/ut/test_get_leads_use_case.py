@@ -219,7 +219,7 @@ class TestGetLeads:
             mock_repository: The mock repository.
         """
         # Execute the use case
-        result = await companies_use_case.get_leads()
+        result = await companies_use_case.get_leads(0)
         
         # Verify repository method was called
         mock_repository.get_companies.assert_called_once()
@@ -247,7 +247,7 @@ class TestGetLeads:
             mock_repository: The mock repository.
         """
         # Execute the use case
-        result = await jobs_use_case.get_leads()
+        result = await jobs_use_case.get_leads(0)
         
         # Verify repository method was called
         mock_repository.get_jobs.assert_called_once()
@@ -275,7 +275,7 @@ class TestGetLeads:
             mock_repository: The mock repository.
         """
         # Execute the use case
-        result = await contacts_use_case.get_leads()
+        result = await contacts_use_case.get_leads(0)
         
         # Verify repository method was called
         mock_repository.get_contacts.assert_called_once()
@@ -305,7 +305,7 @@ class TestGetLeads:
             mock_repository: The mock repository.
         """
         # Execute the use case
-        result = await leads_use_case.get_leads()
+        result = await leads_use_case.get_leads(0)
         
         # Verify repository method was called
         mock_repository.get_leads.assert_called_once()

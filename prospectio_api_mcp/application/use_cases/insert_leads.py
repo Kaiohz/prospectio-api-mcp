@@ -1,3 +1,4 @@
+from domain.entities.contact import ContactEntity
 from domain.ports.profile_respository import ProfileRepositoryPort
 from domain.services.leads.strategy import LeadsStrategy
 from domain.entities.leads_result import LeadsResult
@@ -11,11 +12,13 @@ class InsertLeadsUseCase:
     This class selects the appropriate strategy based on the source and delegates the lead retrieval logic.
     """
 
-    def __init__(self, strategy: LeadsStrategy, 
-                 repository: LeadsRepositoryPort, 
-                 leads_processor: LeadsProcessor,
-                 profile_repository: ProfileRepositoryPort
-        ):
+    def __init__(
+        self,
+        strategy: LeadsStrategy,
+        repository: LeadsRepositoryPort,
+        leads_processor: LeadsProcessor,
+        profile_repository: ProfileRepositoryPort,
+    ):
         """
         Initialize the GetLeadsUseCase with the required parameters and available strategies.
 
@@ -41,11 +44,75 @@ class InsertLeadsUseCase:
         """
         profile = await self.profile_repository.get_profile()
         if not profile:
-            raise ValueError("Profile not found. Please create a profile before inserting leads.")
+            raise ValueError(
+                "Profile not found. Please create a profile before inserting leads."
+            )
+
         leads = await self.strategy.execute()
-        if leads.jobs:
-            await self.leads_processor.calculate_compatibility_scores(profile,leads.jobs)
-        leads_result = await self.leads_processor.calculate_statistics(leads)        
+
+        if not leads.jobs:
+            raise ValueError("No jobs found in the leads data.")
+        if not leads.companies:
+            raise ValueError("No companies found in the leads data.")
+
+        leads.companies = await self.leads_processor.deduplicate_companies(
+            leads.companies, leads.jobs
+        )
+
+        leads.jobs = await self.leads_processor.deduplicate_jobs(leads.jobs)
+
+        if leads.contacts:
+            leads.contacts = await self.leads_processor.deduplicate_contacts(
+                leads.contacts
+            )
+            names = [
+                contact.name
+                for contact in leads.contacts.root
+                if contact.name is not None
+            ]
+            titles = [
+                contact.title
+                for contact in leads.contacts.root
+                if contact.title is not None
+            ]
+            db_contacts = await self.repository.get_contacts_by_name_and_title(
+                names, titles
+            )
+
+        company_names = [
+            company.name for company in leads.companies.root if company.name is not None
+        ]
+
+        db_companies = await self.repository.get_companies_by_names(company_names)
+
+        leads.jobs = await self.leads_processor.change_jobs_company_id(
+            leads.jobs, leads.companies, db_companies
+        )
+
+        leads.companies = await self.leads_processor.new_companies(
+            leads.companies, db_companies
+        )
+
+        db_jobs = await self.repository.get_jobs_by_title_and_location(
+            self.strategy.job_title, self.strategy.location
+        )
+
+        leads.jobs = await self.leads_processor.new_jobs(leads.jobs, db_jobs)
+
+        if leads.contacts and db_contacts:
+            leads.contacts = await self.leads_processor.new_contacts(
+                leads.contacts, db_contacts
+            )
+
+            leads.contacts = (
+                await self.leads_processor.change_contacts_job_and_company_id(
+                    leads.contacts, leads.jobs, leads.companies
+                )
+            )
+
+        await self.leads_processor.calculate_compatibility_scores(profile, leads.jobs)
+
+        leads_result = await self.leads_processor.calculate_statistics(leads)
 
         await self.repository.save_leads(leads)
         return leads_result

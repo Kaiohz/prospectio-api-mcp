@@ -11,7 +11,7 @@ class LLMClientFactory:
         self.model = config.MODEL
         self.temperature = config.TEMPERATURE
         self.ollama_base_url = config.OLLAMA_BASE_URL
-        self.model_mapping: dict[str, Type[LLMGenericClient]] = { # type: ignore
+        self.model_mapping: dict[str, Type[LLMGenericClient]] = {  # type: ignore
             "Ollama": ChatOllama,
             "Google": ChatGoogleGenerativeAI,
             "Mistral": ChatMistralAI,

@@ -19,89 +19,89 @@ This project implements **Clean Architecture** (also known as Hexagonal Architec
 ## 📁 Project Structure
 ```
 prospectio-api-mcp/
-├── pyproject.toml              # Poetry project configuration
-├── poetry.lock                 # Poetry lock file
-├── uv.lock                     # UV lock file
-├── pyrightconfig.json          # Pyright configuration
-├── docker-compose.yml          # Docker Compose configuration with PostgreSQL
-├── Dockerfile                  # Docker configuration for the application
-├── database/
-│   └── init.sql                # Database schema initialization
-├── .github/
-│   ├── copilot-instructions.md # GitHub Copilot instructions
-│   └── workflows/
-│       └── ci.yaml             # GitHub Actions CI/CD pipeline
-├── .gemini/                    # Gemini AI configuration
-│   ├── GEMINI.md               # Gemini documentation
-│   ├── settings.json           # Gemini settings
-│   └── settings_exemple.json   # Gemini settings example
+├── Dockerfile
+├── README.md
 ├── curls/
-│   └── list.http               # HTTP requests for testing
+│   └── list.http
+├── database/
+│   └── init.sql
+├── docker-compose.yml
+├── glama.json
+├── poetry.lock
+├── prospectio_api_mcp/
+│   ├── __pycache__/
+│   ├── application/
+│   │   ├── api/
+│   │   │   ├── leads_routes.py
+│   │   │   ├── mcp_routes.py
+│   │   │   ├── profile_routes.py
+│   │   │   └── __pycache__/
+│   │   └── use_cases/
+│   │       ├── get_leads.py
+│   │       ├── insert_leads.py
+│   │       ├── profile.py
+│   │       └── __pycache__/
+│   ├── config.py
+│   ├── domain/
+│   │   ├── entities/
+│   │   │   ├── company.py
+│   │   │   ├── compatibility_score.py
+│   │   │   ├── contact.py
+│   │   │   ├── job.py
+│   │   │   ├── leads.py
+│   │   │   ├── leads_result.py
+│   │   │   ├── profile.py
+│   │   │   ├── work_experience.py
+│   │   │   └── __pycache__/
+│   │   ├── ports/
+│   │   │   ├── compatibility_score.py
+│   │   │   ├── fetch_leads.py
+│   │   │   ├── leads_repository.py
+│   │   │   ├── profile_respository.py
+│   │   │   └── __pycache__/
+│   │   ├── prompts/
+│   │   │   └── compatibility_score.md
+│   │   └── services/
+│   │       ├── prompt_loader.py
+│   │       ├── __pycache__/
+│   │       └── leads/
+│   │           ├── active_jobs_db.py
+│   │           ├── jsearch.py
+│   │           ├── mantiks.py
+│   │           └── strategy.py
+│   ├── infrastructure/
+│   │   ├── api/
+│   │   │   ├── client.py
+│   │   │   ├── llm_client_factory.py
+│   │   │   ├── llm_generic_client.py
+│   │   │   └── __pycache__/
+│   │   ├── dto/
+│   │   │   ├── database/
+│   │   │   ├── llm/
+│   │   │   ├── mantiks/
+│   │   │   └── rapidapi/
+│   │   └── services/
+│   │       ├── active_jobs_db.py
+│   │       ├── compatibility_score.py
+│   │       ├── jsearch.py
+│   │       ├── leads_database.py
+│   │       ├── mantiks.py
+│   │       └── profile_database.py
+│   ├── main.py
+│   ├── mcp.py
+│   ├── mcp_routes.py
+│   └── __pycache__/
+├── pyproject.toml
+├── pyrightconfig.json
 ├── tests/
-│   └── ut/                     # Unit tests
+│   └── ut/
+│       ├── test_1_profile_use_case.py
 │       ├── test_active_jobs_db_use_case.py
-│       ├── test_get_leads.py
+│       ├── test_get_leads_use_case.py
 │       ├── test_jsearch_use_case.py
 │       ├── test_mantiks_use_case.py
-│       └── test_profile.py
-├── README.md                   # This file
-└── prospectio_api_mcp/
-    ├── main.py                 # FastAPI application entry point
-    ├── config.py               # Application configuration settings
-    ├── mcp_routes.py           # MCP protocol routes
-    ├── domain/                 # Domain layer (business entities, ports, strategies)
-    │   ├── entities/
-    │   │   ├── leads.py        # Lead entities aggregation
-    │   │   ├── leads_result.py # Lead insertion result entity
-    │   │   ├── company.py      # Company entity
-    │   │   ├── job.py          # Job entity
-    │   │   ├── contact.py      # Contact entity
-    │   │   ├── profile.py      # Profile entity
-    │   │   └── work_experience.py # Work experience entity
-    │   ├── ports/
-    │   │   ├── fetch_leads.py  # Fetch leads port interface
-    │   │   ├── leads_repository.py # Leads repository port interface
-    │   │   └── profile_respository.py # Profile repository port interface
-    │   └── services/
-    │       └── leads/
-    │           ├── active_jobs_db.py   # ActiveJobsDB strategy
-    │           ├── jsearch.py          # Jsearch strategy
-    │           ├── mantiks.py          # Mantiks strategy
-    │           └── strategy.py         # Abstract strategy base class
-    ├── application/            # Application layer (use cases & API)
-    │   ├── api/
-    │   │   ├── leads_routes.py # Leads API routes
-    │   │   └── profile_routes.py # Profile API routes
-    │   └── use_cases/
-    │       ├── insert_leads.py # InsertCompanyJobsUseCase
-    │       ├── get_leads.py    # GetLeadsUseCase
-    │       └── profile.py      # Profile use cases
-    └── infrastructure/         # Infrastructure layer (external concerns)
-        ├── api/
-        │   └── client.py           # API client
-        ├── dto/
-        │   ├── database/
-        │   │   ├── base.py         # SQLAlchemy base model
-        │   │   ├── company.py      # Company database model
-        │   │   ├── job.py          # Job database model
-        │   │   ├── contact.py      # Contact database model
-        │   │   ├── profile.py      # Profile database model
-        │   │   └── work_experience.py # Work experience database model
-        │   ├── mantiks/
-        │   │   ├── company.py      # Mantiks company DTO
-        │   │   ├── company_response.py # Mantiks company response DTO
-        │   │   ├── job.py          # Mantiks job DTO
-        │   │   ├── location.py     # Mantiks location DTO
-        │   │   └── salary.py       # Mantiks salary DTO
-        │   └── rapidapi/
-        │       ├── active_jobs_db.py # Active Jobs DB DTO
-        │       └── jsearch.py        # Jsearch DTO
-        └── services/
-            ├── active_jobs_db.py     # Active Jobs DB API implementation
-            ├── jsearch.py            # Jsearch API implementation
-            ├── mantiks.py            # Mantiks API implementation
-            ├── leads_database.py     # PostgreSQL leads database repository
-            └── profile_database.py   # PostgreSQL profile database repository
+│       └── __pycache__/
+├── uv.lock
 ```
 
 ## 🔧 Core Components
@@ -181,6 +181,7 @@ To run the application, you need to configure your environment variables. This i
     Copy the example file `.env.example` to a new file named `.env`.
     ```bash
     cp .env.example .env
+    cp .env .env.docker
     ```
 
 2.  **Edit the `.env` file**:
@@ -306,6 +307,11 @@ Before running the application, make sure you have set up your environment varia
 
 The Docker Compose setup includes both the application and PostgreSQL database with pgvector extension.
 
+First build a network for prospectio :
+```bash
+docker network create prospectio
+```
+
 1. **Build and Run with Docker Compose**:
    ```bash
    # Build and start the container
@@ -343,56 +349,6 @@ Once the application is running (locally or via Docker), you can access:
 - **API Documentation**: `http://localhost:<YOUR_PORT>/docs`
 - **MCP Endpoint**: `http://localhost:<YOUR_PORT>/prospectio/mcp/sse`
 
-#### Example cURL requests
-
-**Active Jobs DB (RapidAPI):**
-```sh
-curl --request GET \
-  --url 'https://active-jobs-db.p.rapidapi.com/active-ats-7d?limit=10&offset=0&advanced_title_filter=%22Python%22%20%7C%20%22AI%22%20%7C%20%22RAG%22%20%7C%20%22LLM%22%20%7C%20%22MCP%22&location_filter=%22France%22&description_type=text' \
-  --header 'x-rapidapi-host: active-jobs-db.p.rapidapi.com' \
-  --header 'x-rapidapi-key: <YOUR_RAPIDAPI_KEY>'
-```
-
-**Jsearch (RapidAPI):**
-```sh
-curl --request GET \
-  --url 'https://jsearch.p.rapidapi.com/search?query=Python%20AI%20in%20France&page=1&num_pages=1&country=fr&date_posted=month' \
-  --header 'x-rapidapi-host: jsearch.p.rapidapi.com' \
-  --header 'x-rapidapi-key: <YOUR_RAPIDAPI_KEY>'
-```
-
-**Local REST API:**
-```sh
-curl --request POST \
-  --url 'http://localhost:7002/rest/v1/insert/leads/jsearch' \
-  --header 'Accept: application/json' \
-  --header 'Content-Type: application/json' \
-  --data '{
-	"location": "France",
-	"job_title": ["Python"]
-}'
-```
-
-**MCP SSE Endpoint:**
-```sh
-curl --request POST \
-  --url http://localhost:7002/prospectio/mcp/sse \
-  --header 'Accept: application/json, text/event-stream' \
-  --header 'Content-Type: application/json' \
-  --data '{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "method": "tools/call",
-  "params": {
-    "name": "insert_leads",
-    "arguments": {
-      "source": "jsearch",
-      "job_title": ["Python"],
-      "location": "France"
-    }
-  }
-}'
-```
 # Add to claude
 
 change settings json to match your environment
