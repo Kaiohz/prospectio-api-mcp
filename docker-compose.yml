@@ -14,6 +14,8 @@ services:
       start_period: 40s
     networks:
       - prospectio
+    env_file:
+      - .env.docker
     depends_on:
       prospectio-api-mcp-db:
         condition: service_healthy

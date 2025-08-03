@@ -18,8 +18,6 @@ RUN --mount=type=cache,target=/root/.cache/pip poetry install --no-root
 
 COPY prospectio_api_mcp ./prospectio_api_mcp
 
-COPY .env.docker .env
-
 EXPOSE 7002
 
 CMD ["poetry", "run", "fastapi", "run", "prospectio_api_mcp/main.py", "--host", "0.0.0.0", "--port", "7002"]
