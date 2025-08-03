@@ -19,10 +19,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build and push Docker image (multi-platform)
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: kaiohz/soludev:${{ github.sha }}
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            kaiohz/prospectio-api-mcp:${{ github.sha }}
+            kaiohz/prospectio-api-mcp:latest
