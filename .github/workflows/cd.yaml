@@ -1,14 +1,10 @@
 name: CD
 on:
-  issue_comment:
-    types: [created]
   pull_request:
     types: [closed]
 jobs:
   build-and-push:
-    if: |
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, 'try deploy') && github.event.issue.pull_request) ||
-      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -29,4 +25,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: kaiohz/prospectio:${{ github.sha }}
+          tags: kaiohz/soludev:${{ github.sha }}
