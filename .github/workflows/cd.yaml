@@ -29,4 +29,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: kaiohz/prospectio:${{ github.sha }}
+          tags: kaiohz/soludev:${{ github.sha }}
