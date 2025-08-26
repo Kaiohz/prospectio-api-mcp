@@ -2,7 +2,7 @@ curl --request POST \
   --url 'http://localhost:7002/prospectio/rest/v1/insert/leads' \
   --header 'Accept: application/json, text/event-stream' \
   --header 'Content-Type: application/json' \
-  --data '{"source": "active_jobs_db","location": "France","job_title": ["Python","Fastapi"]}'
+  --data '{"source": "jsearch","location": "France","job_title": ["Python","Fastapi"]}'
 ###
 
 curl --request GET \

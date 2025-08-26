@@ -287,12 +287,8 @@ class TestActiveJobsDBUseCase:
         Returns:
             LeadsProcessor: Configured leads processor.
         """
-        llm_client = LLMClientFactory(
-            config=LLMConfig(),
-        ).create_client()
-
         return LeadsProcessor(
-            compatibility_score_port=CompatibilityScoreLLM(llm_client),
+            compatibility_score_port=CompatibilityScoreLLM(),
             concurrent_calls=LLMConfig().CONCURRENT_CALLS
         )
 

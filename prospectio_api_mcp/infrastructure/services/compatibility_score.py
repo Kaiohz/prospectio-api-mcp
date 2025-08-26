@@ -1,17 +1,21 @@
+from config import LLMConfig
 from domain.entities.profile import Profile
 from domain.ports.compatibility_score import CompatibilityScorePort
 from domain.services.prompt_loader import PromptLoader
-from infrastructure.api.llm_generic_client import LLMGenericClient
+from infrastructure.api.llm_client_factory import LLMClientFactory
 from langchain.prompts import PromptTemplate
-from langchain_core.output_parsers import JsonOutputParser
-
 from domain.entities.compatibility_score import CompatibilityScore
+from typing import cast
 
 
 class CompatibilityScoreLLM(CompatibilityScorePort):
 
-    def __init__(self, client: LLMGenericClient):
-        super().__init__(client)
+    def __init__(self):
+        model = LLMConfig().MODEL
+        self.llm_client = LLMClientFactory(
+            model=model,
+            config=LLMConfig(),
+        ).create_client()
 
     async def get_compatibility_score(
         self, profile: Profile, job_description: str, job_location: str
@@ -38,7 +42,7 @@ class CompatibilityScoreLLM(CompatibilityScorePort):
             ],
             template=prompt,
         )
-        chain = template | self.client | JsonOutputParser()
+        chain = template | self.llm_client.with_structured_output(CompatibilityScore)
         result = await chain.ainvoke(
             {
                 "job_title": profile.job_title,
@@ -49,4 +53,4 @@ class CompatibilityScoreLLM(CompatibilityScorePort):
                 "job_description": job_description,
             }
         )
-        return CompatibilityScore(**result)
+        return CompatibilityScore.model_validate(result)

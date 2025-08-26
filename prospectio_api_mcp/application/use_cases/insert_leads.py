@@ -1,4 +1,4 @@
-from domain.entities.contact import ContactEntity
+from domain.ports.enrich_leads import EnrichLeadsPort
 from domain.ports.profile_respository import ProfileRepositoryPort
 from domain.services.leads.strategy import LeadsStrategy
 from domain.entities.leads_result import LeadsResult
@@ -18,6 +18,7 @@ class InsertLeadsUseCase:
         repository: LeadsRepositoryPort,
         leads_processor: LeadsProcessor,
         profile_repository: ProfileRepositoryPort,
+        enrich_leads: EnrichLeadsPort,
     ):
         """
         Initialize the GetLeadsUseCase with the required parameters and available strategies.
@@ -32,6 +33,7 @@ class InsertLeadsUseCase:
         self.repository = repository
         self.leads_processor = leads_processor
         self.profile_repository = profile_repository
+        self.enrich_leads = enrich_leads
 
     async def insert_leads(self) -> LeadsResult:
         """
@@ -47,20 +49,15 @@ class InsertLeadsUseCase:
             raise ValueError(
                 "Profile not found. Please create a profile before inserting leads."
             )
-
         leads = await self.strategy.execute()
-
         if not leads.jobs:
             raise ValueError("No jobs found in the leads data.")
         if not leads.companies:
             raise ValueError("No companies found in the leads data.")
-
         leads.companies = await self.leads_processor.deduplicate_companies(
             leads.companies, leads.jobs
         )
-
         leads.jobs = await self.leads_processor.deduplicate_jobs(leads.jobs)
-
         if leads.contacts:
             leads.contacts = await self.leads_processor.deduplicate_contacts(
                 leads.contacts
@@ -78,41 +75,33 @@ class InsertLeadsUseCase:
             db_contacts = await self.repository.get_contacts_by_name_and_title(
                 names, titles
             )
-
         company_names = [
             company.name for company in leads.companies.root if company.name is not None
         ]
-
         db_companies = await self.repository.get_companies_by_names(company_names)
-
         leads.jobs = await self.leads_processor.change_jobs_company_id(
             leads.jobs, leads.companies, db_companies
         )
-
         leads.companies = await self.leads_processor.new_companies(
             leads.companies, db_companies
         )
-
+        job_titles = [job.job_title for job in leads.jobs.root if job.job_title]
+        locations = [job.location for job in leads.jobs.root if job.location]
         db_jobs = await self.repository.get_jobs_by_title_and_location(
-            self.strategy.job_title, self.strategy.location
+            job_titles, locations
         )
-
         leads.jobs = await self.leads_processor.new_jobs(leads.jobs, db_jobs)
-
         if leads.contacts and db_contacts:
             leads.contacts = await self.leads_processor.new_contacts(
                 leads.contacts, db_contacts
             )
-
             leads.contacts = (
                 await self.leads_processor.change_contacts_job_and_company_id(
                     leads.contacts, leads.jobs, leads.companies
                 )
             )
-
         await self.leads_processor.calculate_compatibility_scores(profile, leads.jobs)
-
+        await self.leads_processor.enrich_leads(self.enrich_leads, leads, profile)
         leads_result = await self.leads_processor.calculate_statistics(leads)
-
         await self.repository.save_leads(leads)
         return leads_result

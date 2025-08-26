@@ -1,3 +1,5 @@
+from torch import le
+from config import LLMConfig
 from domain.entities.company import CompanyEntity
 from domain.entities.job import Job, JobEntity
 from domain.entities.leads import Leads
@@ -8,14 +10,16 @@ import asyncio
 
 
 from domain.entities.contact import ContactEntity
+from domain.ports.enrich_leads import EnrichLeadsPort
 
 
 class LeadsProcessor:
-    def __init__(
-        self, compatibility_score_port: CompatibilityScorePort, concurrent_calls
-    ):
+
+    concurrency_limit = LLMConfig().CONCURRENT_CALLS
+    semaphore = asyncio.Semaphore(concurrency_limit)
+
+    def __init__(self, compatibility_score_port: CompatibilityScorePort):
         self.compatibility_score_port = compatibility_score_port
-        self.semaphore = asyncio.Semaphore(concurrent_calls)
 
     async def deduplicate_contacts(self, contacts: ContactEntity) -> ContactEntity:
         """
@@ -157,11 +161,11 @@ class LeadsProcessor:
             (
                 job.job_title.strip().lower() if job.job_title else "",
                 job.location.strip().lower() if job.location else "",
-                job.description.strip().lower() if job.description else "",
+                job.company_id.strip().lower() if job.company_id else "",
                 job.job_type.strip().lower() if job.job_type else "",
+                job.description.strip().lower() if job.description else "",
             )
             for job in db_jobs.root
-            if job.job_title and job.location and job.job_type
         }
 
         new_jobs = [
@@ -170,8 +174,9 @@ class LeadsProcessor:
             if (
                 job.job_title.strip().lower() if job.job_title else "",
                 job.location.strip().lower() if job.location else "",
-                job.description.strip().lower() if job.description else "",
+                job.company_id.strip().lower() if job.company_id else "",
                 job.job_type.strip().lower() if job.job_type else "",
+                job.description.strip().lower() if job.description else "",
             )
             not in existing_jobs
         ]
@@ -218,9 +223,9 @@ class LeadsProcessor:
             job.job_title = job.job_title.strip().lower() if job.job_title else ""
             job.location = job.location.strip().lower() if job.location else ""
             job.job_type = job.job_type.strip().lower() if job.job_type else ""
-            job.description = job.description.strip().lower() if job.description else ""
+            job.company_id = job.company_id.strip().lower() if job.company_id else ""
 
-            identifier = (job.job_title, job.location, job.job_type, job.description)
+            identifier = (job.job_title, job.location, job.job_type, job.company_id)
             if identifier not in seen:
                 seen.add(identifier)
                 unique_jobs.append(job)
@@ -315,3 +320,11 @@ class LeadsProcessor:
             job.compatibility_score = score
 
         return jobs
+
+    async def enrich_leads(self, enrich_leads: EnrichLeadsPort, leads: Leads, profile: Profile) -> Leads:
+        """
+        Enrich leads with deduplication and compatibility scoring.
+
+        This method is a placeholder for future enrichment logic.
+        """
+        return await enrich_leads.execute(leads, profile)

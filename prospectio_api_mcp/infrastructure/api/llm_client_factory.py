@@ -7,8 +7,8 @@ from infrastructure.api.llm_generic_client import LLMGenericClient
 
 
 class LLMClientFactory:
-    def __init__(self, config: LLMConfig):
-        self.model = config.MODEL
+    def __init__(self, model: str, config: LLMConfig):
+        self.model = model
         self.temperature = config.TEMPERATURE
         self.ollama_base_url = config.OLLAMA_BASE_URL
         self.model_mapping: dict[str, Type[LLMGenericClient]] = {  # type: ignore
