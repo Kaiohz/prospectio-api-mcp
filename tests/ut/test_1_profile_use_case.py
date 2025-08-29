@@ -121,6 +121,15 @@ class TestProfileUseCase:
             sample_profile_data: Mock profile data.
             sample_profile_dto: Mock profile DTO data.
         """
+        # Patch async_session to return a mock session
+        with patch.object(profile_use_case.repository, "async_session") as mock_sessionmaker:
+            mock_session = AsyncMock()
+            mock_sessionmaker.return_value.__aenter__.return_value = mock_session
+
+            # Patch execute to return a mock result
+            mock_result = AsyncMock()
+            mock_result.scalar_one.return_value = sample_profile_data
+            mock_session.execute.return_value = mock_result
         
         # Execute the use case
         result = await profile_use_case.upsert_profile(sample_profile_data)

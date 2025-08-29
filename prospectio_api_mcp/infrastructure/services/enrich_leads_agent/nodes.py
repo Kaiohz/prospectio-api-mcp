@@ -130,11 +130,11 @@ class EnrichLeadsNodes:
         
         for job_title in job_titles:
             search_results = await DuckDuckGoClient().search(
-                f"{company.name} {job_title} site:linkedin.com", 10
+                f"{company.name} {job_title} site:fr.linkedin.com", 10
             )
 
             for result in search_results:
-                if "jobs" not in result.url and "company" not in result.url and "posts" not in result.url and "advice" not in result.url and "feed" not in result.url and urllib.parse.urlparse(result.url).path not in ("", "/"):
+                if "/in" in result.url and urllib.parse.urlparse(result.url).path not in ("", "/"):
                     contact_info: ContactInfo = await self.enrich_chain.extract_contact_from_web_search(
                         company.name or '', result
                     ) # type: ignore

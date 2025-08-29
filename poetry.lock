@@ -2419,6 +2419,22 @@ langchain-core = ">=0.3.68,<0.4.0"
 pydantic = ">=2,<3"
 
 [[package]]
+name = "langchain-litellm"
+version = "0.2.2"
+description = "An integration package connecting Litellm and LangChain"
+optional = false
+python-versions = "<4.0,>=3.9"
+groups = ["main"]
+files = [
+    {file = "langchain_litellm-0.2.2-py3-none-any.whl", hash = "sha256:f17ef94e819dddbe13c5ce7c1dbd875ca432ecf0e1c5b16e7fc2413c9a1d5fbe"},
+    {file = "langchain_litellm-0.2.2.tar.gz", hash = "sha256:317b320573661f96afb70786c2b3b690acdfaff14d324e87dca4207ff3d44c5e"},
+]
+
+[package.dependencies]
+langchain-core = ">=0.3.15,<0.4.0"
+litellm = ">=1.65.1,<2.0.0"
+
+[[package]]
 name = "langchain-mistralai"
 version = "0.2.11"
 description = "An integration package connecting Mistral and LangChain"
@@ -6419,4 +6435,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12.7"
-content-hash = "5a480c0c31082d679801965d611b77baf94d688b3d060ad9ac348c30ecac2f28"
+content-hash = "8a43cbf7bd99e0c76154311434a32f9e82dacddffc22dc799814b0cc4a3e13aa"

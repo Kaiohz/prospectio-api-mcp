@@ -5,8 +5,6 @@ from domain.services.prompt_loader import PromptLoader
 from infrastructure.api.llm_client_factory import LLMClientFactory
 from langchain.prompts import PromptTemplate
 from domain.entities.compatibility_score import CompatibilityScore
-from typing import cast
-
 
 class CompatibilityScoreLLM(CompatibilityScorePort):
 

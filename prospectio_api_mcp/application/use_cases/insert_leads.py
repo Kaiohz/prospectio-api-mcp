@@ -102,6 +102,10 @@ class InsertLeadsUseCase:
             )
         await self.leads_processor.calculate_compatibility_scores(profile, leads.jobs)
         await self.leads_processor.enrich_leads(self.enrich_leads, leads, profile)
+        if leads.contacts:
+            leads.contacts = await self.leads_processor.deduplicate_contacts(
+                leads.contacts
+            )
         leads_result = await self.leads_processor.calculate_statistics(leads)
         await self.repository.save_leads(leads)
         return leads_result

@@ -1,11 +1,26 @@
 import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
 from application.use_cases.insert_leads import InsertLeadsUseCase
+from domain.entities.company import Company, CompanyEntity
+from domain.entities.compatibility_score import CompatibilityScore
+from domain.entities.contact import ContactEntity
+from domain.entities.job import Job, JobEntity
+from domain.entities.profile import Profile
+from domain.ports.enrich_leads import EnrichLeadsPort
 from domain.ports.profile_respository import ProfileRepositoryPort
 from domain.services.leads.leads_processor import LeadsProcessor
 from domain.services.leads.strategies.jsearch import JsearchStrategy
 from infrastructure.api.llm_client_factory import LLMClientFactory
 from infrastructure.services.compatibility_score import CompatibilityScoreLLM
+from infrastructure.services.enrich_leads_agent.agent import EnrichLeadsAgent
+from infrastructure.services.enrich_leads_agent.chains.decision_chain import DecisionChain
+from infrastructure.services.enrich_leads_agent.chains.enrich_chain import EnrichChain
+from infrastructure.services.enrich_leads_agent.models.company_info import CompanyInfo
+from infrastructure.services.enrich_leads_agent.models.contact_info import ContactInfo
+from infrastructure.services.enrich_leads_agent.models.make_decision import MakeDecisionResult
+from infrastructure.services.enrich_leads_agent.models.search_results_model import SearchResultModel
+from infrastructure.services.enrich_leads_agent.tools.crawl_client import CrawlClient
+from infrastructure.services.enrich_leads_agent.tools.duck_duck_go_client import DuckDuckGoClient
 from infrastructure.services.jsearch import JsearchAPI
 from config import DatabaseConfig, JsearchConfig, LLMConfig
 from infrastructure.services.leads_database import LeadsDatabase
@@ -157,14 +172,14 @@ class TestJsearchUseCase:
         return LeadsDatabase(DatabaseConfig().DATABASE_URL)
 
     @pytest.fixture
-    def compatibility_score_llm(self) -> dict:
+    def compatibility_score_llm(self) -> CompatibilityScore:
         """
         Create a mock CompatibilityScoreLLM for testing.
         
         Returns:
-            LeadsProcessor: Mocked compatibility score processor.
+            CompatibilityScore: Mocked compatibility score.
         """
-        return {"score": 85}
+        return CompatibilityScore(score=85)
     
     @pytest.fixture
     def profile_repository(self) -> ProfileRepositoryPort:
@@ -186,15 +201,187 @@ class TestJsearchUseCase:
         """
         return LeadsProcessor(
             compatibility_score_port=CompatibilityScoreLLM(),
-            concurrent_calls=LLMConfig().CONCURRENT_CALLS
         )
+
+    @pytest.fixture
+    def enrich_leads(self) -> EnrichLeadsPort:
+        """
+        Create a  EnrichLeadsPort for testing.
+
+        Returns:
+            EnrichLeadsPort: Configured enrich leads agent.
+        """
+        return EnrichLeadsAgent()
+    
+    @pytest.fixture
+    def decide_enrichment(self) -> MakeDecisionResult:
+        """
+        Create a mock MakeDecisionResult for testing.
+        
+        Returns:
+            MakeDecisionResult: Mocked decision result.
+        """
+        return MakeDecisionResult(result=True)
+
+    @pytest.fixture
+    def company_info(self) -> CompanyInfo:
+        """
+        Create a mock CompanyInfo for testing.
+
+        Returns:
+            CompanyInfo: Mocked company info.
+        """
+        return CompanyInfo(
+            industry=["Technology"], 
+            compatibility="20", 
+            location=["Paris"], 
+            size="51-200", 
+            revenue="10M-50M"
+        )
+    
+    @pytest.fixture
+    def contact_info(self) -> ContactInfo:
+        """
+        Create a mock ContactInfo for testing.
+
+        Returns:
+            ContactInfo: Mocked contact info.
+        """
+        return ContactInfo(
+            name="John Doe",
+            email=["john.doe@example.com"],
+            title="Software Engineer",
+            phone="123-456-7890",
+            profile_url=["https://linkedin.com/in/johndoe"]
+        )
+    
+    @pytest.fixture
+    def job_titles(self) -> list[str]:
+        """
+        Create a mock list of job titles for testing.
+
+        Returns:
+            list[str]: Mocked job titles.
+        """
+        return ["Senior Python Developer", "Backend Engineer"]
+    
+    @pytest.fixture
+    def crawl_page(self) -> str:
+        """
+        Create a mock crawled page content for testing.
+
+        Returns:
+            str: Mocked crawled page content.
+        """
+        return "<p>This is a mock crawled page content with company information.</p>"
+    
+    @pytest.fixture
+    def search(self) -> list[SearchResultModel]:
+        """
+        Create a mock list of search results for testing.
+
+        Returns:
+            list[SearchResultModel]: Mocked search results.
+        """
+        return [
+            SearchResultModel(
+                title="John Doe - Software Engineer - LinkedIn",
+                url="https://linkedin.com/in/johndoe",
+                snippet="Experienced Software Engineer with expertise in Python and FastAPI."
+            ),
+            SearchResultModel(
+                title="Jane Smith - Backend Developer - LinkedIn",
+                url="https://linkedin.com/in/janesmith",
+                snippet="Skilled Backend Developer specializing in microservices and REST APIs."
+            )
+        ]
+    
+    @pytest.fixture
+    def database_config(self) -> DatabaseConfig:
+        """
+        Create a test configuration for Database.
+        
+        Returns:
+            DatabaseConfig: Test configuration object.
+        """
+        return DatabaseConfig()
+    
+    @pytest.fixture
+    def mock_profile_database(self) -> Profile:
+        """
+        Create a ProfileDatabase instance for testing.
+        
+        Args:
+            database_config: The test configuration.
+            
+        Returns:
+            ProfileDatabase: Configured profile database repository.
+        """
+        return Profile(
+            job_title="AI Developper",
+            location="Remote",
+            bio="Experienced AI developer with expertise in machine learning and data science",
+            work_experience=[]
+        )
+    
+    @pytest.fixture
+    def companies_database(self) -> CompanyEntity:
+        """
+        Build a CompanyEntity object simulating companies already present in DB, matching the API response.
+
+        Args:
+            active_jobs_response (list): The mock response from Active Jobs DB API.
+
+        Returns:
+            Leads: The Leads entity as it would be present in DB.
+        """
+        companies = CompanyEntity(root=[
+            Company(
+                id="38aeceee-254d-44c8-92b5-33a1d32e8d82",
+                name="Tech Solutions",
+                industry=None,
+                compatibility=None,
+                source="jsearch",
+                location=None,
+                size=None,
+                revenue=None,
+                website="https://techsolutions.com",
+                description=None,
+                opportunities=None
+            )
+        ])
+        return companies
+    
+    @pytest.fixture
+    def jobs_database(self) -> JobEntity:
+        """
+        Create a mock JobEntity for testing, with a job that matches the JSearch API mock response so it is detected as 'already present'.
+        """
+        jobs = JobEntity(root=[
+            Job(
+                id="jsearch_job_1",
+                company_id="38aeceee-254d-44c8-92b5-33a1d32e8d82",  # lowercased
+                date_creation="2025-01-01T00:00:00Z",
+                description="we are looking for a senior python developer to join our team...",  # lowercased
+                job_title="senior python developer",  # lowercased
+                location="paris, france",  # lowercased
+                salary="{'min': 80000, 'max': 120000, 'currency': 'EUR'}",
+                job_seniority=None,
+                job_type="fulltime",  # lowercased
+                sectors="Technology, Software Development",
+                apply_url=["https://jobs.techsolutions.com/apply/python-dev"],
+                compatibility_score=None
+            )
+        ])
+        return jobs
 
     @pytest.fixture
     def use_case(self, 
                  jsearch_strategy: JsearchStrategy, 
                  active_jobs_db_repository: LeadsDatabase, 
                  leads_processor: LeadsProcessor,
-                 profile_repository: ProfileRepositoryPort
+                 profile_repository: ProfileRepositoryPort,
+                 enrich_leads: EnrichLeadsPort
     ) -> InsertLeadsUseCase:
         """
         Create a GetCompanyJobsUseCase instance for testing.
@@ -205,14 +392,27 @@ class TestJsearchUseCase:
         Returns:
             GetCompanyJobsUseCase: Configured use case.
         """
-        return InsertLeadsUseCase(strategy=jsearch_strategy, repository=active_jobs_db_repository,leads_processor=leads_processor, profile_repository=profile_repository)
+        return InsertLeadsUseCase(
+            strategy=jsearch_strategy, 
+            repository=active_jobs_db_repository,
+            leads_processor=leads_processor, 
+            profile_repository=profile_repository,
+            enrich_leads=enrich_leads
+        )
 
     @pytest.mark.asyncio
     async def test_get_leads_success(
         self,
         use_case: InsertLeadsUseCase,
         sample_jsearch_response: dict,
-        compatibility_score_llm: dict
+        compatibility_score_llm: CompatibilityScore,
+        decide_enrichment: MakeDecisionResult,
+        company_info: CompanyInfo,
+        contact_info: ContactInfo,
+        job_titles: list[str],
+        crawl_page: str,
+        search: list[SearchResultModel],
+        mock_profile_database: Profile 
     ) -> None:
         """
         Test successful lead retrieval from JSearch API.
@@ -227,11 +427,37 @@ class TestJsearchUseCase:
         jsearch_response_mock.json.return_value = sample_jsearch_response
 
         with patch('httpx.AsyncClient.get', new_callable=AsyncMock) as mock_get, \
-                patch.object(RunnableSequence, 'ainvoke', new_callable=AsyncMock) as mock_ainvoke: 
-            # Configure the mock to return the JSearch response
+            patch.object(CompatibilityScoreLLM, 'get_compatibility_score', new_callable=AsyncMock) as mock_score, \
+            patch.object(EnrichChain, 'get_company_description', new_callable=AsyncMock) as mock_description, \
+            patch.object(DecisionChain, 'decide_enrichment', new_callable=AsyncMock) as mock_decide, \
+            patch.object(EnrichChain, 'extract_other_info_from_description', new_callable=AsyncMock) as mock_company_info, \
+            patch.object(EnrichChain, 'extract_contact_from_web_search', new_callable=AsyncMock) as mock_contact_info, \
+            patch.object(EnrichChain, 'extract_interesting_job_titles_from_profile', new_callable=AsyncMock) as mock_job_titles, \
+            patch.object(CrawlClient, 'crawl_page', new_callable=AsyncMock) as mock_crawl, \
+            patch.object(DuckDuckGoClient, 'search', new_callable=AsyncMock) as mock_search, \
+            patch.object(use_case, 'profile_repository', autospec=True) as mock_profile_repo, \
+            patch.object(use_case, 'repository', autospec=True) as mock_repo:
+
+            mock_profile_repo.get_profile = AsyncMock(return_value=mock_profile_database)
+
             mock_get.return_value = jsearch_response_mock
-            mock_ainvoke.return_value = compatibility_score_llm
-            
+            mock_score.return_value = compatibility_score_llm
+            mock_description.return_value = "Mock company description"
+            mock_decide.return_value = decide_enrichment
+            mock_company_info.return_value = company_info
+            mock_contact_info.return_value = contact_info
+            mock_job_titles.return_value = job_titles
+            mock_crawl.return_value = crawl_page
+            mock_search.return_value = search
+
+            mock_repo.save_leads = AsyncMock(return_value=None)
+            mock_repo.get_jobs = AsyncMock(return_value=JobEntity(root=[]))
+            mock_repo.get_companies = AsyncMock(return_value=CompanyEntity(root=[]))
+            mock_repo.get_contacts = AsyncMock(return_value=ContactEntity(root=[]))
+            mock_repo.get_jobs_by_title_and_location = AsyncMock(return_value=JobEntity(root=[]))
+            mock_repo.get_companies_by_names = AsyncMock(return_value=CompanyEntity(root=[]))
+            mock_repo.get_contacts_by_name_and_title = AsyncMock(return_value=ContactEntity(root=[]))
+            mock_repo.get_leads = AsyncMock(return_value=None)
             # Execute the use case
             result = await use_case.insert_leads()
             
@@ -241,14 +467,23 @@ class TestJsearchUseCase:
             # Verify result content
             assert result.companies == "Insert of 1 companies"
             assert result.jobs == "insert of 1 jobs"
-            assert result.contacts == "insert of 0 contacts"
+            assert result.contacts == "insert of 1 contacts"
 
     @pytest.mark.asyncio
     async def test_get_leads_success_no_insert(
         self,
         use_case: InsertLeadsUseCase,
         sample_jsearch_response: dict,
-        compatibility_score_llm: dict
+        compatibility_score_llm: CompatibilityScore,
+        decide_enrichment: MakeDecisionResult,
+        company_info: CompanyInfo,
+        contact_info: ContactInfo,
+        job_titles: list[str],
+        crawl_page: str,
+        search: list[SearchResultModel],
+        mock_profile_database: Profile,
+        companies_database: CompanyEntity,
+        jobs_database: JobEntity  
     ) -> None:
         """
         Test successful lead retrieval from JSearch API.
@@ -263,10 +498,37 @@ class TestJsearchUseCase:
         jsearch_response_mock.json.return_value = sample_jsearch_response
 
         with patch('httpx.AsyncClient.get', new_callable=AsyncMock) as mock_get, \
-                patch.object(RunnableSequence, 'ainvoke', new_callable=AsyncMock) as mock_ainvoke: 
-            # Configure the mock to return the JSearch response
+            patch.object(CompatibilityScoreLLM, 'get_compatibility_score', new_callable=AsyncMock) as mock_score, \
+            patch.object(EnrichChain, 'get_company_description', new_callable=AsyncMock) as mock_description, \
+            patch.object(DecisionChain, 'decide_enrichment', new_callable=AsyncMock) as mock_decide, \
+            patch.object(EnrichChain, 'extract_other_info_from_description', new_callable=AsyncMock) as mock_company_info, \
+            patch.object(EnrichChain, 'extract_contact_from_web_search', new_callable=AsyncMock) as mock_contact_info, \
+            patch.object(EnrichChain, 'extract_interesting_job_titles_from_profile', new_callable=AsyncMock) as mock_job_titles, \
+            patch.object(CrawlClient, 'crawl_page', new_callable=AsyncMock) as mock_crawl, \
+            patch.object(DuckDuckGoClient, 'search', new_callable=AsyncMock) as mock_search, \
+            patch.object(use_case, 'repository', autospec=True) as mock_repo, \
+            patch.object(use_case, 'profile_repository', autospec=True) as mock_profile_repo:
+
+            mock_profile_repo.get_profile = AsyncMock(return_value=mock_profile_database)
+
             mock_get.return_value = jsearch_response_mock
-            mock_ainvoke.return_value = compatibility_score_llm
+            mock_score.return_value = compatibility_score_llm
+            mock_description.return_value = "Mock company description"
+            mock_decide.return_value = decide_enrichment
+            mock_company_info.return_value = company_info
+            mock_contact_info.return_value = contact_info
+            mock_job_titles.return_value = job_titles
+            mock_crawl.return_value = crawl_page
+            mock_search.return_value = search
+            
+            mock_repo.save_leads = AsyncMock(return_value=None)
+            mock_repo.get_jobs = AsyncMock(return_value=JobEntity(root=[]))
+            mock_repo.get_companies = AsyncMock(return_value=CompanyEntity(root=[]))
+            mock_repo.get_contacts = AsyncMock(return_value=ContactEntity(root=[]))
+            mock_repo.get_jobs_by_title_and_location = AsyncMock(return_value=jobs_database)
+            mock_repo.get_companies_by_names = AsyncMock(return_value=companies_database)
+            mock_repo.get_contacts_by_name_and_title = AsyncMock(return_value=ContactEntity(root=[]))
+            mock_repo.get_leads = AsyncMock(return_value=None)
             
             # Execute the use case
             result = await use_case.insert_leads()

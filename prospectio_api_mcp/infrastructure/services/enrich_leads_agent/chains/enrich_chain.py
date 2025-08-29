@@ -45,7 +45,7 @@ class EnrichChain:
         self.prompt = ChatPromptTemplate.from_messages(
             [
                 (
-                    "system",
+                    "user",
                     (
                         "STRICT INSTRUCTIONS:\n"
                         "- Output ONLY a description about the company named '{company}'.\n"
@@ -64,7 +64,10 @@ class EnrichChain:
         )
         self.chain = self.prompt | self.llm_client | StrOutputParser()
         try:
-            result = await self.chain.ainvoke({"company": company, "web_content": web_content})
+            web_content_str = ""
+            if web_content:
+                web_content_str = "\n".join(web_content)
+            result = await self.chain.ainvoke({"company": company, "web_content": web_content_str})
             return result.strip()
         except Exception as e:
             logger.error(f"Error in get_company_description: {e}\n{traceback.format_exc()}")
@@ -82,7 +85,7 @@ class EnrichChain:
         """
         prompt = ChatPromptTemplate.from_messages([
             (
-                "system",
+                "user",
                 (
                     "You are an expert at extracting structured company information.\n"
                     "Given ONLY the following company description, output a JSON object with the following fields:\n"
@@ -118,7 +121,7 @@ class EnrichChain:
         """
         prompt = ChatPromptTemplate.from_messages([
             (
-                "system",
+                "user",
                 (
                     "You are an expert at extracting contact information from web content.\n"
                     "Instructions:\n"
@@ -165,9 +168,12 @@ class EnrichChain:
         """
         prompt = ChatPromptTemplate.from_messages([
             (
-                "system",
+                "user",
                 (
-                    "You are an expert at identifying interesting job titles for lead prospecting.\n"
+                    "You are an expert at identifying job titles for lead prospecting that have the power to decide who to hire in their teams.\n"
+                    "Focus ONLY on roles with hiring authority, such as team leaders, managers, heads of department, CTO, CEO, VP, director, and similar.\n"
+                    "For team leaders, select only those who have technical skills in common with the user profile.\n"
+                    "Do NOT include roles without decision power (e.g., interns, individual contributors, assistants).\n"
                     "Do NOT add any explanation, commentary, or extra text.\n"
                     "USER PROFILE: {profile}"
                 ),
