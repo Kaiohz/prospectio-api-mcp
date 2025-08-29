@@ -35,10 +35,6 @@ jobs:
 
     - name: Setup environment file
       run: cp .env.example .env
-      
-    - name: Initialize database schema
-      run: |
-        PGPASSWORD=prospectio psql -h localhost -U prospectio -d prospectio -f database/init.sql
-      
+
     - name: Run all tests
       run: poetry run pytest -v
