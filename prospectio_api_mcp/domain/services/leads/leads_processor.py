@@ -1,4 +1,3 @@
-from torch import le
 from config import LLMConfig
 from domain.entities.company import CompanyEntity
 from domain.entities.job import Job, JobEntity
