@@ -31,7 +31,7 @@ jobs:
         key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
         
     - name: Install dependencies
-      run: poetry install
+      run: poetry install --with dev
 
     - name: Setup environment file
       run: cp .env.example .env
