@@ -122,20 +122,14 @@ class TestProfileUseCase:
             sample_profile_dto: Mock profile DTO data.
         """
         # Patch async_session to return a mock session
-        with patch.object(profile_use_case.repository, "async_session") as mock_sessionmaker:
-            mock_session = AsyncMock()
-            mock_sessionmaker.return_value.__aenter__.return_value = mock_session
+        with patch.object(profile_use_case.repository, "upsert_profile", new_callable=AsyncMock) as mock_upsert:
+            mock_upsert.return_value = {"result": "Profile upserted successfully"}
 
-            # Patch execute to return a mock result
-            mock_result = AsyncMock()
-            mock_result.scalar_one.return_value = sample_profile_data
-            mock_session.execute.return_value = mock_result
-        
-        # Execute the use case
-        result = await profile_use_case.upsert_profile(sample_profile_data)
-        
-        # Verify result
-        assert result == {"result": "Profile upserted successfully"}
+            # Execute the use case
+            result = await profile_use_case.upsert_profile(sample_profile_data)
+            
+            # Verify result
+            assert result == {"result": "Profile upserted successfully"}
         
     @pytest.mark.asyncio
     async def test_get_profile_success(
