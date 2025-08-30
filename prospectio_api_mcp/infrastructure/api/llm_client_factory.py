@@ -1,6 +1,7 @@
 from langchain_ollama import ChatOllama
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_mistralai import ChatMistralAI
+from langchain_openai import ChatOpenAI
 from typing import Type
 from config import LLMConfig
 from infrastructure.api.llm_generic_client import LLMGenericClient
@@ -11,19 +12,25 @@ class LLMClientFactory:
         self.model = model
         self.temperature = config.TEMPERATURE
         self.ollama_base_url = config.OLLAMA_BASE_URL
+        self.open_router_base_url = config.OPEN_ROUTER_API_URL
+        self.open_router_api_key = config.OPEN_ROUTER_API_KEY
         self.model_mapping: dict[str, Type[LLMGenericClient]] = {  # type: ignore
             "Ollama": ChatOllama,
             "Google": ChatGoogleGenerativeAI,
             "Mistral": ChatMistralAI,
+            "OpenRouter": ChatOpenAI
         }
 
     def create_client(self) -> LLMGenericClient:
         category = self.model.split("/")[0]
-        model = self.model.split("/")[1]
+        model = self.model.split("/", 1)[1]
         params = {"model": model, "temperature": self.temperature}
         client = self.model_mapping.get(category)
         if not client:
             raise ValueError(f"Invalid model name: {self.model}")
         if category == "Ollama":
             params["base_url"] = self.ollama_base_url
+        if category == "OpenRouter":
+            params["api_key"] = self.open_router_api_key
+            params["base_url"] = self.open_router_base_url
         return client(**params)

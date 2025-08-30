@@ -48,6 +48,8 @@ class LLMConfig(BaseSettings):
     GOOGLE_API_KEY: str = Field(..., json_schema_extra={"env": "GOOGLE_API_KEY"})
     MISTRAL_API_KEY: str = Field(..., json_schema_extra={"env": "MISTRAL_API_KEY"})
     CONCURRENT_CALLS: int = Field(..., json_schema_extra={"env": "CONCURRENT_CALLS"})
+    OPEN_ROUTER_API_URL: str = Field(..., json_schema_extra={"env": "OPEN_ROUTER_API_URL"})
+    OPEN_ROUTER_API_KEY: str = Field(..., json_schema_extra={"env": "OPEN_ROUTER_API_KEY"})
 
 
 class CrawlConfig(BaseSettings):
