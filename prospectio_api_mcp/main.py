@@ -12,18 +12,13 @@ from application.api.mcp_routes import mcp_prospectio
 from config import ActiveJobsDBConfig, JsearchConfig, LLMConfig, MantiksConfig
 from domain.services.leads.strategies.active_jobs_db import ActiveJobsDBStrategy
 from domain.services.leads.strategies.jsearch import JsearchStrategy
-from domain.services.leads.strategies.mantiks import MantiksStrategy
 from infrastructure.services.active_jobs_db import ActiveJobsDBAPI
 from infrastructure.services.jsearch import JsearchAPI
-from infrastructure.services.mantiks import MantiksAPI
 from config import AppConfig
 from infrastructure.services.leads_database import LeadsDatabase
 from config import DatabaseConfig
 
 _LEADS_STRATEGIES: dict[str, Callable] = {
-    "mantiks": lambda location, job_title: MantiksStrategy(
-        port=MantiksAPI(MantiksConfig()), location=location, job_title=job_title
-    ),
     "jsearch": lambda location, job_title: JsearchStrategy(
         port=JsearchAPI(JsearchConfig()), location=location, job_title=job_title
     ),
