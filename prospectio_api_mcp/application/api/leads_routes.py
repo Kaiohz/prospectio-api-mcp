@@ -7,6 +7,7 @@ from domain.entities.job import JobEntity
 from domain.entities.leads import Leads
 from domain.entities.leads_result import LeadsResult
 from domain.ports.compatibility_score import CompatibilityScorePort
+from domain.ports.enrich_leads import EnrichLeadsPort
 from domain.ports.profile_respository import ProfileRepositoryPort
 from domain.services.leads.leads_processor import LeadsProcessor
 from prospectio_api_mcp.application.use_cases.insert_leads import (
@@ -28,7 +29,7 @@ def leads_router(
     repository: LeadsRepositoryPort,
     compatibility: CompatibilityScorePort,
     profile_repository: ProfileRepositoryPort,
-    concurrent_calls: int,
+    enrich_port: EnrichLeadsPort,
 ) -> APIRouter:
     """
     Create an APIRouter for company jobs endpoints with injected strategy.
@@ -97,9 +98,9 @@ def leads_router(
             job_title = [title.strip().lower() for title in job_title]
             location = location.strip().lower()
             strategy = jobs_strategy[source](location, job_title)
-            processor = LeadsProcessor(compatibility, concurrent_calls)
+            processor = LeadsProcessor(compatibility)
             leads = await InsertLeadsUseCase(
-                strategy, repository, processor, profile_repository
+                strategy, repository, processor, profile_repository, enrich_port
             ).insert_leads()
             return leads
         except Exception as e:

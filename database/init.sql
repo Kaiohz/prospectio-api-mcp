@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS contacts (
     email VARCHAR(320),
     title VARCHAR(255),
     phone VARCHAR(50),
-    profile_url VARCHAR(500),
+    profile_url VARCHAR(2000),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

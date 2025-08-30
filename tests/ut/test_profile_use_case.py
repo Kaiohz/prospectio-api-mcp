@@ -121,12 +121,15 @@ class TestProfileUseCase:
             sample_profile_data: Mock profile data.
             sample_profile_dto: Mock profile DTO data.
         """
-        
-        # Execute the use case
-        result = await profile_use_case.upsert_profile(sample_profile_data)
-        
-        # Verify result
-        assert result == {"result": "Profile upserted successfully"}
+        # Patch async_session to return a mock session
+        with patch.object(profile_use_case.repository, "upsert_profile", new_callable=AsyncMock) as mock_upsert:
+            mock_upsert.return_value = {"result": "Profile upserted successfully"}
+
+            # Execute the use case
+            result = await profile_use_case.upsert_profile(sample_profile_data)
+            
+            # Verify result
+            assert result == {"result": "Profile upserted successfully"}
         
     @pytest.mark.asyncio
     async def test_get_profile_success(

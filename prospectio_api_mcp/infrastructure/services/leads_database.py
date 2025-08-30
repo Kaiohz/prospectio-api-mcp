@@ -99,7 +99,7 @@ class LeadsDatabase(LeadsRepositoryPort):
                 raise e
 
     async def get_jobs_by_title_and_location(
-        self, title: list[str], location: str
+        self, title: list[str], location: list[str]
     ) -> JobEntity:
         """
         Retrieve jobs from the database that match any of the provided titles and the specified location (case-insensitive, partial match).
@@ -115,7 +115,7 @@ class LeadsDatabase(LeadsRepositoryPort):
             try:
                 stmt = select(JobDB).where(
                     or_(*[JobDB.job_title.ilike(f"%{t}%") for t in title]),
-                    JobDB.location.ilike(f"%{location}%"),
+                    or_(*[JobDB.location.ilike(f"%{loc}%") for loc in location]),
                 )
                 result = await session.execute(stmt)
                 job_db = result.scalars().all()

@@ -37,7 +37,7 @@ class LeadsRepositoryPort(ABC):
 
     @abstractmethod
     async def get_jobs_by_title_and_location(
-        self, title: list[str], location: str
+        self, title: list[str], location: list[str]
     ) -> JobEntity:
         """
         Retrieve a job by its title and location from the database.
