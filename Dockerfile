@@ -50,7 +50,7 @@ COPY pyproject.toml poetry.lock ./
 RUN poetry install --no-root
 
 # Installer les navigateurs Playwright
-RUN poetry run playwright install --with-deps
+RUN poetry run playwright install chromium --with-deps
 
 # Étape finale, on copie juste ce qu'il faut
 FROM base AS app
