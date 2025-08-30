@@ -35,9 +35,12 @@ jobs:
 
     - name: Setup environment file
       run: cp .env.example .env
-      
-    - name: Show env file
-      run: cat .env
+
+    - name: Export env variables
+      run: |
+        set -a
+        source .env
+        set +a
 
     - name: Run all tests
       run: poetry run pytest -v
