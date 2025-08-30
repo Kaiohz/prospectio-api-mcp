@@ -34,9 +34,6 @@ class EnrichLeadsNodes:
     Nodes for the WebSearch agent.
     """
 
-    concurrent_calls = LLMConfig().CONCURRENT_CALLS
-    semaphore = asyncio.Semaphore(concurrent_calls)
-
     def __init__(self):
         """
         Initialize the WebSearchNodes with required models and tools.
@@ -44,6 +41,8 @@ class EnrichLeadsNodes:
         Args:
             agent_params (AgentParams): Parameters for agent configuration.
         """
+        concurrent_calls = LLMConfig().CONCURRENT_CALLS
+        self.semaphore = asyncio.Semaphore(concurrent_calls)
         decision_model = LLMConfig().DECISION_MODEL
         decision_llm_client = LLMClientFactory(
             model=decision_model, config=LLMConfig()

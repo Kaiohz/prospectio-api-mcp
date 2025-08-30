@@ -14,10 +14,10 @@ from domain.ports.enrich_leads import EnrichLeadsPort
 
 class LeadsProcessor:
 
-    concurrency_limit = LLMConfig().CONCURRENT_CALLS
-    semaphore = asyncio.Semaphore(concurrency_limit)
-
     def __init__(self, compatibility_score_port: CompatibilityScorePort):
+        config = LLMConfig()
+        concurrency_limit = config.CONCURRENT_CALLS
+        self.semaphore = asyncio.Semaphore(concurrency_limit)
         self.compatibility_score_port = compatibility_score_port
 
     async def deduplicate_contacts(self, contacts: ContactEntity) -> ContactEntity:
