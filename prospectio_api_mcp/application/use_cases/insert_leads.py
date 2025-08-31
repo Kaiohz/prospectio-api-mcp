@@ -64,19 +64,19 @@ class InsertLeadsUseCase:
             )
             names = [
                 contact.name
-                for contact in leads.contacts.root
+                for contact in leads.contacts.contacts
                 if contact.name is not None
             ]
             titles = [
                 contact.title
-                for contact in leads.contacts.root
+                for contact in leads.contacts.contacts
                 if contact.title is not None
             ]
             db_contacts = await self.repository.get_contacts_by_name_and_title(
                 names, titles
             )
         company_names = [
-            company.name for company in leads.companies.root if company.name is not None
+            company.name for company in leads.companies.companies if company.name is not None
         ]
         db_companies = await self.repository.get_companies_by_names(company_names)
         leads.jobs = await self.leads_processor.change_jobs_company_id(
@@ -85,8 +85,8 @@ class InsertLeadsUseCase:
         leads.companies = await self.leads_processor.new_companies(
             leads.companies, db_companies
         )
-        job_titles = [job.job_title for job in leads.jobs.root if job.job_title]
-        locations = [job.location for job in leads.jobs.root if job.location]
+        job_titles = [job.job_title for job in leads.jobs.jobs if job.job_title]
+        locations = [job.location for job in leads.jobs.jobs if job.location]
         db_jobs = await self.repository.get_jobs_by_title_and_location(
             job_titles, locations
         )

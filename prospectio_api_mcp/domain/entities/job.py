@@ -1,5 +1,5 @@
 from typing import List, Optional
-from pydantic import BaseModel, Field, RootModel
+from pydantic import BaseModel, Field
 
 
 class Job(BaseModel):
@@ -35,9 +35,10 @@ class Job(BaseModel):
     )
 
 
-class JobEntity(RootModel[List[Job]]):
+class JobEntity(BaseModel):
     """
     DTO for a list of active jobs.
     """
-
+    jobs: List[Job] = Field(..., description="List of jobs")
+    pages: Optional[int] = Field(None, description="Total number of pages available")
     pass

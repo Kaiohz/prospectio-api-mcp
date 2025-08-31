@@ -42,7 +42,7 @@ def leads_router(
     """
     company_jobs_router = APIRouter()
 
-    @company_jobs_router.get("/leads/{type}/{offset}")
+    @company_jobs_router.get("/leads/{type}/{offset}/{limit}")
     @mcp_prospectio.tool(
         description="ALWAYS USE THIS FIRST to retrieve existing data from the database before searching for new opportunities. "
         "Returns companies, jobs, contacts or leads that are already stored in the database. "
@@ -56,9 +56,10 @@ def leads_router(
     async def get_leads(
         type: str = Path(..., description="Lead source"),
         offset: int = Path(..., description="Offset for pagination"),
+        limit: int = Path(..., description="Limit for pagination"),
     ) -> Union[Leads, CompanyEntity, JobEntity, ContactEntity]:
         try:
-            leads = await GetLeadsUseCase(type, repository).get_leads(offset)
+            leads = await GetLeadsUseCase(type, repository).get_leads(offset, limit)
             return leads
         except Exception as e:
             logger.error(f"Error in get leads: {e}\n{traceback.format_exc()}")

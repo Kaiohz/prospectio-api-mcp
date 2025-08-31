@@ -22,7 +22,7 @@ class LeadsRepositoryPort(ABC):
         pass
 
     @abstractmethod
-    async def get_jobs(self, offset: int) -> JobEntity:
+    async def get_jobs(self, offset: int, limit: int) -> JobEntity:
         """
         Retrieve jobs from the database with pagination.
 
@@ -52,7 +52,7 @@ class LeadsRepositoryPort(ABC):
         pass
 
     @abstractmethod
-    async def get_companies(self, offset: int) -> CompanyEntity:
+    async def get_companies(self, offset: int, limit: int) -> CompanyEntity:
         """
         Retrieve companies from the database.
 
@@ -75,7 +75,7 @@ class LeadsRepositoryPort(ABC):
         pass
 
     @abstractmethod
-    async def get_contacts(self, offset: int) -> ContactEntity:
+    async def get_contacts(self, offset: int, limit: int) -> ContactEntity:
         """
         Retrieve contacts from the database.
 
@@ -100,7 +100,7 @@ class LeadsRepositoryPort(ABC):
         pass
 
     @abstractmethod
-    async def get_leads(self, offset: int) -> Leads:
+    async def get_leads(self, offset: int, limit: int) -> Leads:
         """
         Retrieve all leads data (companies, jobs, and contacts) from the database.
 

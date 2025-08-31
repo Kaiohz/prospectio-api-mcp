@@ -24,7 +24,7 @@ class GetLeadsUseCase:
         self.repository = repository
 
     async def get_leads(
-        self, offset: int
+        self, offset: int, limit: int
     ) -> Union[Leads, CompanyEntity, JobEntity, ContactEntity]:
         """
         Retrieve data based on the specified type from the repository.
@@ -37,12 +37,12 @@ class GetLeadsUseCase:
             KeyError: If the specified type is not supported ('companies', 'jobs', 'contacts', 'leads').
         """
         if self.type == "companies":
-            return await self.repository.get_companies(offset)
+            return await self.repository.get_companies(offset, limit)
         elif self.type == "jobs":
-            return await self.repository.get_jobs(offset)
+            return await self.repository.get_jobs(offset, limit)
         elif self.type == "contacts":
-            return await self.repository.get_contacts(offset)
+            return await self.repository.get_contacts(offset, limit)
         elif self.type == "leads":
-            return await self.repository.get_leads(offset)
+            return await self.repository.get_leads(offset, limit)
         else:
             raise KeyError(f"Unsupported type: {self.type}")

@@ -10,6 +10,7 @@ from domain.entities.company import Company, CompanyEntity
 from domain.entities.job import Job, JobEntity
 from domain.entities.contact import Contact, ContactEntity
 from datetime import datetime
+from math import ceil
 
 
 class LeadsDatabase(LeadsRepositoryPort):
@@ -43,20 +44,20 @@ class LeadsDatabase(LeadsRepositoryPort):
                 contacts_to_insert: List[ContactDB] = []
 
                 # Process companies
-                if leads.companies and leads.companies.root:
-                    for company_data in leads.companies.root:
+                if leads.companies and leads.companies.companies:
+                    for company_data in leads.companies.companies:
                         company_db = self._convert_company_to_db(company_data)
                         companies_to_insert.append(company_db)
 
                 # Process jobs
-                if leads.jobs and leads.jobs.root:
-                    for job_data in leads.jobs.root:
+                if leads.jobs and leads.jobs.jobs:
+                    for job_data in leads.jobs.jobs:
                         job_db = self._convert_job_to_db(job_data)
                         jobs_to_insert.append(job_db)
 
                 # Process contacts
-                if leads.contacts and leads.contacts.root:
-                    for contact_data in leads.contacts.root:
+                if leads.contacts and leads.contacts.contacts:
+                    for contact_data in leads.contacts.contacts:
                         contact_db = self._convert_contact_to_db(contact_data)
                         contacts_to_insert.append(contact_db)
 
@@ -73,7 +74,7 @@ class LeadsDatabase(LeadsRepositoryPort):
                 await session.rollback()
                 raise e
 
-    async def get_jobs(self, offset: int) -> JobEntity:
+    async def get_jobs(self, offset: int, limit: int) -> JobEntity:
         """
         Retrieve jobs from the database with pagination.
 
@@ -86,15 +87,19 @@ class LeadsDatabase(LeadsRepositoryPort):
         """
         async with AsyncSession(self.engine) as session:
             try:
+                total_jobs_result = await session.execute(select(JobDB.id))
+                total_jobs = total_jobs_result.scalars().all()
+                total_pages = ceil(len(total_jobs) / limit) if limit > 0 else 1
+
                 result = await session.execute(
                     select(JobDB)
                     .order_by(JobDB.compatibility_score.desc())
                     .offset(offset)
-                    .limit(3)
+                    .limit(limit)
                 )
                 job_dbs = result.scalars().all()
                 jobs = [self._convert_db_to_job(job_db) for job_db in job_dbs]
-                return JobEntity(root=jobs)
+                return JobEntity(jobs=jobs, pages=total_pages)
             except Exception as e:
                 raise e
 
@@ -122,8 +127,8 @@ class LeadsDatabase(LeadsRepositoryPort):
 
                 if job_db:
                     jobs = [self._convert_db_to_job(job) for job in job_db]
-                    return JobEntity(root=jobs)
-                return JobEntity(root=[])
+                    return JobEntity(jobs=jobs) # type: ignore
+                return JobEntity(jobs=[]) # type: ignore
 
             except Exception as e:
                 raise e
@@ -150,12 +155,12 @@ class LeadsDatabase(LeadsRepositoryPort):
                     for company_db in company_dbs
                 ]
 
-                return CompanyEntity(root=companies)
+                return CompanyEntity(companies=companies) # type: ignore
 
             except Exception as e:
                 raise e
 
-    async def get_companies(self, offset: int = 0) -> CompanyEntity:
+    async def get_companies(self, offset: int, limit: int) -> CompanyEntity:
         """
         Retrieve companies from the database with pagination.
 
@@ -168,19 +173,23 @@ class LeadsDatabase(LeadsRepositoryPort):
         """
         async with AsyncSession(self.engine) as session:
             try:
+                total_companies_result = await session.execute(select(CompanyDB.id))
+                total_companies = total_companies_result.scalars().all()
+                total_pages = ceil(len(total_companies) / limit) if limit > 0 else 1
+
                 result = await session.execute(
-                    select(CompanyDB).order_by(CompanyDB.id).offset(offset).limit(5)
+                    select(CompanyDB).order_by(CompanyDB.id).offset(offset).limit(limit)
                 )
                 company_dbs = result.scalars().all()
                 companies = [
                     self._convert_db_to_company(company_db)
                     for company_db in company_dbs
                 ]
-                return CompanyEntity(root=companies)
+                return CompanyEntity(companies=companies, pages=total_pages) # type: ignore
             except Exception as e:
                 raise e
 
-    async def get_contacts(self, offset: int = 0) -> ContactEntity:
+    async def get_contacts(self, offset: int, limit: int) -> ContactEntity:
         """
         Retrieve contacts from the database with pagination.
 
@@ -193,15 +202,19 @@ class LeadsDatabase(LeadsRepositoryPort):
         """
         async with AsyncSession(self.engine) as session:
             try:
+                total_contacts_result = await session.execute(select(ContactDB.id))
+                total_contacts = total_contacts_result.scalars().all()
+                total_pages = ceil(len(total_contacts) / limit) if limit > 0 else 1
+
                 result = await session.execute(
-                    select(ContactDB).order_by(ContactDB.id).offset(offset).limit(10)
+                    select(ContactDB).order_by(ContactDB.id).offset(offset).limit(limit)
                 )
                 contact_dbs = result.scalars().all()
                 contacts = [
                     self._convert_db_to_contact(contact_db)
                     for contact_db in contact_dbs
                 ]
-                return ContactEntity(root=contacts)
+                return ContactEntity(contacts=contacts, pages=total_pages)
             except Exception as e:
                 raise e
 
@@ -230,13 +243,14 @@ class LeadsDatabase(LeadsRepositoryPort):
                     self._convert_db_to_contact(contact_db)
                     for contact_db in contact_dbs
                 ]
-                return ContactEntity(root=contacts)
+                return ContactEntity(contacts=contacts) # type: ignore
             except Exception as e:
                 raise e
 
     async def get_leads(
         self,
         offset: int,
+        limit: int
     ) -> Leads:
         """
         Retrieve paginated jobs and only the related companies and contacts for those jobs.
@@ -251,11 +265,15 @@ class LeadsDatabase(LeadsRepositoryPort):
         async with AsyncSession(self.engine) as session:
             try:
 
+                total_jobs_result = await session.execute(select(JobDB.id))
+                total_jobs = total_jobs_result.scalars().all()
+                total_pages = ceil(len(total_jobs) / limit) if limit > 0 else 1
+
                 jobs_result = await session.execute(
                     select(JobDB)
                     .order_by(JobDB.compatibility_score.desc())
                     .offset(offset)
-                    .limit(10)
+                    .limit(limit)
                 )
                 job_dbs = jobs_result.scalars().all()
                 jobs = [self._convert_db_to_job(job_db) for job_db in job_dbs]
@@ -296,9 +314,10 @@ class LeadsDatabase(LeadsRepositoryPort):
                 ]
 
                 return Leads(
-                    companies=CompanyEntity(companies),
-                    jobs=JobEntity(jobs),
-                    contacts=ContactEntity(contacts),
+                    companies=CompanyEntity(companies=companies), # type: ignore
+                    jobs=JobEntity(jobs=jobs), # type: ignore
+                    contacts=ContactEntity(contacts=contacts), # type: ignore
+                    pages=total_pages
                 )
             except Exception as e:
                 raise e

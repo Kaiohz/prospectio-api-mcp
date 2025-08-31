@@ -32,14 +32,14 @@ class LeadsProcessor:
         """
         seen = set()
         unique_contacts = []
-        for contact in contacts.root:
+        for contact in contacts.contacts:
             contact.name = contact.name.strip().lower() if contact.name else ""
             contact.title = contact.title.strip().lower() if contact.title else ""
             identifier = (contact.name, contact.title)
             if identifier not in seen:
                 seen.add(identifier)
                 unique_contacts.append(contact)
-        return ContactEntity(root=unique_contacts)
+        return ContactEntity(contacts=unique_contacts) # type: ignore
 
     async def new_contacts(
         self, contacts: ContactEntity, db_contacts: ContactEntity
@@ -59,18 +59,18 @@ class LeadsProcessor:
                 contact.name.strip().lower() if contact.name else "",
                 contact.title.strip().lower() if contact.title else "",
             )
-            for contact in db_contacts.root
+            for contact in db_contacts.contacts
         }
         new_contacts = [
             contact
-            for contact in contacts.root
+            for contact in contacts.contacts
             if (
                 contact.name.strip().lower() if contact.name else "",
                 contact.title.strip().lower() if contact.title else "",
             )
             not in existing_contacts
         ]
-        return ContactEntity(root=new_contacts)
+        return ContactEntity(contacts=new_contacts) # type: ignore
 
     async def change_contacts_job_and_company_id(
         self, contacts: ContactEntity, jobs: JobEntity, companies: CompanyEntity
@@ -91,17 +91,17 @@ class LeadsProcessor:
                 job.job_title.strip().lower() if job.job_title else "",
                 job.location.strip().lower() if job.location else "",
             ): job.id
-            for job in jobs.root
+            for job in jobs.jobs
             if job.id is not None
             and job.job_title is not None
             and job.location is not None
         }
         company_lookup = {
             company.name.strip().lower(): company.id
-            for company in companies.root
+            for company in companies.companies
             if company.id is not None and company.name is not None
         }
-        for contact in contacts.root:
+        for contact in contacts.contacts:
             if contact.company_id:
                 name = contact.company_id.strip().lower()
                 contact.company_id = company_lookup.get(name, contact.company_id)
@@ -129,15 +129,15 @@ class LeadsProcessor:
         """
         company_db_mapping = {
             company.name.strip().lower(): company.id
-            for company in db_companies.root
+            for company in db_companies.companies
             if company.name is not None
         }
         company_ids = {
             company.id: company.name.strip().lower()
-            for company in companies.root
+            for company in companies.companies
             if company.id is not None and company.name is not None
         }
-        for job in jobs.root:
+        for job in jobs.jobs:
             if job.company_id and job.company_id in company_ids:
                 company_name = company_ids[job.company_id]
                 company_id = company_db_mapping.get(company_name)
@@ -164,12 +164,12 @@ class LeadsProcessor:
                 job.job_type.strip().lower() if job.job_type else "",
                 job.description.strip().lower() if job.description else "",
             )
-            for job in db_jobs.root
+            for job in db_jobs.jobs
         }
 
         new_jobs = [
             job
-            for job in jobs.root
+            for job in jobs.jobs
             if (
                 job.job_title.strip().lower() if job.job_title else "",
                 job.location.strip().lower() if job.location else "",
@@ -179,7 +179,7 @@ class LeadsProcessor:
             )
             not in existing_jobs
         ]
-        return JobEntity(root=new_jobs)
+        return JobEntity(jobs=new_jobs) # type: ignore
 
     async def new_companies(
         self, companies: CompanyEntity, db_companies: CompanyEntity
@@ -196,15 +196,15 @@ class LeadsProcessor:
         """
         existing_companies = {
             company.name.strip().lower()
-            for company in db_companies.root
+            for company in db_companies.companies
             if company.name is not None
         }
         new_companies = [
             company
-            for company in companies.root
+            for company in companies.companies
             if company.name and company.name.strip().lower() not in existing_companies
         ]
-        return CompanyEntity(root=new_companies)
+        return CompanyEntity(companies=new_companies) # type: ignore
 
     async def deduplicate_jobs(self, jobs: JobEntity) -> JobEntity:
         """
@@ -218,7 +218,7 @@ class LeadsProcessor:
         """
         seen = set()
         unique_jobs = []
-        for job in jobs.root:
+        for job in jobs.jobs:
             job.job_title = job.job_title.strip().lower() if job.job_title else ""
             job.location = job.location.strip().lower() if job.location else ""
             job.job_type = job.job_type.strip().lower() if job.job_type else ""
@@ -229,7 +229,7 @@ class LeadsProcessor:
                 seen.add(identifier)
                 unique_jobs.append(job)
 
-        return JobEntity(root=unique_jobs)
+        return JobEntity(jobs=unique_jobs) # type: ignore
 
     async def deduplicate_companies(
         self, companies: CompanyEntity, jobs: JobEntity
@@ -248,24 +248,24 @@ class LeadsProcessor:
         unique_companies = []
         companies_mapping = {
             company.id: company.name.strip().lower()
-            for company in companies.root
+            for company in companies.companies
             if company.name is not None
         }
         unique_companies_mapping = {}
 
-        for company in companies.root:
+        for company in companies.companies:
             company.name = company.name.strip().lower() if company.name else ""
             if company.name not in seen:
                 seen.add(company.name)
                 unique_companies.append(company)
                 unique_companies_mapping[company.name] = company.id
 
-        for job in jobs.root:
+        for job in jobs.jobs:
             if job.company_id in companies_mapping:
                 company_name = companies_mapping[job.company_id]
                 job.company_id = unique_companies_mapping.get(company_name)
 
-        return CompanyEntity(root=unique_companies)
+        return CompanyEntity(companies=unique_companies) # type: ignore
 
     async def calculate_statistics(self, leads: Leads) -> LeadsResult:
         """
@@ -277,9 +277,9 @@ class LeadsProcessor:
         Returns:
             LeadsResult: Statistics about the number of inserted companies, jobs, and contacts.
         """
-        nb_of_companies = len(leads.companies.root) if leads.companies else 0
-        nb_of_jobs = len(leads.jobs.root) if leads.jobs else 0
-        nb_of_contacts = len(leads.contacts.root) if leads.contacts else 0
+        nb_of_companies = len(leads.companies.companies) if leads.companies else 0
+        nb_of_jobs = len(leads.jobs.jobs) if leads.jobs else 0
+        nb_of_contacts = len(leads.contacts.contacts) if leads.contacts else 0
 
         return LeadsResult(
             companies=f"Insert of {nb_of_companies} companies",
@@ -312,7 +312,7 @@ class LeadsProcessor:
                 )
                 return job, result.score
 
-        tasks = [calculate_single_score(job) for job in jobs.root]
+        tasks = [calculate_single_score(job) for job in jobs.jobs]
         results = await asyncio.gather(*tasks)
 
         for job, score in results:
