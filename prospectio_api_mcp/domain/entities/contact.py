@@ -1,5 +1,5 @@
 from typing import Optional, List
-from pydantic import BaseModel, Field, RootModel
+from pydantic import BaseModel, Field
 
 
 class Contact(BaseModel):
@@ -22,9 +22,10 @@ class Contact(BaseModel):
     )
 
 
-class ContactEntity(RootModel[List[Contact]]):
+class ContactEntity(BaseModel):
     """
     DTO for a list of contacts.
     """
-
+    contacts: List[Contact] = Field(..., description="List of contacts")
+    pages: Optional[int] = Field(None, description="Total number of pages available")
     pass

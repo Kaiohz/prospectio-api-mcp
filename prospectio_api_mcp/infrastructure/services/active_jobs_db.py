@@ -85,7 +85,7 @@ class ActiveJobsDBAPI(FetchLeadsPort):
             ids.append(company_id)
             companies.append(company)
 
-        return CompanyEntity(companies), ids
+        return CompanyEntity(companies=companies), ids # type: ignore
 
     async def to_job_entity(
         self, dto: ActiveJobsResponseDTO, ids: list[str]
@@ -125,7 +125,7 @@ class ActiveJobsDBAPI(FetchLeadsPort):
             )
             jobs.append(job_entity)
 
-        return JobEntity(jobs)
+        return JobEntity(jobs=jobs) # type: ignore
 
     async def fetch_leads(self, location: str, job_title: list[str]) -> Leads:
         """
@@ -152,4 +152,4 @@ class ActiveJobsDBAPI(FetchLeadsPort):
         company_entity, ids = await self.to_company_entity(active_jobs)
         job_entity = await self.to_job_entity(active_jobs, ids)
 
-        return Leads(companies=company_entity, jobs=job_entity, contacts=None)
+        return Leads(companies=company_entity, jobs=job_entity, contacts=None) # type: ignore

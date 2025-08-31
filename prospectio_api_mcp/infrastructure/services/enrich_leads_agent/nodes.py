@@ -55,7 +55,7 @@ class EnrichLeadsNodes:
         self.profile = Profile(
             job_title=None, location=None, bio=None, work_experience=[]
         )
-        self.leads = Leads(companies=CompanyEntity(root=[]), contacts=ContactEntity(root=[]), jobs=JobEntity(root=[]))
+        self.leads = Leads(companies=CompanyEntity(companies=[]), contacts=ContactEntity(contacts=[]), jobs=JobEntity(jobs=[])) # type: ignore
 
     async def first_step(
         self, state: OverallEnrichLeadsState
@@ -82,12 +82,12 @@ class EnrichLeadsNodes:
         state["step"] = ["Created enrichment tasks for each company."]
         leads: Leads = state["leads"]
 
-        if not leads.companies or not leads.companies.root:
+        if not leads.companies or not leads.companies.companies:
             return {"companies_tasks": []}
 
         companies_tasks = [
             Send("make_company_decision", {"company": company})
-            for company in leads.companies.root
+            for company in leads.companies.companies
         ]
 
         return {"companies_tasks": companies_tasks}
@@ -103,12 +103,12 @@ class EnrichLeadsNodes:
         state["step"] = ["Created enrichment tasks for contacts for each company."]
         leads: Leads = state["leads"]
 
-        if not leads.companies or not leads.companies.root:
+        if not leads.companies or not leads.companies.companies:
             return {"contacts_tasks": []}
 
         contacts_tasks = [
             Send("enrich_contacts", {"company": company})
-            for company in leads.companies.root
+            for company in leads.companies.companies
         ]
 
         return {"contacts_tasks": contacts_tasks}
@@ -137,7 +137,7 @@ class EnrichLeadsNodes:
                     contact_info: ContactInfo = await self.enrich_chain.extract_contact_from_web_search(
                         company.name or '', result
                     ) # type: ignore
-                    for job in self.leads.jobs.root: # type: ignore
+                    for job in self.leads.jobs.jobs: # type: ignore
                         if company.id == job.company_id:
                             contact = Contact(
                                 company_id=company.id,
@@ -262,15 +262,15 @@ class EnrichLeadsNodes:
             contacts = state["enriched_contacts"]
             leads: Leads = self.leads # type: ignore
             if not leads.contacts:
-                leads.contacts = ContactEntity(root=[])
-            leads.contacts.root = contacts  # type: ignore
+                leads.contacts = ContactEntity(contacts=[]) # type: ignore
+            leads.contacts.contacts = contacts  # type: ignore
 
         if "enriched_company" in state:
             companies = state["enriched_company"]
             if not companies:
-                leads.companies = CompanyEntity(root=[])
+                leads.companies = CompanyEntity(companies=[]) # type: ignore
             leads: Leads = self.leads # type: ignore
-            leads.companies.root = companies  # type: ignore
+            leads.companies.companies = companies  # type: ignore
 
         state["leads"] = leads
         return state

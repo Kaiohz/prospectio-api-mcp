@@ -444,7 +444,7 @@ class TestActiveJobsDBUseCase:
         Returns:
             Leads: The Leads entity as it would be present in DB.
         """
-        companies = CompanyEntity(root=[
+        companies = CompanyEntity(companies=[
             Company(
                 id="38aeceee-254d-44c8-92b5-33a1d32e8d82",
                 name="Innovation Labs",
@@ -471,7 +471,7 @@ class TestActiveJobsDBUseCase:
                 description=None,
                 opportunities=None
             )
-        ])
+        ], pages=1)
         return companies
     
     @pytest.fixture
@@ -479,7 +479,7 @@ class TestActiveJobsDBUseCase:
         """
         Create a mock JobEntity for testing.
         """
-        jobs = JobEntity(root=[
+        jobs = JobEntity(jobs=[
                 Job(
                     id="6b38fd8d-3f82-42d6-ae90-247c3f3320b0",
                     company_id="38aeceee-254d-44c8-92b5-33a1d32e8d82",
@@ -509,7 +509,7 @@ class TestActiveJobsDBUseCase:
                     compatibility_score=None
                 )
             ]
-        )
+        ) # type: ignore
         return jobs
 
     @pytest.fixture
@@ -588,12 +588,12 @@ class TestActiveJobsDBUseCase:
             mock_search.return_value = search
 
             mock_repo.save_leads = AsyncMock(return_value=None)
-            mock_repo.get_jobs = AsyncMock(return_value=JobEntity(root=[]))
-            mock_repo.get_companies = AsyncMock(return_value=CompanyEntity(root=[]))
-            mock_repo.get_contacts = AsyncMock(return_value=ContactEntity(root=[]))
-            mock_repo.get_jobs_by_title_and_location = AsyncMock(return_value=JobEntity(root=[]))
-            mock_repo.get_companies_by_names = AsyncMock(return_value=CompanyEntity(root=[]))
-            mock_repo.get_contacts_by_name_and_title = AsyncMock(return_value=ContactEntity(root=[]))
+            mock_repo.get_jobs = AsyncMock(return_value=JobEntity(jobs=[])) # type: ignore
+            mock_repo.get_companies = AsyncMock(return_value=CompanyEntity(companies=[], pages=1))
+            mock_repo.get_contacts = AsyncMock(return_value=ContactEntity(contacts=[], pages=1)) # type: ignore
+            mock_repo.get_jobs_by_title_and_location = AsyncMock(return_value=JobEntity(jobs=[])) # type: ignore
+            mock_repo.get_companies_by_names = AsyncMock(return_value=CompanyEntity(companies=[])) # type: ignore
+            mock_repo.get_contacts_by_name_and_title = AsyncMock(return_value=ContactEntity(contacts=[])) # type: ignore
             mock_repo.get_leads = AsyncMock(return_value=None)
 
             result = await use_case.insert_leads()
@@ -656,12 +656,12 @@ class TestActiveJobsDBUseCase:
             mock_search.return_value = search
             
             mock_repo.save_leads = AsyncMock(return_value=None)
-            mock_repo.get_jobs = AsyncMock(return_value=JobEntity(root=[]))
-            mock_repo.get_companies = AsyncMock(return_value=CompanyEntity(root=[]))
-            mock_repo.get_contacts = AsyncMock(return_value=ContactEntity(root=[]))
+            mock_repo.get_jobs = AsyncMock(return_value=JobEntity(jobs=[])) # type: ignore
+            mock_repo.get_companies = AsyncMock(return_value=CompanyEntity(companies=[], pages=1))
+            mock_repo.get_contacts = AsyncMock(return_value=ContactEntity(contacts=[], pages=1))
             mock_repo.get_jobs_by_title_and_location = AsyncMock(return_value=jobs_database)
             mock_repo.get_companies_by_names = AsyncMock(return_value=companies_database)
-            mock_repo.get_contacts_by_name_and_title = AsyncMock(return_value=ContactEntity(root=[]))
+            mock_repo.get_contacts_by_name_and_title = AsyncMock(return_value=ContactEntity(contacts=[])) # type: ignore
             mock_repo.get_leads = AsyncMock(return_value=None)
 
             mock_get.return_value = active_jobs_response_mock

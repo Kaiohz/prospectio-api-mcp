@@ -114,7 +114,7 @@ class EnrichLeadsAgent(EnrichLeadsPort):
                     enriched_companies = aggregate.get("enriched_companies")
                     enriched_contacts = aggregate.get("enriched_contacts")
                     if enriched_companies is not None:
-                        leads.companies.root = enriched_companies  # type: ignore
+                        leads.companies.companies = enriched_companies  # type: ignore
                     if enriched_contacts is not None:
-                        leads.contacts.root = enriched_contacts # type: ignore                       
+                        leads.contacts.contacts = enriched_contacts # type: ignore                       
         return leads

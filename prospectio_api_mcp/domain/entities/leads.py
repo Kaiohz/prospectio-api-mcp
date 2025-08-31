@@ -18,3 +18,4 @@ class Leads(BaseModel):
     contacts: Optional[ContactEntity] = Field(
         None, description="List of contacts associated with the companies and jobs"
     )
+    pages: Optional[int] = Field(None, description="Total number of pages available")

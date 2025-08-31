@@ -141,13 +141,14 @@ class TestGetLeads:
         mock_repo = AsyncMock()
         
         # Configure mock methods
-        mock_repo.get_companies.return_value = CompanyEntity(root=sample_companies)
-        mock_repo.get_jobs.return_value = JobEntity(root=sample_jobs)
-        mock_repo.get_contacts.return_value = ContactEntity(root=sample_contacts)
+        mock_repo.get_companies.return_value = CompanyEntity(companies=sample_companies, pages=10) # type: ignore
+        mock_repo.get_jobs.return_value = JobEntity(jobs=sample_jobs) # type: ignore
+        mock_repo.get_contacts.return_value = ContactEntity(contacts=sample_contacts, pages=10) # type: ignore
         mock_repo.get_leads.return_value = Leads(
-            companies=CompanyEntity(root=sample_companies),
-            jobs=JobEntity(root=sample_jobs),
-            contacts=ContactEntity(root=sample_contacts)
+            companies=CompanyEntity(companies=sample_companies, pages=10),
+            jobs=JobEntity(jobs=sample_jobs), # type: ignore
+            contacts=ContactEntity(contacts=sample_contacts), # type: ignore
+            pages=10
         )
         
         return mock_repo
@@ -219,18 +220,18 @@ class TestGetLeads:
             mock_repository: The mock repository.
         """
         # Execute the use case
-        result = await companies_use_case.get_leads(0)
+        result = await companies_use_case.get_leads(0,3)
         
         # Verify repository method was called
         mock_repository.get_companies.assert_called_once()
         
         # Verify result type and content
         assert isinstance(result, CompanyEntity)
-        assert len(result.root) == 2
-        assert result.root[0].name == "Tech Solutions Inc"
-        assert result.root[0].industry == "Technology"
-        assert result.root[1].name == "Innovative Corp"
-        assert result.root[1].industry == "Software"
+        assert len(result.companies) == 2
+        assert result.companies[0].name == "Tech Solutions Inc"
+        assert result.companies[0].industry == "Technology"
+        assert result.companies[1].name == "Innovative Corp"
+        assert result.companies[1].industry == "Software"
 
     @pytest.mark.asyncio
     async def test_get_jobs_success(
@@ -247,18 +248,18 @@ class TestGetLeads:
             mock_repository: The mock repository.
         """
         # Execute the use case
-        result = await jobs_use_case.get_leads(0)
+        result = await jobs_use_case.get_leads(0,3)
         
         # Verify repository method was called
         mock_repository.get_jobs.assert_called_once()
         
         # Verify result type and content
         assert isinstance(result, JobEntity)
-        assert len(result.root) == 2
-        assert result.root[0].job_title == "Senior Python Developer"
-        assert result.root[0].company_id == "company_1"
-        assert result.root[1].job_title == "Frontend Developer"
-        assert result.root[1].company_id == "company_2"
+        assert len(result.jobs) == 2
+        assert result.jobs[0].job_title == "Senior Python Developer"
+        assert result.jobs[0].company_id == "company_1"
+        assert result.jobs[1].job_title == "Frontend Developer"
+        assert result.jobs[1].company_id == "company_2"
 
     @pytest.mark.asyncio
     async def test_get_contacts_success(
@@ -275,18 +276,18 @@ class TestGetLeads:
             mock_repository: The mock repository.
         """
         # Execute the use case
-        result = await contacts_use_case.get_leads(0)
+        result = await contacts_use_case.get_leads(0,3)
         
         # Verify repository method was called
         mock_repository.get_contacts.assert_called_once()
         
         # Verify result type and content
         assert isinstance(result, ContactEntity)
-        assert len(result.root) == 2
-        assert result.root[0].name == "Marie Dubois"
-        assert result.root[0].email == "marie.dubois@techsolutions.com"
-        assert result.root[1].name == "Pierre Martin"
-        assert result.root[1].email == "pierre.martin@innovative-corp.com"
+        assert len(result.contacts) == 2
+        assert result.contacts[0].name == "Marie Dubois"
+        assert result.contacts[0].email == "marie.dubois@techsolutions.com"
+        assert result.contacts[1].name == "Pierre Martin"
+        assert result.contacts[1].email == "pierre.martin@innovative-corp.com"
 
     @pytest.mark.asyncio
     async def test_get_leads_success(
@@ -305,7 +306,7 @@ class TestGetLeads:
             mock_repository: The mock repository.
         """
         # Execute the use case
-        result = await leads_use_case.get_leads(0)
+        result = await leads_use_case.get_leads(0,3)
         
         # Verify repository method was called
         mock_repository.get_leads.assert_called_once()
@@ -315,22 +316,22 @@ class TestGetLeads:
         
         # Verify companies
         assert result.companies is not None
-        assert len(result.companies.root) == 2
-        assert result.companies.root[0].name == "Tech Solutions Inc"
+        assert len(result.companies.companies) == 2
+        assert result.companies.companies[0].name == "Tech Solutions Inc"
         
         # Verify jobs
         assert result.jobs is not None
-        assert len(result.jobs.root) == 2
-        assert result.jobs.root[0].job_title == "Senior Python Developer"
-        assert result.jobs.root[0].company_id == "company_1"
-        assert result.jobs.root[1].job_title == "Frontend Developer"
-        assert result.jobs.root[1].company_id == "company_2"
-        assert result.jobs.root[1].apply_url == ["https://innovative-corp.com/careers/frontend-dev"]
-        assert result.jobs.root[0].apply_url == ["https://jobs.techsolutions.com/apply/python-dev"]
-        assert result.jobs.root[0].compatibility_score == 95
-        assert result.jobs.root[1].compatibility_score == 88
-        
+        assert len(result.jobs.jobs) == 2
+        assert result.jobs.jobs[0].job_title == "Senior Python Developer"
+        assert result.jobs.jobs[0].company_id == "company_1"
+        assert result.jobs.jobs[1].job_title == "Frontend Developer"
+        assert result.jobs.jobs[1].company_id == "company_2"
+        assert result.jobs.jobs[1].apply_url == ["https://innovative-corp.com/careers/frontend-dev"]
+        assert result.jobs.jobs[0].apply_url == ["https://jobs.techsolutions.com/apply/python-dev"]
+        assert result.jobs.jobs[0].compatibility_score == 95
+        assert result.jobs.jobs[1].compatibility_score == 88
+
         # Verify contacts
         assert result.contacts is not None
-        assert len(result.contacts.root) == 2
-        assert result.contacts.root[0].name == "Marie Dubois"
+        assert len(result.contacts.contacts) == 2
+        assert result.contacts.contacts[0].name == "Marie Dubois"

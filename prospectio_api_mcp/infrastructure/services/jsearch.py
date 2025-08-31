@@ -81,7 +81,7 @@ class JsearchAPI(FetchLeadsPort):
             )
             ids.append(company.id or str(uuid4()))
             companies.append(company)
-        return CompanyEntity(companies), ids
+        return CompanyEntity(companies=companies), ids # type: ignore
 
     async def to_job_entity(self, dto: JSearchResponseDTO, ids: list[str]) -> JobEntity:
         """
@@ -112,7 +112,7 @@ class JsearchAPI(FetchLeadsPort):
                 apply_url=[job.job_apply_link or "", job.job_google_link or ""],
             )
             jobs.append(job_entity)
-        return JobEntity(jobs)
+        return JobEntity(jobs=jobs) # type: ignore
 
     async def process_results(
         self, company_result: CompanyEntity, job_result: JobEntity, params: dict
@@ -123,8 +123,8 @@ class JsearchAPI(FetchLeadsPort):
         jsearch = await self._check_error(client, result, JSearchResponseDTO)
         company_entity, ids = await self.to_company_entity(jsearch)
         job_entity = await self.to_job_entity(jsearch, ids)
-        company_result.root.extend(company_entity.root)
-        job_result.root.extend(job_entity.root)
+        company_result.companies.extend(company_entity.companies)
+        job_result.jobs.extend(job_entity.jobs)
 
     async def fetch_leads(self, location: str, job_title: list[str]) -> Leads:
         """
@@ -138,8 +138,8 @@ class JsearchAPI(FetchLeadsPort):
             Leads: The leads containing companies and jobs data.
         """
         params_list = []
-        company_result: CompanyEntity = CompanyEntity([])
-        job_result: JobEntity = JobEntity([])
+        company_result: CompanyEntity = CompanyEntity(companies=[]) # type: ignore
+        job_result: JobEntity = JobEntity(jobs=[]) # type: ignore
 
         for title in job_title[:2]:
             params = {
@@ -163,5 +163,5 @@ class JsearchAPI(FetchLeadsPort):
             companies=company_result,
             jobs=job_result,
             contacts=None,
-        )
+        ) # type: ignore
         return leads
