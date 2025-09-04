@@ -392,3 +392,5 @@ change settings json to match your environment
   }
 }
 ```
+
+**Built with ❤️ by the Prospectio Team**
