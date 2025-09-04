@@ -1,6 +1,9 @@
 from typing import Optional, List
 from pydantic import BaseModel, Field
 
+from domain.entities import job
+from infrastructure.services.enrich_leads_agent.models import job_titles
+
 
 class Contact(BaseModel):
     """
@@ -10,8 +13,14 @@ class Contact(BaseModel):
     company_id: Optional[str] = Field(
         None, description="Name of the company associated with the contact"
     )
+    company_name: Optional[str] = Field(
+        None, description="Name of the company associated with the contact"
+    )
     job_id: Optional[str] = Field(
         None, description="ID of the job associated with the contact"
+    )
+    job_title: Optional[str] = Field(
+        None, description="Title of the job associated with the contact"
     )
     name: Optional[str] = Field(None, description="Name of the contact")
     email: Optional[str] = Field(None, description="Email address of the contact")

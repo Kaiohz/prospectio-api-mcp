@@ -46,6 +46,7 @@ class ProfileDatabase(ProfileRepositoryPort):
             location=profile_dto.location,
             bio=profile_dto.bio,
             work_experience=work_experiences,
+            technos=profile_dto.technos or []
         )
 
     async def get_profile(self) -> Optional[Profile]:

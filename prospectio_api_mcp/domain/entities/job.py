@@ -11,6 +11,9 @@ class Job(BaseModel):
     company_id: Optional[str] = Field(
         None, description="ID of the company associated with the job"
     )
+    company_name: Optional[str] = Field(
+        None, description="Name of the company associated with the job"
+    )
     date_creation: Optional[str] = Field(
         None, description="Creation date of the job posting"
     )

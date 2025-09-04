@@ -17,6 +17,9 @@ from infrastructure.services.jsearch import JsearchAPI
 from config import AppConfig
 from infrastructure.services.leads_database import LeadsDatabase
 from config import DatabaseConfig
+from config import AppConfig
+from fastapi.middleware.cors import CORSMiddleware
+
 
 _LEADS_STRATEGIES: dict[str, Callable] = {
     "jsearch": lambda location, job_title: JsearchStrategy(
@@ -51,6 +54,17 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Prospectio API", lifespan=lifespan)
+
+app_config = AppConfig()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=app_config.ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 REST_PATH = "/prospectio/rest/v1"
 MCP_PATH = "/prospectio/"
 

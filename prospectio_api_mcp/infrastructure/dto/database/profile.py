@@ -1,5 +1,5 @@
 from typing import List, Optional, Any
-from sqlalchemy import Integer, String, Text, JSON
+from sqlalchemy import Integer, String, Text, JSON, ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 
 from infrastructure.dto.database.base import Base
@@ -18,6 +18,7 @@ class ProfileDTO(Base):
     location: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     bio: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     work_experience: Mapped[Optional[Any]] = mapped_column(JSON, nullable=True)
+    technos: Mapped[Optional[List[str]]] = mapped_column(ARRAY(Text), nullable=True)
 
     def __repr__(self) -> str:
         """
