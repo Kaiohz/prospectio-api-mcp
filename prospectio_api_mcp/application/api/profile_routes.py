@@ -29,7 +29,7 @@ def profile_router(
         description="Insert or update the user profile into the database. "
         "Use this AFTER calling get/profile when the profile doesn't exist or needs updates. "
         "You can ask for missing fields if the user hasn't provided them, or save partial data if user prefers. "
-        'Example JSON: {"job_title": "Software Developer", "location": "FR", "bio": "Passionate developer", "work_experience": [{"company": "TechCorp", "position": "Developer", "start_date": "2020-01", "end_date": "2023-12", "description": "Full-stack development"}]}'
+        'Example JSON: {"job_title": "Software Developer", "location": "FR", "bio": "Passionate developer", "work_experience": [{"company": "TechCorp", "position": "Developer", "start_date": "2020-01", "end_date": "2023-12", "description": "Full-stack development"}], "technos": ["Python", "FastAPI"]}'
     )
     async def upsert_profile(
         profile: Profile = Body(

@@ -1,5 +1,6 @@
 from langchain_core.prompts import ChatPromptTemplate
 from domain.entities.company import Company
+from domain.services.prompt_loader import PromptLoader
 from infrastructure.api.llm_generic_client import LLMGenericClient
 from infrastructure.services.enrich_leads_agent.models.make_decision import (
     MakeDecisionResult,
@@ -17,6 +18,7 @@ class DecisionChain:
             llm_client: The LLM client to use for processing the decision.
         """
         self.llm_client = llm_client
+        self.prompt_loader = PromptLoader()
 
     async def decide_enrichment(self, company: Company) -> MakeDecisionResult:
         """
@@ -28,32 +30,12 @@ class DecisionChain:
         Returns:
             MakeDecisionResult: The decision result from the LLM.
         """
-
+        prompt = self.prompt_loader.load_prompt("company_decision")
         decision_prompt = ChatPromptTemplate.from_messages([
             (
-                "system",
+                "user",
                 (
-                    "Decide if company data needs enrichment for prospecting.\n"
-                    "\n"
-                    "ENRICH if missing:\n"
-                    "• Company name is vague/empty\n"
-                    "• Industry unknown\n"
-                    "• No website or location\n"
-                    "• No company size info\n"
-                    "• No revenue data\n"
-                    "• Description too brief/missing\n"
-                    "\n"
-                    "DON'T ENRICH if has:\n"
-                    "• Clear company name + industry\n"
-                    "• Website OR location\n"
-                    "• Size OR revenue info\n"
-                    "• Decent description\n"
-                    "\n"
-                    "RULE: When unsure, choose ENRICH.\n"
-                    "\n"
-                    "If enrichment needed, call search_and_enrich tool.\n"
-                    "\n"
-                    "COMPANY DATA: {company}"
+                  prompt
                 ),
             )
         ])

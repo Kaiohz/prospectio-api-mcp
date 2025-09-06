@@ -1,6 +1,7 @@
-from typing import List
+from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy import or_, select
+from domain.entities import job
 from domain.ports.leads_repository import LeadsRepositoryPort
 from domain.entities.leads import Leads
 from infrastructure.dto.database.company import Company as CompanyDB
@@ -98,7 +99,16 @@ class LeadsDatabase(LeadsRepositoryPort):
                     .limit(limit)
                 )
                 job_dbs = result.scalars().all()
-                jobs = [self._convert_db_to_job(job_db) for job_db in job_dbs]
+
+                company_ids = {job.company_id for job in job_dbs if job.company_id}
+
+                companies_result = await session.execute(
+                    select(CompanyDB.id, CompanyDB.name).where(CompanyDB.id.in_(company_ids))
+                )
+                companies_map = {row.id: row.name for row in companies_result.fetchall()}
+
+
+                jobs = [self._convert_db_to_job(job_db, companies_map.get(job_db.company_id)) for job_db in job_dbs]
                 return JobEntity(jobs=jobs, pages=total_pages)
             except Exception as e:
                 raise e
@@ -126,7 +136,7 @@ class LeadsDatabase(LeadsRepositoryPort):
                 job_db = result.scalars().all()
 
                 if job_db:
-                    jobs = [self._convert_db_to_job(job) for job in job_db]
+                    jobs = [self._convert_db_to_job(job) for job in job_db] # type: ignore
                     return JobEntity(jobs=jobs) # type: ignore
                 return JobEntity(jobs=[]) # type: ignore
 
@@ -209,9 +219,28 @@ class LeadsDatabase(LeadsRepositoryPort):
                 result = await session.execute(
                     select(ContactDB).order_by(ContactDB.id).offset(offset).limit(limit)
                 )
+
                 contact_dbs = result.scalars().all()
+
+                company_ids = {contact_db.company_id for contact_db in contact_dbs if contact_db.company_id}
+                job_ids = {contact_db.job_id for contact_db in contact_dbs if contact_db.job_id}
+
+                companies_result = await session.execute(
+                    select(CompanyDB.id, CompanyDB.name).where(CompanyDB.id.in_(company_ids))
+                )
+                companies_map = {row.id: row.name for row in companies_result.fetchall()}
+
+                jobs_result = await session.execute(
+                    select(JobDB.id, JobDB.job_title).where(JobDB.id.in_(job_ids))
+                )
+                jobs_map = {row.id: row.job_title for row in jobs_result.fetchall()}
+
                 contacts = [
-                    self._convert_db_to_contact(contact_db)
+                    self._convert_db_to_contact(
+                        contact_db,
+                        companies_map.get(contact_db.company_id),
+                        jobs_map.get(contact_db.job_id)
+                    )
                     for contact_db in contact_dbs
                 ]
                 return ContactEntity(contacts=contacts, pages=total_pages)
@@ -240,7 +269,7 @@ class LeadsDatabase(LeadsRepositoryPort):
                 result = await session.execute(stmt)
                 contact_dbs = result.scalars().all()
                 contacts = [
-                    self._convert_db_to_contact(contact_db)
+                    self._convert_db_to_contact(contact_db) # type: ignore
                     for contact_db in contact_dbs
                 ]
                 return ContactEntity(contacts=contacts) # type: ignore
@@ -276,7 +305,7 @@ class LeadsDatabase(LeadsRepositoryPort):
                     .limit(limit)
                 )
                 job_dbs = jobs_result.scalars().all()
-                jobs = [self._convert_db_to_job(job_db) for job_db in job_dbs]
+                jobs = [self._convert_db_to_job(job_db) for job_db in job_dbs] # type: ignore
                 job_ids = [job_db.id for job_db in job_dbs]
                 company_ids = list(
                     {
@@ -309,7 +338,7 @@ class LeadsDatabase(LeadsRepositoryPort):
                 else:
                     contact_dbs = []
                 contacts = [
-                    self._convert_db_to_contact(contact_db)
+                    self._convert_db_to_contact(contact_db) # type: ignore
                     for contact_db in contact_dbs
                 ]
 
@@ -395,7 +424,7 @@ class LeadsDatabase(LeadsRepositoryPort):
             profile_url=contact_data.profile_url,
         )
 
-    def _convert_db_to_job(self, job_db: JobDB) -> Job:
+    def _convert_db_to_job(self, job_db: JobDB, company_name: Optional[str]) -> Job:
         """
         Convert database job model to domain job entity.
 
@@ -408,6 +437,7 @@ class LeadsDatabase(LeadsRepositoryPort):
         return Job(
             id=job_db.id,
             company_id=job_db.company_id,
+            company_name=company_name,
             date_creation=(
                 job_db.date_creation.isoformat() if job_db.date_creation else None
             ),
@@ -446,7 +476,7 @@ class LeadsDatabase(LeadsRepositoryPort):
             opportunities=company_db.opportunities,
         )
 
-    def _convert_db_to_contact(self, contact_db: ContactDB) -> Contact:
+    def _convert_db_to_contact(self, contact_db: ContactDB, company_name: Optional[str], job_title: Optional[str]) -> Contact:
         """
         Convert database contact model to domain contact entity.
 
@@ -458,7 +488,9 @@ class LeadsDatabase(LeadsRepositoryPort):
         """
         return Contact(
             company_id=contact_db.company_id,
+            company_name=company_name,
             job_id=contact_db.job_id,
+            job_title=job_title,
             name=contact_db.name,
             email=contact_db.email,
             title=contact_db.title,

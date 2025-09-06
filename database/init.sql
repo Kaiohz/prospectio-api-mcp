@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS profile (
     location VARCHAR(255),
     bio TEXT,
     work_experience JSON,
+    technos TEXT[],
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

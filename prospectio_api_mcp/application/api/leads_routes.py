@@ -67,19 +67,19 @@ def leads_router(
 
     @company_jobs_router.post("/insert/leads")
     @mcp_prospectio.tool(
-        description="Use this ONLY when the user asks for NEW opportunities or when get/leads returns insufficient data. "
+        description="Use this ONLY when the user asks for NEW opportunities/leads or when get/leads returns insufficient data. "
         "This tool searches external sources and inserts NEW leads into the database. "
-        "Sources available: 'mantiks', 'jsearch', 'active_jobs_db'."
+        "Sources available: 'jsearch', 'active_jobs_db'."
         "If a source does not work or returns no data, try another one. "
-        "Requires location (country code) and job titles as technologies (e.g., 'Python', 'AI', 'RAG', 'LLM'). "
+        "Requires location (country code) and job titles as technologies or job titles (e.g., 'Python', 'AI', 'RAG', 'LLM', 'Tech lead', 'Software Engineer'). Focus on technologies found on profile."
         "IMPORTANT: Before using this, check the user profile or ask to update it if missing. "
-        'Example JSON: {"source": "mantiks", "location": "FR", "job_title": ["Python", "AI", "RAG", "LLM"]}'
+        'Example JSON: {"source": "jsearch", "location": "FR", "job_params": ["Python", "AI", "RAG", "LLM", "Tech lead", "Software Engineer"]}'
     )
     async def insert_leads(
         source: str = Body(..., description="Lead source"),
         location: str = Body(..., description="Location country code"),
-        job_title: list[str] = Body(
-            ..., description="Job titles (repeat this param for multiple values)"
+        job_params: list[str] = Body(
+            ..., description="Job params (repeat this param for multiple values)"
         ),
     ) -> LeadsResult:
         """
@@ -96,9 +96,9 @@ def leads_router(
         try:
             if source not in jobs_strategy:
                 raise ValueError(f"Unknown source: {source}")
-            job_title = [title.strip().lower() for title in job_title]
+            job_params = [title.strip().lower() for title in job_params]
             location = location.strip().lower()
-            strategy = jobs_strategy[source](location, job_title)
+            strategy = jobs_strategy[source](location, job_params)
             processor = LeadsProcessor(compatibility)
             leads = await InsertLeadsUseCase(
                 strategy, repository, processor, profile_repository, enrich_port

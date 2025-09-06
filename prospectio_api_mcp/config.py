@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings
 class AppConfig(BaseSettings):
     EXPOSE: str = Field(..., json_schema_extra={"env": "EXPOSE"})
     MASTER_KEY: str = Field(..., json_schema_extra={"env": "MASTER_KEY"})
-    ALLOWED_ORIGINS: str = Field(..., json_schema_extra={"env": "ALLOWED_ORIGINS"})
+    ALLOWED_ORIGINS: list[str] = Field(..., json_schema_extra={"env": "ALLOWED_ORIGINS"})
 
 
 class MantiksConfig(BaseSettings):

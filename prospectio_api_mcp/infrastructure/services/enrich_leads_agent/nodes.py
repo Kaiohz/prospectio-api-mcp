@@ -54,7 +54,7 @@ class EnrichLeadsNodes:
         self.enrich_chain = EnrichChain(enrich_llm_client)
         self.profile = Profile(
             job_title=None, location=None, bio=None, work_experience=[]
-        )
+        ) # type: ignore
         self.leads = Leads(companies=CompanyEntity(companies=[]), contacts=ContactEntity(contacts=[]), jobs=JobEntity(jobs=[])) # type: ignore
 
     async def first_step(
@@ -147,7 +147,7 @@ class EnrichLeadsNodes:
                                 title=contact_info.title,
                                 phone=contact_info.phone,
                                 profile_url=', '.join(contact_info.profile_url)
-                            )
+                            ) # type: ignore
                     contacts.append(contact)
 
         state["enriched_contacts"] = contacts
@@ -233,7 +233,7 @@ class EnrichLeadsNodes:
         )
         company.description = company_description
 
-        other_info: CompanyInfo = await self.enrich_chain.extract_other_info_from_description(company_description)
+        other_info: CompanyInfo = await self.enrich_chain.extract_other_info_from_description(pages)
 
         # join for list fields
         company.industry = ', '.join(other_info.industry)

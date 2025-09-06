@@ -4,6 +4,11 @@ import os
 class PromptLoader:
     prompt_mapping = {
         "compatibility_score": "../prompts/compatibility_score.md",
+        "company_decision": "../prompts/company_decision.md",
+        "company_description": "../prompts/company_description.md",
+        "company_info": "../prompts/company_info.md",
+        "contact_info": "../prompts/contact_info.md",
+        "job_titles": "../prompts/job_titles.md",
     }
 
     def load_prompt(self, chat_profile: str) -> str:

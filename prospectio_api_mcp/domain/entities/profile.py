@@ -11,5 +11,6 @@ class Profile(BaseModel):
     location: Optional[str] = Field(None, description="Current location")
     bio: Optional[str] = Field(None, description="Professional biography")
     work_experience: List[WorkExperience] = Field(
-        default_factory=list, description="List of work experiences"
+        [], description="List of work experiences"
     )
+    technos: List[str] = Field([], description="List of technologies")
