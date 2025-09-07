@@ -3,13 +3,12 @@ from typing import Callable
 from fastapi import FastAPI
 from application.api.leads_routes import leads_router
 from application.api.profile_routes import profile_router
-from infrastructure.api.llm_client_factory import LLMClientFactory
 from infrastructure.services.compatibility_score import CompatibilityScoreLLM
 from infrastructure.services.enrich_leads_agent.agent import EnrichLeadsAgent
 from infrastructure.services.enrich_leads_agent.tools.crawl_client import CrawlClient
 from infrastructure.services.profile_database import ProfileDatabase
 from application.api.mcp_routes import mcp_prospectio
-from config import ActiveJobsDBConfig, JsearchConfig, LLMConfig, MantiksConfig
+from config import ActiveJobsDBConfig, JsearchConfig
 from domain.services.leads.strategies.active_jobs_db import ActiveJobsDBStrategy
 from domain.services.leads.strategies.jsearch import JsearchStrategy
 from infrastructure.services.active_jobs_db import ActiveJobsDBAPI
