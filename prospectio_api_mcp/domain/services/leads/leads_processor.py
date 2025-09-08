@@ -5,11 +5,9 @@ from domain.entities.leads import Leads
 from domain.entities.leads_result import LeadsResult
 from domain.entities.profile import Profile
 from domain.ports.compatibility_score import CompatibilityScorePort
-import asyncio
-
-
 from domain.entities.contact import ContactEntity
 from domain.ports.enrich_leads import EnrichLeadsPort
+import asyncio
 
 
 class LeadsProcessor:
@@ -36,7 +34,7 @@ class LeadsProcessor:
             contact.name = contact.name.strip().lower() if contact.name else ""
             contact.title = contact.title.strip().lower() if contact.title else ""
             identifier = (contact.name, contact.title)
-            if identifier not in seen:
+            if identifier not in seen and contact.email and contact.title:
                 seen.add(identifier)
                 unique_contacts.append(contact)
         return ContactEntity(contacts=unique_contacts) # type: ignore

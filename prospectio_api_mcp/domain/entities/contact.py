@@ -23,7 +23,7 @@ class Contact(BaseModel):
         None, description="Title of the job associated with the contact"
     )
     name: Optional[str] = Field(None, description="Name of the contact")
-    email: Optional[str] = Field(None, description="Email address of the contact")
+    email: Optional[list[str]] = Field(None, description="Email address of the contact")
     title: Optional[str] = Field(None, description="Title of the contact")
     phone: Optional[str] = Field(None, description="Phone number of the contact")
     profile_url: Optional[str] = Field(

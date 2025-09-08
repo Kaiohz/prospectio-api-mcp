@@ -321,7 +321,8 @@ class TestJsearchUseCase:
             job_title="AI Developper",
             location="Remote",
             bio="Experienced AI developer with expertise in machine learning and data science",
-            work_experience=[]
+            work_experience=[],
+            technos=[]
         )
     
     @pytest.fixture
@@ -467,7 +468,7 @@ class TestJsearchUseCase:
             # Verify result content
             assert result.companies == "Insert of 1 companies"
             assert result.jobs == "insert of 1 jobs"
-            assert result.contacts == "insert of 1 contacts"
+            assert result.contacts == "insert of 0 contacts"
 
     @pytest.mark.asyncio
     async def test_get_leads_success_no_insert(

@@ -24,6 +24,8 @@ from infrastructure.services.enrich_leads_agent.tools.duck_duck_go_client import
 )
 import re
 import urllib.parse
+from email_validator import validate_email, caching_resolver, EmailNotValidError
+
 
 
 logger = logging.getLogger(__name__)
@@ -137,16 +139,26 @@ class EnrichLeadsNodes:
                     contact_info: ContactInfo = await self.enrich_chain.extract_contact_from_web_search(
                         company.name or '', result
                     ) # type: ignore
+                    valid_email = []
+                    for mail in contact_info.email if contact_info.email else []:
+                        resolver = caching_resolver(timeout=10)
+                        try:
+                            emailinfo = validate_email(mail, 
+                                                        check_deliverability=True,
+                                                        dns_resolver=resolver)
+                            valid_email.append(emailinfo.email)
+                        except EmailNotValidError as e:
+                            logger.warning(f"Invalid email {mail}: {e}")
                     for job in self.leads.jobs.jobs: # type: ignore
                         if company.id == job.company_id:
                             contact = Contact(
                                 company_id=company.id,
                                 job_id=job.id,
                                 name=contact_info.name,
-                                email=', '.join(contact_info.email),
+                                email=valid_email,
                                 title=contact_info.title,
                                 phone=contact_info.phone,
-                                profile_url=', '.join(contact_info.profile_url)
+                                profile_url=", ".join(contact_info.profile_url)
                             ) # type: ignore
                     contacts.append(contact)
 

@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS contacts (
     company_id UUID REFERENCES companies(id) ON DELETE CASCADE,
     job_id UUID REFERENCES jobs(id) ON DELETE CASCADE,
     name TEXT,
-    email TEXT,
+    email TEXT[],
     title TEXT,
     phone TEXT,
     profile_url TEXT,
