@@ -1,7 +1,7 @@
 from typing import Optional, List
 from sqlalchemy import String, ForeignKey
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.dialects.postgresql import UUID, ARRAY
 import uuid
 from infrastructure.dto.database.base import Base
 
@@ -31,8 +31,8 @@ class Contact(Base):
         doc="ID of the job associated with the contact",
     )
     name: Mapped[Optional[str]] = mapped_column(String(255), doc="Name of the contact")
-    email: Mapped[Optional[str]] = mapped_column(
-        String(320), doc="Email address of the contact"
+    email: Mapped[Optional[list[str]]] = mapped_column(
+        ARRAY(String), doc="Email address of the contact"
     )
     title: Mapped[Optional[str]] = mapped_column(
         String(255), doc="Title of the contact"

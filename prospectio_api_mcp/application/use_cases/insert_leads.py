@@ -59,9 +59,6 @@ class InsertLeadsUseCase:
         )
         leads.jobs = await self.leads_processor.deduplicate_jobs(leads.jobs)
         if leads.contacts:
-            leads.contacts = await self.leads_processor.deduplicate_contacts(
-                leads.contacts
-            )
             names = [
                 contact.name
                 for contact in leads.contacts.contacts

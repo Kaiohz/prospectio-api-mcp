@@ -109,7 +109,7 @@ class TestGetLeads:
                 company_id="company_1",
                 job_id="job_1",
                 name="Marie Dubois",
-                email="marie.dubois@techsolutions.com",
+                email=["marie.dubois@techsolutions.com"],
                 title="HR Manager",
                 phone="+33 1 23 45 67 89",
                 profile_url="https://linkedin.com/in/marie-dubois"
@@ -118,7 +118,7 @@ class TestGetLeads:
                 company_id="company_2",
                 job_id="job_2",
                 name="Pierre Martin",
-                email="pierre.martin@innovative-corp.com",
+                email=["pierre.martin@innovative-corp.com"],
                 title="Technical Lead",
                 phone="+33 4 56 78 90 12",
                 profile_url="https://linkedin.com/in/pierre-martin"
@@ -285,9 +285,9 @@ class TestGetLeads:
         assert isinstance(result, ContactEntity)
         assert len(result.contacts) == 2
         assert result.contacts[0].name == "Marie Dubois"
-        assert result.contacts[0].email == "marie.dubois@techsolutions.com"
+        assert result.contacts[0].email == ["marie.dubois@techsolutions.com"]
         assert result.contacts[1].name == "Pierre Martin"
-        assert result.contacts[1].email == "pierre.martin@innovative-corp.com"
+        assert result.contacts[1].email == ["pierre.martin@innovative-corp.com"]
 
     @pytest.mark.asyncio
     async def test_get_leads_success(

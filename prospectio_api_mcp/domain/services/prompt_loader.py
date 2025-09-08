@@ -1,6 +1,5 @@
 import os
 
-
 class PromptLoader:
     prompt_mapping = {
         "compatibility_score": "../prompts/compatibility_score.md",
