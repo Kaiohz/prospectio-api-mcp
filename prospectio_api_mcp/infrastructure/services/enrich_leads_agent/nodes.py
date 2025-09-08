@@ -43,6 +43,7 @@ class EnrichLeadsNodes:
         Args:
             agent_params (AgentParams): Parameters for agent configuration.
         """
+        self.resolver = caching_resolver(timeout=10)
         concurrent_calls = LLMConfig().CONCURRENT_CALLS
         self.semaphore = asyncio.Semaphore(concurrent_calls)
         decision_model = LLMConfig().DECISION_MODEL
@@ -141,11 +142,10 @@ class EnrichLeadsNodes:
                     ) # type: ignore
                     valid_email = []
                     for mail in contact_info.email if contact_info.email else []:
-                        resolver = caching_resolver(timeout=10)
                         try:
                             emailinfo = validate_email(mail, 
                                                         check_deliverability=True,
-                                                        dns_resolver=resolver)
+                                                        dns_resolver=self.resolver)
                             valid_email.append(emailinfo.email)
                         except EmailNotValidError as e:
                             logger.warning(f"Invalid email {mail}: {e}")
