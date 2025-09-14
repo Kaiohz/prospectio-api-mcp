@@ -41,7 +41,7 @@ class TestJsearchUseCase:
         """
         return JsearchConfig(
             JSEARCH_API_URL="https://jsearch.p.rapidapi.com",
-            RAPIDAPI_API_KEY="test-rapidapi-key"
+            RAPIDAPI_API_KEY=["test-rapidapi-key"]
         )
 
     @pytest.fixture
@@ -169,7 +169,7 @@ class TestJsearchUseCase:
         Returns:
             ActiveJobsDBStrategy: Configured Active Jobs DB strategy.
         """
-        return LeadsDatabase(DatabaseConfig().DATABASE_URL)
+        return LeadsDatabase(DatabaseConfig().DATABASE_URL) # type: ignore
 
     @pytest.fixture
     def compatibility_score_llm(self) -> CompatibilityScore:
@@ -189,7 +189,7 @@ class TestJsearchUseCase:
         Returns:
             ProfileRepositoryPort: Mocked profile repository.
         """
-        return ProfileDatabase(DatabaseConfig().DATABASE_URL)
+        return ProfileDatabase(DatabaseConfig().DATABASE_URL) # type: ignore
     
     @pytest.fixture
     def leads_processor(self) -> LeadsProcessor:
@@ -304,7 +304,7 @@ class TestJsearchUseCase:
         Returns:
             DatabaseConfig: Test configuration object.
         """
-        return DatabaseConfig()
+        return DatabaseConfig() # type: ignore
     
     @pytest.fixture
     def mock_profile_database(self) -> Profile:
@@ -372,7 +372,7 @@ class TestJsearchUseCase:
                 sectors="Technology, Software Development",
                 apply_url=["https://jobs.techsolutions.com/apply/python-dev"],
                 compatibility_score=None
-            )
+            ) # type: ignore
         ], pages=1)
         return jobs
 

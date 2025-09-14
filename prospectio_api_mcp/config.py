@@ -1,4 +1,4 @@
-from pydantic.v1 import Field
+from pydantic import Field
 from pydantic_settings import BaseSettings
 
 
@@ -14,7 +14,7 @@ class MantiksConfig(BaseSettings):
 
 
 class RapidApiConfig(BaseSettings):
-    RAPIDAPI_API_KEY: str = Field(..., json_schema_extra={"env": "RAPIDAPI_API_KEY"})
+    RAPIDAPI_API_KEY: list[str] = Field(..., json_schema_extra={"env": "RAPIDAPI_API_KEY"})
 
 
 class JsearchConfig(RapidApiConfig):

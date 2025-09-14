@@ -1,3 +1,4 @@
+from re import A
 import httpx
 from uuid import uuid4
 from typing import TypeVar
@@ -26,12 +27,7 @@ class ActiveJobsDBAPI(FetchLeadsPort):
             config (ActiveJobsDBConfig): Active Jobs DB API configuration object.
         """
         self.api_base = config.ACTIVE_JOBS_DB_URL
-        self.api_key = config.RAPIDAPI_API_KEY
-        self.headers = {
-            "accept": "application/json",
-            "x-rapidapi-host": self.api_base.split("//")[-1].split("/")[0],
-            "x-rapidapi-key": self.api_key,
-        }
+        self.api_keys = config.RAPIDAPI_API_KEY
         self.endpoint = "/active-ats-7d"
 
     async def _check_error(
@@ -58,6 +54,50 @@ class ActiveJobsDBAPI(FetchLeadsPort):
         dto = dto_type(**{"active_jobs": result.json()})
         await client.close()
         return dto
+    
+    def _get_headers(self, api_key: str) -> dict[str, str]:
+        """
+        Get headers for API requests with the specified API key.
+
+        Args:
+            api_key (str): The RapidAPI key to use.
+
+        Returns:
+            dict[str, str]: Headers for the API request.
+        """
+        return {
+            "accept": "application/json",
+            "x-rapidapi-host": self.api_base.split("//")[-1].split("/")[0],
+            "x-rapidapi-key": api_key,
+        }
+    
+    async def _make_request_with_retry(self, endpoint: str, params: dict, key_index: int = 0) -> ActiveJobsResponseDTO:
+        """
+        Make API request with recursive retry logic for different API keys on 429 errors.
+
+        Args:
+            endpoint (str): The API endpoint to call.
+            params (dict): Request parameters.
+            key_index (int): Current key index to try.
+
+        Returns:
+            JSearchResponseDTO: The parsed response data.
+
+        Raises:
+            Exception: If all API keys are exhausted or other errors occur.
+        """
+        if key_index >= len(self.api_keys):
+            raise Exception("All API keys exhausted due to rate limiting")
+
+        headers = self._get_headers(self.api_keys[key_index])
+        client = BaseApiClient(self.api_base, headers)
+        result = await client.get(endpoint, params)
+        
+        if result.status_code == 429:
+            await client.close()
+            return await self._make_request_with_retry(endpoint, params, key_index + 1)
+        
+        return await self._check_error(client, result, ActiveJobsResponseDTO)
 
     async def to_company_entity(
         self, dto: ActiveJobsResponseDTO
@@ -145,9 +185,7 @@ class ActiveJobsDBAPI(FetchLeadsPort):
             "location_filter": location,
             "description_type": "text",
         }
-        client = BaseApiClient(self.api_base, self.headers)
-        result = await client.get(self.endpoint, params)
-        active_jobs = await self._check_error(client, result, ActiveJobsResponseDTO)
+        active_jobs = await self._make_request_with_retry(self.endpoint, params)
 
         company_entity, ids = await self.to_company_entity(active_jobs)
         job_entity = await self.to_job_entity(active_jobs, ids)

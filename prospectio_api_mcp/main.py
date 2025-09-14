@@ -22,10 +22,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 _LEADS_STRATEGIES: dict[str, Callable] = {
     "jsearch": lambda location, job_title: JsearchStrategy(
-        port=JsearchAPI(JsearchConfig()), location=location, job_title=job_title
+        port=JsearchAPI(JsearchConfig()), location=location, job_title=job_title # type: ignore
     ),
     "active_jobs_db": lambda location, job_title: ActiveJobsDBStrategy(
-        port=ActiveJobsDBAPI(ActiveJobsDBConfig()),
+        port=ActiveJobsDBAPI(ActiveJobsDBConfig()), # type: ignore
         location=location,
         job_title=job_title,
     ),
@@ -33,13 +33,13 @@ _LEADS_STRATEGIES: dict[str, Callable] = {
 
 leads_routes = leads_router(
     _LEADS_STRATEGIES,
-    LeadsDatabase(DatabaseConfig().DATABASE_URL),
+    LeadsDatabase(DatabaseConfig().DATABASE_URL), # type: ignore
     CompatibilityScoreLLM(),
-    ProfileDatabase(DatabaseConfig().DATABASE_URL),
+    ProfileDatabase(DatabaseConfig().DATABASE_URL), # type: ignore
     EnrichLeadsAgent(),
 )
 
-profile_routes = profile_router(ProfileDatabase(DatabaseConfig().DATABASE_URL))
+profile_routes = profile_router(ProfileDatabase(DatabaseConfig().DATABASE_URL)) # type: ignore
 
 
 @contextlib.asynccontextmanager
@@ -47,14 +47,14 @@ async def lifespan(app: FastAPI):
     """Manage the lifespan of both HTTP and stdio MCP servers."""
     async with contextlib.AsyncExitStack() as stack:
         await CrawlClient().crawl_page("https://www.google.fr")
-        if AppConfig().EXPOSE == "streamable":
+        if AppConfig().EXPOSE == "streamable": # type: ignore
             await stack.enter_async_context(mcp_prospectio.session_manager.run())
         yield
 
 
 app = FastAPI(title="Prospectio API", lifespan=lifespan)
 
-app_config = AppConfig()
+app_config = AppConfig() # type: ignore
 
 app.add_middleware(
     CORSMiddleware,
@@ -70,9 +70,9 @@ MCP_PATH = "/prospectio/"
 app.include_router(leads_routes, prefix=REST_PATH, tags=["Prospects"])
 app.include_router(profile_routes, prefix=REST_PATH, tags=["Profile"])
 
-if AppConfig().EXPOSE == "streamable":
+if AppConfig().EXPOSE == "streamable": # type: ignore
     app.mount(MCP_PATH, mcp_prospectio.streamable_http_app())
-if AppConfig().EXPOSE == "sse":
+if AppConfig().EXPOSE == "sse": # type: ignore
     app.mount(MCP_PATH, mcp_prospectio.sse_app())
 
 if __name__ == "__main__":

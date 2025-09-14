@@ -28,13 +28,52 @@ class JsearchAPI(FetchLeadsPort):
             config (JSearchConfig): JSearch API configuration object.
         """
         self.api_base = config.JSEARCH_API_URL
-        self.api_key = config.RAPIDAPI_API_KEY
-        self.headers = {
+        self.api_keys = config.RAPIDAPI_API_KEY
+        self.search_endpoint = "/search"
+
+    def _get_headers(self, api_key: str) -> dict[str, str]:
+        """
+        Get headers for API requests with the specified API key.
+
+        Args:
+            api_key (str): The RapidAPI key to use.
+
+        Returns:
+            dict[str, str]: Headers for the API request.
+        """
+        return {
             "accept": "application/json",
             "x-rapidapi-host": self.api_base.split("//")[-1].split("/")[0],
-            "x-rapidapi-key": self.api_key,
+            "x-rapidapi-key": api_key,
         }
-        self.search_endpoint = "/search"
+    
+    async def _make_request_with_retry(self, endpoint: str, params: dict, key_index: int = 0) -> JSearchResponseDTO:
+        """
+        Make API request with recursive retry logic for different API keys on 429 errors.
+
+        Args:
+            endpoint (str): The API endpoint to call.
+            params (dict): Request parameters.
+            key_index (int): Current key index to try.
+
+        Returns:
+            JSearchResponseDTO: The parsed response data.
+
+        Raises:
+            Exception: If all API keys are exhausted or other errors occur.
+        """
+        if key_index >= len(self.api_keys):
+            raise Exception("All API keys exhausted due to rate limiting")
+
+        headers = self._get_headers(self.api_keys[key_index])
+        client = BaseApiClient(self.api_base, headers)
+        result = await client.get(endpoint, params)
+        
+        if result.status_code == 429:
+            await client.close()
+            return await self._make_request_with_retry(endpoint, params, key_index + 1)
+        
+        return await self._check_error(client, result, JSearchResponseDTO)
 
     async def _check_error(
         self, client: BaseApiClient, result: httpx.Response, dto_type: type[T]
@@ -118,9 +157,7 @@ class JsearchAPI(FetchLeadsPort):
         self, company_result: CompanyEntity, job_result: JobEntity, params: dict
     ) -> None:
         await asyncio.sleep(1)  # Rate limiting to avoid hitting API limits
-        client = BaseApiClient(self.api_base, self.headers)
-        result = await client.get(self.search_endpoint, params)
-        jsearch = await self._check_error(client, result, JSearchResponseDTO)
+        jsearch = await self._make_request_with_retry(self.search_endpoint, params)
         company_entity, ids = await self.to_company_entity(jsearch)
         job_entity = await self.to_job_entity(jsearch, ids)
         company_result.companies.extend(company_entity.companies)
