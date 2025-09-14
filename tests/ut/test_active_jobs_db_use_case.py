@@ -126,7 +126,7 @@ class TestActiveJobsDBUseCase:
         """
         return ActiveJobsDBConfig(
             ACTIVE_JOBS_DB_URL="https://active-jobs-db.p.rapidapi.com",
-            RAPIDAPI_API_KEY="test-rapidapi-key"
+            RAPIDAPI_API_KEY=["test-rapidapi-key"]
         )
 
     @pytest.fixture
@@ -279,7 +279,7 @@ class TestActiveJobsDBUseCase:
         Returns:
             ActiveJobsDBStrategy: Configured Active Jobs DB strategy.
         """
-        return LeadsDatabase(DatabaseConfig().DATABASE_URL)
+        return LeadsDatabase(DatabaseConfig().DATABASE_URL) # type: ignore
     
     @pytest.fixture
     def compatibility_score_llm(self) -> CompatibilityScore:
@@ -299,7 +299,7 @@ class TestActiveJobsDBUseCase:
         Returns:
             ProfileRepositoryPort: Mocked profile repository.
         """
-        return ProfileDatabase(DatabaseConfig().DATABASE_URL)
+        return ProfileDatabase(DatabaseConfig().DATABASE_URL) # type: ignore
     
     @pytest.fixture
     def leads_processor(self) -> LeadsProcessor:
@@ -414,7 +414,7 @@ class TestActiveJobsDBUseCase:
         Returns:
             DatabaseConfig: Test configuration object.
         """
-        return DatabaseConfig()
+        return DatabaseConfig() # type: ignore
     
     @pytest.fixture
     def mock_profile_database(self) -> Profile:
@@ -495,7 +495,7 @@ class TestActiveJobsDBUseCase:
                     sectors=None,
                     apply_url=["https://innovationlabs.com/careers/python-dev"],
                     compatibility_score=None
-                ),
+                ), # type: ignore
                 Job(
                     id="bcffd4b0-8318-49f9-8cb3-d999027d03ea",
                     company_id="6e88cd46-e213-4170-b9ae-aa5380867563",
@@ -509,7 +509,7 @@ class TestActiveJobsDBUseCase:
                     sectors=None,
                     apply_url=["https://datatech.fr/jobs/backend-python"],
                     compatibility_score=None
-                )
+                ) # type: ignore
             ]
         ) # type: ignore
         return jobs

@@ -79,7 +79,7 @@ class TestGetLeads:
                 sectors="Technology",
                 apply_url=["https://jobs.techsolutions.com/apply/python-dev"],
                 compatibility_score=95
-            ),
+            ), # type: ignore
             Job(
                 id="job_2",
                 company_id="company_2",
@@ -93,7 +93,7 @@ class TestGetLeads:
                 sectors="Software",
                 apply_url=["https://innovative-corp.com/careers/frontend-dev"],
                 compatibility_score=88
-            )
+            ) # type: ignore
         ]
 
     @pytest.fixture
@@ -113,7 +113,7 @@ class TestGetLeads:
                 title="HR Manager",
                 phone="+33 1 23 45 67 89",
                 profile_url="https://linkedin.com/in/marie-dubois"
-            ),
+            ), # type: ignore
             Contact(
                 company_id="company_2",
                 job_id="job_2",
@@ -122,7 +122,7 @@ class TestGetLeads:
                 title="Technical Lead",
                 phone="+33 4 56 78 90 12",
                 profile_url="https://linkedin.com/in/pierre-martin"
-            )
+            ) # type: ignore
         ]
 
     @pytest.fixture

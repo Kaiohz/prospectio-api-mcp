@@ -18,7 +18,7 @@ class TestProfileUseCase:
         Returns:
             DatabaseConfig: Test configuration object.
         """
-        return DatabaseConfig()
+        return DatabaseConfig() # type: ignore
 
     @pytest.fixture
     def sample_profile_data(self) -> Profile:
@@ -48,7 +48,7 @@ class TestProfileUseCase:
                     description="Built microservices and REST APIs"
                 )
             ]
-        )
+        ) # type: ignore
 
     @pytest.fixture
     def sample_profile_dto(self) -> ProfileDTO:
