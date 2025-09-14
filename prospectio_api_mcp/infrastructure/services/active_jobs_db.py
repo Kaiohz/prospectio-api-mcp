@@ -81,7 +81,7 @@ class ActiveJobsDBAPI(FetchLeadsPort):
             key_index (int): Current key index to try.
 
         Returns:
-            JSearchResponseDTO: The parsed response data.
+            ActiveJobsResponseDTO: The parsed response data.
 
         Raises:
             Exception: If all API keys are exhausted or other errors occur.

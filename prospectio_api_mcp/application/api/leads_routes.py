@@ -107,16 +107,5 @@ def leads_router(
         except Exception as e:
             logger.error(f"Error in insert leads: {e}\n{traceback.format_exc()}")
             raise HTTPException(status_code=500, detail=str(e))
-    
-    async def generate_prospect_message(name: str, company: str, job_title: str) -> str:
-        return (
-            f"Hi {name},\n\n"
-            f"I came across your profile and was impressed by your experience as a {job_title} at {company}. "
-            "I believe there could be a great fit for you with some exciting opportunities we have.\n\n"
-            "Would you be open to a quick chat to explore this further?\n\n"
-            "Looking forward to connecting!\n\n"
-            "Best regards,\n"
-            "[Your Name]"
-        )
 
     return company_jobs_router
