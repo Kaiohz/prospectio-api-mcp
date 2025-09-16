@@ -9,6 +9,8 @@ from domain.entities.contact import ContactEntity
 from domain.ports.enrich_leads import EnrichLeadsPort
 import asyncio
 
+from domain.ports.task_manager import TaskManagerPort
+
 
 class LeadsProcessor:
 

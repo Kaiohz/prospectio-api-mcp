@@ -6,13 +6,11 @@ from domain.entities.compatibility_score import CompatibilityScore
 from domain.entities.contact import ContactEntity
 from domain.entities.job import Job, JobEntity
 from domain.entities.profile import Profile
-from domain.ports import task_manager
 from domain.ports.enrich_leads import EnrichLeadsPort
 from domain.ports.profile_respository import ProfileRepositoryPort
 from domain.ports.task_manager import TaskManagerPort
 from domain.services.leads.leads_processor import LeadsProcessor
 from domain.services.leads.strategies.jsearch import JsearchStrategy
-from infrastructure.api.llm_client_factory import LLMClientFactory
 from infrastructure.services.compatibility_score import CompatibilityScoreLLM
 from infrastructure.services.enrich_leads_agent.agent import EnrichLeadsAgent
 from infrastructure.services.enrich_leads_agent.chains.decision_chain import DecisionChain
@@ -24,12 +22,10 @@ from infrastructure.services.enrich_leads_agent.models.search_results_model impo
 from infrastructure.services.enrich_leads_agent.tools.crawl_client import CrawlClient
 from infrastructure.services.enrich_leads_agent.tools.duck_duck_go_client import DuckDuckGoClient
 from infrastructure.services.jsearch import JsearchAPI
-from config import DatabaseConfig, JsearchConfig, LLMConfig
+from config import DatabaseConfig, JsearchConfig
 from infrastructure.services.leads_database import LeadsDatabase
 from domain.entities.leads_result import LeadsResult
 from infrastructure.services.profile_database import ProfileDatabase
-from langchain_core.runnables.base import RunnableSequence
-
 from infrastructure.services.task_manager import InMemoryTaskManager
 
 class TestJsearchUseCase:
@@ -204,7 +200,7 @@ class TestJsearchUseCase:
             LeadsProcessor: Configured leads processor.
         """
         return LeadsProcessor(
-            compatibility_score_port=CompatibilityScoreLLM(),
+            compatibility_score_port=CompatibilityScoreLLM()
         )
     
     @pytest.fixture

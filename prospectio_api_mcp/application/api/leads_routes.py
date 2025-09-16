@@ -122,9 +122,12 @@ def leads_router(
         
     @leads_router.get("/task/{task_id}")
     @mcp_prospectio.tool(
-        description="Get the status of a task by its ID. "
-        "Use this to check the progress of long-running tasks like lead insertion. "
-        "Provide the task_id returned when the task was initiated."
+        description="Check the status and progress of a background task by its unique ID. "
+        "Essential for monitoring long-running operations like lead insertion, enrichment, or data processing. "
+        "Returns current status ('processing', 'completed', 'failed'), progress information, and any error details. "
+        "Use the task_id returned from operations like '/insert/leads' to track their execution. "
+        "Completed or failed tasks are automatically cleaned up after status retrieval. "
+        "Example: After starting lead insertion, use this to monitor when new leads are ready in the database."
     )
     async def get_task_status(task_id: str) -> Task:
         """

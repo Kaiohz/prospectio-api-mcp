@@ -3,6 +3,7 @@ from typing import Callable
 from fastapi import FastAPI, BackgroundTasks
 from application.api.leads_routes import leads_router
 from application.api.profile_routes import profile_router
+from domain.ports import task_manager
 from infrastructure.services.compatibility_score import CompatibilityScoreLLM
 from infrastructure.services.enrich_leads_agent.agent import EnrichLeadsAgent
 from infrastructure.services.enrich_leads_agent.tools.crawl_client import CrawlClient
@@ -32,13 +33,15 @@ _LEADS_STRATEGIES: dict[str, Callable] = {
     ),
 }
 
+in_memory_task_manager = InMemoryTaskManager()
+
 leads_routes = leads_router(
     _LEADS_STRATEGIES,
     LeadsDatabase(DatabaseConfig().DATABASE_URL), # type: ignore
     CompatibilityScoreLLM(),
     ProfileDatabase(DatabaseConfig().DATABASE_URL), # type: ignore
-    EnrichLeadsAgent(InMemoryTaskManager()),
-    InMemoryTaskManager()
+    EnrichLeadsAgent(in_memory_task_manager),
+    in_memory_task_manager
 )
 
 profile_routes = profile_router(ProfileDatabase(DatabaseConfig().DATABASE_URL)) # type: ignore

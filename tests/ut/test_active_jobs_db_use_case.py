@@ -1,4 +1,3 @@
-from re import I
 import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
 from application.use_cases.insert_leads import InsertLeadsUseCase
@@ -313,7 +312,7 @@ class TestActiveJobsDBUseCase:
             LeadsProcessor: Configured leads processor.
         """
         return LeadsProcessor(
-            compatibility_score_port=CompatibilityScoreLLM(),
+            compatibility_score_port=CompatibilityScoreLLM()
         )
     
     @pytest.fixture
