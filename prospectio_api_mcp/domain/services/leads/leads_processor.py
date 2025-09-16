@@ -13,7 +13,7 @@ import asyncio
 class LeadsProcessor:
 
     def __init__(self, compatibility_score_port: CompatibilityScorePort):
-        config = LLMConfig()
+        config = LLMConfig() # type: ignore
         concurrency_limit = config.CONCURRENT_CALLS
         self.semaphore = asyncio.Semaphore(concurrency_limit)
         self.compatibility_score_port = compatibility_score_port
@@ -318,10 +318,10 @@ class LeadsProcessor:
 
         return jobs
 
-    async def enrich_leads(self, enrich_leads: EnrichLeadsPort, leads: Leads, profile: Profile) -> Leads:
+    async def enrich_leads(self, enrich_leads: EnrichLeadsPort, leads: Leads, profile: Profile, task_uuid: str) -> Leads:
         """
         Enrich leads with deduplication and compatibility scoring.
 
         This method is a placeholder for future enrichment logic.
         """
-        return await enrich_leads.execute(leads, profile)
+        return await enrich_leads.execute(leads, profile, task_uuid)

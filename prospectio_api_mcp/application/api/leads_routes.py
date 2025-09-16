@@ -1,24 +1,28 @@
+import asyncio
+import logging
+import traceback
 from typing import Union
-from fastapi import APIRouter, Body, HTTPException, Path
+from fastapi import APIRouter, HTTPException, Path
+from application.requests.insert_leads import InsertLeadsRequest
 from application.use_cases.get_leads import GetLeadsUseCase
 from domain.entities.company import CompanyEntity
 from domain.entities.contact import ContactEntity
 from domain.entities.job import JobEntity
 from domain.entities.leads import Leads
-from domain.entities.leads_result import LeadsResult
 from domain.ports.compatibility_score import CompatibilityScorePort
 from domain.ports.enrich_leads import EnrichLeadsPort
 from domain.ports.profile_respository import ProfileRepositoryPort
+from domain.ports.task_manager import TaskManagerPort
 from domain.services.leads.leads_processor import LeadsProcessor
 from prospectio_api_mcp.application.use_cases.insert_leads import (
     InsertLeadsUseCase,
 )
 from collections.abc import Callable
-import logging
-import traceback
 from domain.services.leads.strategy import LeadsStrategy
 from domain.ports.leads_repository import LeadsRepositoryPort
 from application.api.mcp_routes import mcp_prospectio
+from uuid import uuid4
+from domain.entities.task import Task
 
 
 logger = logging.getLogger(__name__)
@@ -30,6 +34,7 @@ def leads_router(
     compatibility: CompatibilityScorePort,
     profile_repository: ProfileRepositoryPort,
     enrich_port: EnrichLeadsPort,
+    task_manager: TaskManagerPort
 ) -> APIRouter:
     """
     Create an APIRouter for company jobs endpoints with injected strategy.
@@ -40,9 +45,9 @@ def leads_router(
     Returns:
         APIRouter: Configured router with endpoints.
     """
-    company_jobs_router = APIRouter()
+    leads_router = APIRouter()
 
-    @company_jobs_router.get("/leads/{type}/{offset}/{limit}")
+    @leads_router.get("/leads/{type}/{offset}/{limit}")
     @mcp_prospectio.tool(
         description="ALWAYS USE THIS FIRST to retrieve existing data from the database before searching for new opportunities. "
         "Returns companies, jobs, contacts or leads that are already stored in the database. "
@@ -65,7 +70,7 @@ def leads_router(
             logger.error(f"Error in get leads: {e}\n{traceback.format_exc()}")
             raise HTTPException(status_code=500, detail=str(e))
 
-    @company_jobs_router.post("/insert/leads")
+    @leads_router.post("/insert/leads")
     @mcp_prospectio.tool(
         description="Use this ONLY when the user asks for NEW opportunities/leads or when get/leads returns insufficient data. "
         "This tool searches external sources and inserts NEW leads into the database. "
@@ -76,12 +81,8 @@ def leads_router(
         'Example JSON: {"source": "jsearch", "location": "FR", "job_params": ["Python", "AI", "RAG", "LLM", "Tech lead", "Software Engineer"]}'
     )
     async def insert_leads(
-        source: str = Body(..., description="Lead source"),
-        location: str = Body(..., description="Location country code"),
-        job_params: list[str] = Body(
-            ..., description="Job params (repeat this param for multiple values)"
-        ),
-    ) -> LeadsResult:
+        request: InsertLeadsRequest
+    ) -> Task:
         """
         Retrieve leads with contacts from the specified source.
 
@@ -94,18 +95,56 @@ def leads_router(
             dict: A dictionary containing the leads data.
         """
         try:
-            if source not in jobs_strategy:
-                raise ValueError(f"Unknown source: {source}")
-            job_params = [title.strip().lower() for title in job_params]
-            location = location.strip().lower()
-            strategy = jobs_strategy[source](location, job_params)
+            if request.source not in jobs_strategy:
+                raise ValueError(f"Unknown source: {request.source}")
+            job_params = [title.strip().lower() for title in request.job_params]
+            location = request.location.strip().lower()
+            strategy = request.source.strip().lower()
+            task_uuid = str(uuid4())
+            strategy = jobs_strategy[request.source](location, job_params)
             processor = LeadsProcessor(compatibility)
-            leads = await InsertLeadsUseCase(
-                strategy, repository, processor, profile_repository, enrich_port
-            ).insert_leads()
-            return leads
+
+            asyncio.create_task(
+                InsertLeadsUseCase(
+                    task_uuid, strategy, repository, processor, profile_repository, enrich_port, task_manager
+                ).insert_leads()
+            )
+
+            return Task(
+                task_id=task_uuid,
+                message=f"Lead insertion started for source '{request.source}' in location '{location}'",
+                status="processing"
+            )
         except Exception as e:
+            await task_manager.remove_task(task_uuid)
             logger.error(f"Error in insert leads: {e}\n{traceback.format_exc()}")
             raise HTTPException(status_code=500, detail=str(e))
+        
+    @leads_router.get("/task/{task_id}")
+    @mcp_prospectio.tool(
+        description="Get the status of a task by its ID. "
+        "Use this to check the progress of long-running tasks like lead insertion. "
+        "Provide the task_id returned when the task was initiated."
+    )
+    async def get_task_status(task_id: str) -> Task:
+        """
+        Get the status of a task by its ID.
 
-    return company_jobs_router
+        Args:
+            task_id (str): The ID of the task to retrieve.
+
+        Returns:
+            Task: The task with its current status.
+        """
+        try:
+            task = await task_manager.get_task_status(task_id)
+            if not task:
+                raise HTTPException(status_code=404, detail="Task not found")
+            if task.status == "completed" or task.status == "failed":
+                await task_manager.remove_task(task_id)
+            return task
+        except Exception as e:
+            logger.error(f"Error in get task status: {e}\n{traceback.format_exc()}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    return leads_router

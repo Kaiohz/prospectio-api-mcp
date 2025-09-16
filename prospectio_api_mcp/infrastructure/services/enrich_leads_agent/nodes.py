@@ -44,14 +44,14 @@ class EnrichLeadsNodes:
             agent_params (AgentParams): Parameters for agent configuration.
         """
         self.resolver = caching_resolver(timeout=10)
-        concurrent_calls = LLMConfig().CONCURRENT_CALLS
+        concurrent_calls = LLMConfig().CONCURRENT_CALLS # type: ignore
         self.semaphore = asyncio.Semaphore(concurrent_calls)
-        decision_model = LLMConfig().DECISION_MODEL
+        decision_model = LLMConfig().DECISION_MODEL # type: ignore
         decision_llm_client = LLMClientFactory(
-            model=decision_model, config=LLMConfig()
+            model=decision_model, config=LLMConfig() # type: ignore
         ).create_client()
         enrich_llm_client = LLMClientFactory(
-            model=LLMConfig().ENRICH_MODEL, config=LLMConfig()
+            model=LLMConfig().ENRICH_MODEL, config=LLMConfig() # type: ignore
         ).create_client()
         self.decision_chain = DecisionChain(decision_llm_client)
         self.enrich_chain = EnrichChain(enrich_llm_client)

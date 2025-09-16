@@ -1,6 +1,6 @@
 import contextlib
 from typing import Callable
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks
 from application.api.leads_routes import leads_router
 from application.api.profile_routes import profile_router
 from infrastructure.services.compatibility_score import CompatibilityScoreLLM
@@ -18,6 +18,7 @@ from infrastructure.services.leads_database import LeadsDatabase
 from config import DatabaseConfig
 from config import AppConfig
 from fastapi.middleware.cors import CORSMiddleware
+from infrastructure.services.task_manager import InMemoryTaskManager
 
 
 _LEADS_STRATEGIES: dict[str, Callable] = {
@@ -36,7 +37,8 @@ leads_routes = leads_router(
     LeadsDatabase(DatabaseConfig().DATABASE_URL), # type: ignore
     CompatibilityScoreLLM(),
     ProfileDatabase(DatabaseConfig().DATABASE_URL), # type: ignore
-    EnrichLeadsAgent(),
+    EnrichLeadsAgent(InMemoryTaskManager()),
+    InMemoryTaskManager()
 )
 
 profile_routes = profile_router(ProfileDatabase(DatabaseConfig().DATABASE_URL)) # type: ignore
