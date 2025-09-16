@@ -8,9 +8,9 @@ from domain.entities.job import Job, JobEntity
 from domain.entities.profile import Profile
 from domain.ports.enrich_leads import EnrichLeadsPort
 from domain.ports.profile_respository import ProfileRepositoryPort
+from domain.ports.task_manager import TaskManagerPort
 from domain.services.leads.leads_processor import LeadsProcessor
 from domain.services.leads.strategies.jsearch import JsearchStrategy
-from infrastructure.api.llm_client_factory import LLMClientFactory
 from infrastructure.services.compatibility_score import CompatibilityScoreLLM
 from infrastructure.services.enrich_leads_agent.agent import EnrichLeadsAgent
 from infrastructure.services.enrich_leads_agent.chains.decision_chain import DecisionChain
@@ -22,11 +22,11 @@ from infrastructure.services.enrich_leads_agent.models.search_results_model impo
 from infrastructure.services.enrich_leads_agent.tools.crawl_client import CrawlClient
 from infrastructure.services.enrich_leads_agent.tools.duck_duck_go_client import DuckDuckGoClient
 from infrastructure.services.jsearch import JsearchAPI
-from config import DatabaseConfig, JsearchConfig, LLMConfig
+from config import DatabaseConfig, JsearchConfig
 from infrastructure.services.leads_database import LeadsDatabase
 from domain.entities.leads_result import LeadsResult
 from infrastructure.services.profile_database import ProfileDatabase
-from langchain_core.runnables.base import RunnableSequence
+from infrastructure.services.task_manager import InMemoryTaskManager
 
 class TestJsearchUseCase:
     """Test suite for the JSearch use case implementation."""
@@ -200,19 +200,29 @@ class TestJsearchUseCase:
             LeadsProcessor: Configured leads processor.
         """
         return LeadsProcessor(
-            compatibility_score_port=CompatibilityScoreLLM(),
+            compatibility_score_port=CompatibilityScoreLLM()
         )
+    
+    @pytest.fixture
+    def task_manager(self) -> TaskManagerPort:
+        """
+        Create a InMemoryTaskManager for testing.
+
+        Returns:
+            InMemoryTaskManager: Configured task manager.
+        """
+        return InMemoryTaskManager()
 
     @pytest.fixture
-    def enrich_leads(self) -> EnrichLeadsPort:
+    def enrich_leads(self, task_manager: TaskManagerPort) -> EnrichLeadsPort:
         """
         Create a  EnrichLeadsPort for testing.
 
         Returns:
             EnrichLeadsPort: Configured enrich leads agent.
         """
-        return EnrichLeadsAgent()
-    
+        return EnrichLeadsAgent(task_manager)
+
     @pytest.fixture
     def decide_enrichment(self) -> MakeDecisionResult:
         """
@@ -382,7 +392,8 @@ class TestJsearchUseCase:
                  active_jobs_db_repository: LeadsDatabase, 
                  leads_processor: LeadsProcessor,
                  profile_repository: ProfileRepositoryPort,
-                 enrich_leads: EnrichLeadsPort
+                 enrich_leads: EnrichLeadsPort,
+                task_manager: TaskManagerPort
     ) -> InsertLeadsUseCase:
         """
         Create a GetCompanyJobsUseCase instance for testing.
@@ -394,11 +405,13 @@ class TestJsearchUseCase:
             GetCompanyJobsUseCase: Configured use case.
         """
         return InsertLeadsUseCase(
+            task_uuid="test-task-uuid",
             strategy=jsearch_strategy, 
             repository=active_jobs_db_repository,
             leads_processor=leads_processor, 
             profile_repository=profile_repository,
-            enrich_leads=enrich_leads
+            enrich_leads=enrich_leads,
+            task_manager=task_manager
         )
 
     @pytest.mark.asyncio
@@ -461,6 +474,7 @@ class TestJsearchUseCase:
             mock_repo.get_leads = AsyncMock(return_value=None)
             # Execute the use case
             result = await use_case.insert_leads()
+            task = await use_case.task_manager.get_task_status("test-task-uuid")
             
             # Verify result type
             assert isinstance(result, LeadsResult)
@@ -469,6 +483,7 @@ class TestJsearchUseCase:
             assert result.companies == "Insert of 1 companies"
             assert result.jobs == "insert of 1 jobs"
             assert result.contacts == "insert of 0 contacts"
+            assert task.status == "completed"
 
     @pytest.mark.asyncio
     async def test_get_leads_success_no_insert(
@@ -533,6 +548,7 @@ class TestJsearchUseCase:
             
             # Execute the use case
             result = await use_case.insert_leads()
+            task = await use_case.task_manager.get_task_status("test-task-uuid")
             
             # Verify result type
             assert isinstance(result, LeadsResult)
@@ -541,3 +557,4 @@ class TestJsearchUseCase:
             assert result.companies == "Insert of 0 companies"
             assert result.jobs == "insert of 0 jobs"
             assert result.contacts == "insert of 0 contacts"
+            assert task.status == "completed"

@@ -1,9 +1,8 @@
-from typing import Any, AsyncIterator
-from IPython.display import Image
 from langgraph.graph import END, START, StateGraph
 from domain.entities.leads import Leads
 from domain.entities.profile import Profile
 from domain.ports.enrich_leads import EnrichLeadsPort
+from domain.ports.task_manager import TaskManagerPort
 from infrastructure.services.enrich_leads_agent.nodes import EnrichLeadsNodes
 from infrastructure.services.enrich_leads_agent.state import OverallEnrichLeadsState
 
@@ -13,7 +12,7 @@ class EnrichLeadsAgent(EnrichLeadsPort):
     An agent that enriches leads using various data sources.
     """
 
-    def __init__(self):
+    def __init__(self, task_manager: TaskManagerPort):
         """
         Initialize the AgentWebSearch with required models and tools.
 
@@ -21,6 +20,7 @@ class EnrichLeadsAgent(EnrichLeadsPort):
             agent_params (AgentParams): Parameters for agent configuration.
         """
         self.EnrichLeadsNodes = EnrichLeadsNodes()
+        self.task_manager = task_manager
 
     def build_graph(self) -> StateGraph:
         """
@@ -89,7 +89,7 @@ class EnrichLeadsAgent(EnrichLeadsPort):
 
         return builder
 
-    async def execute(self, leads: Leads, profile: Profile) -> Leads:
+    async def execute(self, leads: Leads, profile: Profile, task_uuid: str) -> Leads:
         """
         Compile and return the agent's state graph.
 
@@ -104,7 +104,11 @@ class EnrichLeadsAgent(EnrichLeadsPort):
             for value in chunk.values():
                 step = value.get("step") if isinstance(value, dict) else None
                 if step is not None:
-                    print(step)
+                    await self.task_manager.update_task(
+                        task_uuid,
+                        f"Enrichment step: {step}",
+                        "in_progress"
+                    )
                 aggregate = (
                     value.get("aggregate")
                     if isinstance(value, dict)

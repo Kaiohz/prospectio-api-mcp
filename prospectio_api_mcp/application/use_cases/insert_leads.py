@@ -1,5 +1,6 @@
 from domain.ports.enrich_leads import EnrichLeadsPort
 from domain.ports.profile_respository import ProfileRepositoryPort
+from domain.ports.task_manager import TaskManagerPort
 from domain.services.leads.strategy import LeadsStrategy
 from domain.entities.leads_result import LeadsResult
 from domain.ports.leads_repository import LeadsRepositoryPort
@@ -14,11 +15,13 @@ class InsertLeadsUseCase:
 
     def __init__(
         self,
+        task_uuid: str,
         strategy: LeadsStrategy,
         repository: LeadsRepositoryPort,
         leads_processor: LeadsProcessor,
         profile_repository: ProfileRepositoryPort,
         enrich_leads: EnrichLeadsPort,
+        task_manager: TaskManagerPort
     ):
         """
         Initialize the GetLeadsUseCase with the required parameters and available strategies.
@@ -34,6 +37,8 @@ class InsertLeadsUseCase:
         self.leads_processor = leads_processor
         self.profile_repository = profile_repository
         self.enrich_leads = enrich_leads
+        self.task_uuid = task_uuid
+        self.task_manager = task_manager
 
     async def insert_leads(self) -> LeadsResult:
         """
@@ -44,16 +49,21 @@ class InsertLeadsUseCase:
         Raises:
             KeyError: If the specified source is not supported.
         """
+        self.task = await self.task_manager.submit_task(self.task_uuid)
         profile = await self.profile_repository.get_profile()
         if not profile:
+            await self.task_manager.update_task(self.task_uuid, "Profile not found. Please create a profile before inserting leads.", "failed")
             raise ValueError(
                 "Profile not found. Please create a profile before inserting leads."
             )
         leads = await self.strategy.execute()
         if not leads.jobs:
+            await self.task_manager.update_task(self.task_uuid, "No jobs found in the leads data.", "failed")
             raise ValueError("No jobs found in the leads data.")
         if not leads.companies:
+            await self.task_manager.update_task(self.task_uuid, "No companies found in the leads data.", "failed")
             raise ValueError("No companies found in the leads data.")
+        await self.task_manager.update_task(self.task_uuid, "Processing and deduplicating leads", "in_progress")
         leads.companies = await self.leads_processor.deduplicate_companies(
             leads.companies, leads.jobs
         )
@@ -97,12 +107,15 @@ class InsertLeadsUseCase:
                     leads.contacts, leads.jobs, leads.companies
                 )
             )
+        await self.task_manager.update_task(self.task_uuid, "Calculating compatibility scores", "in_progress")
         await self.leads_processor.calculate_compatibility_scores(profile, leads.jobs)
-        await self.leads_processor.enrich_leads(self.enrich_leads, leads, profile)
+        await self.task_manager.update_task(self.task_uuid, "Enriching leads with additional data", "in_progress")
+        await self.leads_processor.enrich_leads(self.enrich_leads, leads, profile, self.task_uuid)
         if leads.contacts:
             leads.contacts = await self.leads_processor.deduplicate_contacts(
                 leads.contacts
             )
         leads_result = await self.leads_processor.calculate_statistics(leads)
         await self.repository.save_leads(leads)
+        await self.task_manager.update_task(self.task_uuid, f"Lead insertion completed with companies : {leads_result.companies}, jobs : {leads_result.jobs}, and contacts : {leads_result.contacts} saved", "completed")
         return leads_result

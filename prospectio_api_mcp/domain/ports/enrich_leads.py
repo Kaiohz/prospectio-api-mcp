@@ -9,5 +9,5 @@ class EnrichLeadsPort(ABC):
         self.profile = profile
 
     @abstractmethod
-    async def execute(self, leads: Leads, profile: Profile) -> Leads:
+    async def execute(self, leads: Leads, profile: Profile, task_uuid: str) -> Leads:
         pass

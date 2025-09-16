@@ -9,6 +9,7 @@ from domain.entities.leads import Leads
 from domain.entities.profile import Profile
 from domain.entities.work_experience import WorkExperience
 from domain.ports.profile_respository import ProfileRepositoryPort
+from domain.ports.task_manager import TaskManagerPort
 from domain.services.leads.leads_processor import LeadsProcessor
 from domain.services.leads.strategies.active_jobs_db import ActiveJobsDBStrategy
 from infrastructure.dto.database.profile import ProfileDTO
@@ -28,6 +29,7 @@ from domain.entities.leads_result import LeadsResult
 from infrastructure.services.profile_database import ProfileDatabase
 from config import DatabaseConfig, ActiveJobsDBConfig
 from domain.ports.enrich_leads import EnrichLeadsPort
+from infrastructure.services.task_manager import InMemoryTaskManager
 
 @pytest.fixture(autouse=True)
 def patch_database_constructors():
@@ -310,19 +312,29 @@ class TestActiveJobsDBUseCase:
             LeadsProcessor: Configured leads processor.
         """
         return LeadsProcessor(
-            compatibility_score_port=CompatibilityScoreLLM(),
+            compatibility_score_port=CompatibilityScoreLLM()
         )
+    
+    @pytest.fixture
+    def task_manager(self) -> TaskManagerPort:
+        """
+        Create a InMemoryTaskManager for testing.
+
+        Returns:
+            InMemoryTaskManager: Configured task manager.
+        """
+        return InMemoryTaskManager()
 
     @pytest.fixture
-    def enrich_leads(self) -> EnrichLeadsPort:
+    def enrich_leads(self, task_manager: TaskManagerPort) -> EnrichLeadsPort:
         """
         Create a  EnrichLeadsPort for testing.
 
         Returns:
             EnrichLeadsPort: Configured enrich leads agent.
         """
-        return EnrichLeadsAgent()
-    
+        return EnrichLeadsAgent(task_manager)
+
     @pytest.fixture
     def decide_enrichment(self) -> MakeDecisionResult:
         """
@@ -520,7 +532,8 @@ class TestActiveJobsDBUseCase:
                  active_jobs_db_repository: LeadsDatabase, 
                  leads_processor: LeadsProcessor,
                  profile_repository: ProfileRepositoryPort,
-                 enrich_leads: EnrichLeadsPort
+                 enrich_leads: EnrichLeadsPort,
+                 task_manager: TaskManagerPort
     ) -> InsertLeadsUseCase:
         """
         Create a GetCompanyJobsUseCase instance for testing.
@@ -532,11 +545,13 @@ class TestActiveJobsDBUseCase:
             GetCompanyJobsUseCase: Configured use case.
         """
         return InsertLeadsUseCase(
+            task_uuid="test-task-uuid",
             strategy=active_jobs_db_strategy, 
             repository=active_jobs_db_repository, 
             leads_processor=leads_processor, 
             profile_repository=profile_repository,
-            enrich_leads=enrich_leads
+            enrich_leads=enrich_leads,
+            task_manager=task_manager
         )
 
     @pytest.mark.asyncio
@@ -599,11 +614,13 @@ class TestActiveJobsDBUseCase:
             mock_repo.get_leads = AsyncMock(return_value=None)
 
             result = await use_case.insert_leads()
+            task = await use_case.task_manager.get_task_status("test-task-uuid")
 
             assert isinstance(result, LeadsResult)
             assert result.companies == "Insert of 2 companies"
             assert result.jobs == "insert of 2 jobs"
             assert result.contacts == "insert of 0 contacts"
+            assert task.status == "completed"
 
     @pytest.mark.asyncio
     async def test_get_leads_success_no_insert(
@@ -669,8 +686,10 @@ class TestActiveJobsDBUseCase:
             mock_get.return_value = active_jobs_response_mock
 
             result = await use_case.insert_leads()
+            task = await use_case.task_manager.get_task_status("test-task-uuid")
 
             assert isinstance(result, LeadsResult)
             assert result.companies == "Insert of 0 companies"
             assert result.jobs == "insert of 0 jobs"
             assert result.contacts == "insert of 0 contacts"
+            assert task.status == "completed"
