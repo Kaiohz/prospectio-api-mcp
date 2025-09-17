@@ -16,7 +16,7 @@ Generate an authentic, human-centered message that:
 - Creates curiosity through genuine insights, not sales tactics
 - Invites conversation rather than demanding attention
 
-**IMPORTANT**: You are writing this message FROM the perspective of the person described in the {profile} section TO the person described in the {contact} section who works at the company described in the {company} section.
+**IMPORTANT**: You are writing this message FROM the perspective of the person described in the profile section TO the person described in the {contact} section who works at the company described in the company section.
 
 ## Input Data Analysis
 

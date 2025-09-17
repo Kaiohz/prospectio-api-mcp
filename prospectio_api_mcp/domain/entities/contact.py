@@ -5,7 +5,7 @@ class Contact(BaseModel):
     """
     Represents a business contact with optional fields: name, email, phone, and company name.
     """
-
+    id: Optional[str] = Field(None, description="Unique identifier for the contact")
     company_id: Optional[str] = Field(
         None, description="Name of the company associated with the contact"
     )

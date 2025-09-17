@@ -530,6 +530,7 @@ class LeadsDatabase(LeadsRepositoryPort):
             Contact: Domain contact entity.
         """
         return Contact(
+            id=contact_db.id,
             company_id=contact_db.company_id,
             company_name=company_name,
             job_id=contact_db.job_id,
