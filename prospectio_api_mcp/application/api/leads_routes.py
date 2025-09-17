@@ -10,6 +10,7 @@ from domain.entities.company import CompanyEntity
 from domain.entities.contact import ContactEntity
 from domain.entities.job import JobEntity
 from domain.entities.leads import Leads
+from domain.entities.prospect_message import ProspectMessage
 from domain.ports.compatibility_score import CompatibilityScorePort
 from domain.ports.enrich_leads import EnrichLeadsPort
 from domain.ports.generate_message import GenerateMessagePort
@@ -154,7 +155,7 @@ def leads_router(
             raise HTTPException(status_code=500, detail=str(e))
         
     @leads_router.get("/generate/message/{contact_id}")
-    async def generate_prospecting_message(contact_id: str) -> dict:
+    async def generate_prospecting_message(contact_id: str) -> ProspectMessage:
         """
         Generate a prospecting message for a contact by its ID.
 
@@ -166,7 +167,7 @@ def leads_router(
         """
         try:
             message = await GenerateMessageUseCase(repository, profile_repository, message_port).generate_message(contact_id)
-            return {"message": message}
+            return message
         except Exception as e:
             logger.error(f"Error in generate prospecting message: {e}\n{traceback.format_exc()}")
             raise HTTPException(status_code=500, detail=str(e))

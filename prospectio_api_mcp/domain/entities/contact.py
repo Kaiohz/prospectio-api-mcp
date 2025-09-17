@@ -1,15 +1,11 @@
 from typing import Optional, List
 from pydantic import BaseModel, Field
 
-from domain.entities import job
-from infrastructure.services.enrich_leads_agent.models import job_titles
-
-
 class Contact(BaseModel):
     """
     Represents a business contact with optional fields: name, email, phone, and company name.
     """
-
+    id: Optional[str] = Field(None, description="Unique identifier for the contact")
     company_id: Optional[str] = Field(
         None, description="Name of the company associated with the contact"
     )

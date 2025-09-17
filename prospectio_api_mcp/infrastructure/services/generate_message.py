@@ -1,12 +1,11 @@
 from config import LLMConfig
 from domain.entities.contact import Contact
 from domain.entities.profile import Profile
+from domain.entities.prospect_message import ProspectMessage
 from domain.ports.generate_message import GenerateMessagePort
 from domain.services.prompt_loader import PromptLoader
 from infrastructure.api.llm_client_factory import LLMClientFactory
 from langchain.prompts import PromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-
 from infrastructure.dto.database.company import Company
 
 class GenerateMessageLLM(GenerateMessagePort):
@@ -20,7 +19,7 @@ class GenerateMessageLLM(GenerateMessagePort):
 
     async def get_message(
         self, profile: Profile, contact: Contact, company: Company
-    ) -> str:
+    ) -> ProspectMessage:
         """
         Generate a prospecting message for a profile against a company description.
 
@@ -41,7 +40,7 @@ class GenerateMessageLLM(GenerateMessagePort):
             ],
             template=prompt,
         )
-        chain = template | self.llm_client | StrOutputParser()
+        chain = template | self.llm_client.with_structured_output(ProspectMessage)
         result = await chain.ainvoke(
             {
                 "profile": profile,
@@ -49,4 +48,4 @@ class GenerateMessageLLM(GenerateMessagePort):
                 "company": company,
             }
         )
-        return result
+        return ProspectMessage.model_validate(result)
