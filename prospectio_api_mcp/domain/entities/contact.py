@@ -1,10 +1,6 @@
 from typing import Optional, List
 from pydantic import BaseModel, Field
 
-from domain.entities import job
-from infrastructure.services.enrich_leads_agent.models import job_titles
-
-
 class Contact(BaseModel):
     """
     Represents a business contact with optional fields: name, email, phone, and company name.

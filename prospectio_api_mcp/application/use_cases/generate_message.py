@@ -1,3 +1,4 @@
+from domain.entities.prospect_message import ProspectMessage
 from domain.ports.generate_message import GenerateMessagePort
 from domain.ports.profile_respository import ProfileRepositoryPort
 from domain.ports.leads_repository import LeadsRepositoryPort
@@ -30,7 +31,7 @@ class GenerateMessageUseCase:
 
     async def generate_message(
         self, id: str
-    ) -> str:
+    ) -> ProspectMessage:
         """
         Retrieve data based on the specified type from the repository.
 
