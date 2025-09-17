@@ -4,6 +4,7 @@ import traceback
 from typing import Union
 from fastapi import APIRouter, HTTPException, Path
 from application.requests.insert_leads import InsertLeadsRequest
+from application.use_cases.generate_message import GenerateMessageUseCase
 from application.use_cases.get_leads import GetLeadsUseCase
 from domain.entities.company import CompanyEntity
 from domain.entities.contact import ContactEntity
@@ -11,6 +12,7 @@ from domain.entities.job import JobEntity
 from domain.entities.leads import Leads
 from domain.ports.compatibility_score import CompatibilityScorePort
 from domain.ports.enrich_leads import EnrichLeadsPort
+from domain.ports.generate_message import GenerateMessagePort
 from domain.ports.profile_respository import ProfileRepositoryPort
 from domain.ports.task_manager import TaskManagerPort
 from domain.services.leads.leads_processor import LeadsProcessor
@@ -34,7 +36,8 @@ def leads_router(
     compatibility: CompatibilityScorePort,
     profile_repository: ProfileRepositoryPort,
     enrich_port: EnrichLeadsPort,
-    task_manager: TaskManagerPort
+    message_port: GenerateMessagePort,
+    task_manager: TaskManagerPort,
 ) -> APIRouter:
     """
     Create an APIRouter for company jobs endpoints with injected strategy.
@@ -148,6 +151,24 @@ def leads_router(
             return task
         except Exception as e:
             logger.error(f"Error in get task status: {e}\n{traceback.format_exc()}")
+            raise HTTPException(status_code=500, detail=str(e))
+        
+    @leads_router.get("/generate/message/{contact_id}")
+    async def generate_prospecting_message(contact_id: str) -> dict:
+        """
+        Generate a prospecting message for a contact by its ID.
+
+        Args:
+            id (str): The ID of the contact to generate a message for.
+
+        Returns:
+            str: The generated prospecting message.
+        """
+        try:
+            message = await GenerateMessageUseCase(repository, profile_repository, message_port).generate_message(contact_id)
+            return {"message": message}
+        except Exception as e:
+            logger.error(f"Error in generate prospecting message: {e}\n{traceback.format_exc()}")
             raise HTTPException(status_code=500, detail=str(e))
 
     return leads_router

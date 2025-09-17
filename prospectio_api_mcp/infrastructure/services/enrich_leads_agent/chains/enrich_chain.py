@@ -7,8 +7,6 @@ from infrastructure.services.enrich_leads_agent.models.company_info import Compa
 from infrastructure.services.enrich_leads_agent.models.contact_info import ContactInfo
 import logging
 import traceback
-import re
-
 from infrastructure.services.enrich_leads_agent.models.job_titles import JobTitles
 from infrastructure.services.enrich_leads_agent.models.search_results_model import SearchResultModel
 
