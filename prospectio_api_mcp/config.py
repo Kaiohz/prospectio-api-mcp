@@ -43,6 +43,7 @@ class LLMConfig(BaseSettings):
     MODEL: str = Field(..., json_schema_extra={"env": "MODEL"})
     DECISION_MODEL: str = Field(..., json_schema_extra={"env": "DECISION_MODEL"})
     ENRICH_MODEL: str = Field(..., json_schema_extra={"env": "ENRICH_MODEL"})
+    PROSPECTING_MODEL: str = Field(..., json_schema_extra={"env": "PROSPECTING_MODEL"})
     TEMPERATURE: float = Field(..., json_schema_extra={"env": "TEMPERATURE"})
     OLLAMA_BASE_URL: str = Field(..., json_schema_extra={"env": "OLLAMA_BASE_URL"})
     GOOGLE_API_KEY: str = Field(..., json_schema_extra={"env": "GOOGLE_API_KEY"})

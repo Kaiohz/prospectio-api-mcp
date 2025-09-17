@@ -9,10 +9,10 @@ from domain.entities.compatibility_score import CompatibilityScore
 class CompatibilityScoreLLM(CompatibilityScorePort):
 
     def __init__(self):
-        model = LLMConfig().MODEL
+        model = LLMConfig().MODEL # type: ignore
         self.llm_client = LLMClientFactory(
             model=model,
-            config=LLMConfig(),
+            config=LLMConfig(), # type: ignore
         ).create_client()
 
     async def get_compatibility_score(

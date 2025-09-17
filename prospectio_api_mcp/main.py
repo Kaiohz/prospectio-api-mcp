@@ -7,6 +7,7 @@ from domain.ports import task_manager
 from infrastructure.services.compatibility_score import CompatibilityScoreLLM
 from infrastructure.services.enrich_leads_agent.agent import EnrichLeadsAgent
 from infrastructure.services.enrich_leads_agent.tools.crawl_client import CrawlClient
+from infrastructure.services.generate_message import GenerateMessageLLM
 from infrastructure.services.profile_database import ProfileDatabase
 from application.api.mcp_routes import mcp_prospectio
 from config import ActiveJobsDBConfig, JsearchConfig
@@ -41,6 +42,7 @@ leads_routes = leads_router(
     CompatibilityScoreLLM(),
     ProfileDatabase(DatabaseConfig().DATABASE_URL), # type: ignore
     EnrichLeadsAgent(in_memory_task_manager),
+    GenerateMessageLLM(),
     in_memory_task_manager
 )
 

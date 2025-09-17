@@ -275,6 +275,49 @@ class LeadsDatabase(LeadsRepositoryPort):
                 return ContactEntity(contacts=contacts) # type: ignore
             except Exception as e:
                 raise e
+    
+    async def get_contact_by_id(self, contact_id: str) -> Optional[Contact]:
+        """
+        Retrieve a contact by its ID from the database.
+
+        Args:
+            contact_id (str): The unique identifier of the contact.
+
+        Returns:
+            Optional[Contact]: The contact entity if found, otherwise None.
+        """
+        async with AsyncSession(self.engine) as session:
+            try:
+                result = await session.execute(
+                    select(ContactDB).where(ContactDB.id == contact_id)
+                )
+                contact_db = result.scalars().first()
+                if contact_db:
+                    return self._convert_db_to_contact(contact_db, None, None)
+                return None
+            except Exception as e:
+                raise e
+    
+    async def get_company_by_id(self, company_id: str) -> Optional[Company]:
+        """
+        Retrieve a company by its ID from the database.
+
+        Args:
+            company_id (str): The unique identifier of the company.
+        Returns:
+            Optional[Company]: The company entity if found, otherwise None.
+        """
+        async with AsyncSession(self.engine) as session:
+            try:
+                result = await session.execute(
+                    select(CompanyDB).where(CompanyDB.id == company_id)
+                )
+                company_db = result.scalars().first()
+                if company_db:
+                    return self._convert_db_to_company(company_db)
+                return None
+            except Exception as e:
+                raise e
 
     async def get_leads(
         self,

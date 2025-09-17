@@ -8,6 +8,7 @@ class PromptLoader:
         "company_info": "../prompts/company_info.md",
         "contact_info": "../prompts/contact_info.md",
         "job_titles": "../prompts/job_titles.md",
+        "prospecting_message": "../prompts/prospecting_message.md",
     }
 
     def load_prompt(self, chat_profile: str) -> str:

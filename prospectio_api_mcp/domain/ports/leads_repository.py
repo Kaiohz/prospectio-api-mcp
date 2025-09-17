@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
 from domain.entities.leads import Leads
-from domain.entities.company import CompanyEntity
+from domain.entities.company import CompanyEntity, Company
 from domain.entities.job import JobEntity
-from domain.entities.contact import ContactEntity
+from domain.entities.contact import Contact, ContactEntity
 
 
 class LeadsRepositoryPort(ABC):
@@ -96,6 +96,32 @@ class LeadsRepositoryPort(ABC):
 
         Returns:
             ContactEntity: Domain entity containing list of contacts matching the name and title.
+        """
+        pass
+
+    @abstractmethod
+    async def get_contact_by_id(self, id: str) -> Optional[Contact]:
+        """
+        Retrieve a contact by its ID from the database.
+
+        Args:
+            id (str): The ID of the contact to search for.
+
+        Returns:
+            Optional[ContactEntity]: Domain entity containing the contact details if found, else None.
+        """
+        pass
+
+    @abstractmethod
+    async def get_company_by_id(self, id: str) -> Optional[Company]:
+        """
+        Retrieve a company by its ID from the database.
+
+        Args:
+            id (str): The ID of the company to search for.
+
+        Returns:
+            Optional[CompanyEntity]: Domain entity containing the company details if found, else None.
         """
         pass
 
